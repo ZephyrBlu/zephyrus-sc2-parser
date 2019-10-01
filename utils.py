@@ -1,7 +1,10 @@
 import datetime
 import math
-from events import *
-from game.player import Player
+from zephyrus_sc2_parser.events import (
+    ObjectEvent, AbilityEvent, SelectionEvent, ControlGroupEvent,
+    UpgradeEvent, CameraUpdateEvent, PlayerStatsEvent
+)
+from zephyrus_sc2_parser.game.player import Player
 
 
 def convert_time(windows_time):
@@ -104,25 +107,25 @@ def create_event(game, event, protocol, summary_stats):
     ]
 
     if event['_event'] in object_events:
-        current_event = events.ObjectEvent(protocol, game, event)
+        current_event = ObjectEvent(protocol, summary_stats, game, event)
 
     elif event['_event'] in ability_events:
-        current_event = events.AbilityEvent(summary_stats, game, event)
+        current_event = AbilityEvent(summary_stats, game, event)
 
     elif event['_event'] == 'NNet.Game.SSelectionDeltaEvent':
-        current_event = events.SelectionEvent(game, event)
+        current_event = SelectionEvent(game, event)
 
     elif event['_event'] == 'NNet.Game.SControlGroupUpdateEvent':
-        current_event = events.ControlGroupEvent(game, event)
+        current_event = ControlGroupEvent(game, event)
 
     elif event['_event'] == 'NNet.Replay.Tracker.SUpgradeEvent':
-        current_event = events.UpgradeEvent(game, event)
+        current_event = UpgradeEvent(game, event)
 
     elif event['_event'] == 'NNet.Game.SCameraUpdateEvent':
-        current_event = events.CameraUpdateEvent(game, event)
+        current_event = CameraUpdateEvent(game, event)
 
     elif event['_event'] == 'NNet.Replay.Tracker.SPlayerStatsEvent':
-        current_event = events.PlayerStatsEvent(summary_stats, game, event)
+        current_event = PlayerStatsEvent(summary_stats, game, event)
 
     else:
         current_event = None

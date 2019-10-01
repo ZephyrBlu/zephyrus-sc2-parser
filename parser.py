@@ -3,9 +3,9 @@ import json
 import math
 from s2protocol import versions
 import heapq
-from game.game import Game
-from game.player_state import PlayerState
-from utils import create_event, create_players, convert_time
+from zephyrus_sc2_parser.game.game import Game
+from zephyrus_sc2_parser.game.player_state import PlayerState
+from zephyrus_sc2_parser.utils import create_event, create_players, convert_time
 
 
 def initial_summary_stats(game, metadata, detailed_info):
@@ -26,15 +26,14 @@ def initial_summary_stats(game, metadata, detailed_info):
             'gas': {1: 0, 2: 0}
         },
         'workers_produced': {1: 0, 2: 0},
+        'workers_killed': {1: 0, 2: 0},
         'workers_lost': {1: 0, 2: 0},
         'inject_count': {1: 0, 2: 0},
         'sq': {1: 0, 2: 0},
-        'pac': {
-            'per_min': {1: 0, 2: 0},
-            'avg_action_latency': {1: 0, 2: 0},
-            'avg_actions': {1: 0, 2: 0},
-            'avg_gap': {1: 0, 2: 0},
-        }
+        'avg_pac_per_min': {1: 0, 2: 0},
+        'avg_pac_action_latency': {1: 0, 2: 0},
+        'avg_pac_actions': {1: 0, 2: 0},
+        'avg_pac_gap': {1: 0, 2: 0},
     }
 
     mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
@@ -132,12 +131,19 @@ def parse_replay(filename):
         players,
         game_map,
         played_at,
-        math.floor(game_length/22.4),
+        game_length,
         events,
         protocol
     )
 
     summary_stats = initial_summary_stats(current_game, metadata, detailed_info)
+
+    action_events = [
+        'NNet.Game.SControlGroupUpdateEvent',
+        'NNet.Game.SSelectionDeltaEvent',
+        'NNet.Game.SCmdEvent',
+        'NNet.Game.SCommandManagerStateEvent',
+    ]
 
     current_tick = 0
     for event in events:
@@ -152,6 +158,9 @@ def parse_replay(filename):
 
                 if result:
                     summary_stats = result
+
+                if current_event.type in action_events and current_event.player and current_event.player.current_pac:
+                    current_event.player.current_pac.actions.append(gameloop)
 
                 # 112 = 5sec of game time
                 players.sort()
@@ -185,18 +194,29 @@ def parse_replay(filename):
 
     players_export = {}
     for player in players:
+        summary_stats = player.calc_pac(summary_stats, game_length)
         del player.__dict__['pac_list']
         del player.__dict__['current_pac']
+        del player.__dict__['objects']
+        del player.__dict__['current_selection']
+        del player.__dict__['control_groups']
+        del player.__dict__['active_ability']
+        del player.__dict__['unspent_resources']
+        del player.__dict__['collection_rate']
         players_export[player.player_id] = player
+
+        for p in players:
+            if p.player_id != player.player_id:
+                summary_stats['workers_killed'][p.player_id] = summary_stats['workers_lost'][player.player_id]
 
     metadata_export = {
         'time_played_at': current_game.played_at,
         'map': current_game.map,
-        'game_length': current_game.game_length,
+        'game_length': math.floor(current_game.game_length/22.4),
         'winner': current_game.winner
     }
 
     return players_export, current_game.timeline, summary_stats, metadata_export
 
 
-# main('test_pvt.SC2Replay')
+# parse_replay('test_pvt.SC2Replay')

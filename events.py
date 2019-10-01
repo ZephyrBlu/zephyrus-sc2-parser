@@ -1,7 +1,7 @@
-from game.perception_action_cycle import PerceptionActionCycle
-from game.game_obj import GameObj
-from gamedata.unit_data import units
-from gamedata.building_data import buildings
+from zephyrus_sc2_parser.game.perception_action_cycle import PerceptionActionCycle
+from zephyrus_sc2_parser.game.game_obj import GameObj
+from zephyrus_sc2_parser.gamedata.unit_data import units
+from zephyrus_sc2_parser.gamedata.building_data import buildings
 import math
 import copy
 
@@ -10,7 +10,7 @@ class BaseEvent:
     def __init__(self, game, event):
         self.game = game
         self.event = event
-        self.event_type = event['_event']
+        self.type = event['_event']
         self.player = self._identify_player(game, event)
         self.gameloop = event['_gameloop']
 
@@ -38,9 +38,10 @@ class BaseEvent:
 
 
 class ObjectEvent(BaseEvent):
-    def __init__(self, protocol, *args):
+    def __init__(self, protocol, summary_stats, *args):
         super().__init__(*args)
         self.protocol = protocol
+        self.summary_stats = summary_stats
 
     def _get_or_create_game_object(self):
         event = self.event
@@ -102,7 +103,7 @@ class ObjectEvent(BaseEvent):
             # print(group_num, index)
             # print(ctrl_group)
             # print(self.event)
-            remove = ctrl_group[index]
+            # remove = ctrl_group[index]
             # print(f'{obj.name} being updated')
             # print(f'{remove} deleted @: {index}')
             del ctrl_group[index]
@@ -119,24 +120,28 @@ class ObjectEvent(BaseEvent):
         obj = self._get_or_create_game_object()
         player = self.player
         event = self.event
+        summary_stats = self.summary_stats
         protocol = self.protocol
         gameloop = event['_gameloop']
 
         if not obj:
             return None
 
-        if self.event_type == 'NNet.Replay.Tracker.SUnitInitEvent':
+        if self.type == 'NNet.Replay.Tracker.SUnitInitEvent':
             obj.status = 'in_progress'
 
-        elif self.event_type == 'NNet.Replay.Tracker.SUnitDoneEvent':
+        elif self.type == 'NNet.Replay.Tracker.SUnitDoneEvent':
             obj.birth_time = gameloop
             obj.status = 'live'
 
-        elif self.event_type == 'NNet.Replay.Tracker.SUnitBornEvent':
+        elif self.type == 'NNet.Replay.Tracker.SUnitBornEvent':
             obj.birth_time = gameloop
             obj.status = 'live'
 
-        elif self.event_type == 'NNet.Replay.Tracker.SUnitDiedEvent':
+            if 'worker' in obj.type:
+                summary_stats['workers_produced'][player.player_id] += 1
+
+        elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
             obj.status = 'died'
             obj.death_time = gameloop
 
@@ -149,7 +154,7 @@ class ObjectEvent(BaseEvent):
                     if obj_killer_id in p.objects:
                         obj.killed_by = p.objects[obj_killer_id]
 
-        elif self.event_type == 'NNet.Replay.Tracker.SUnitTypeChangeEvent':
+        elif self.type == 'NNet.Replay.Tracker.SUnitTypeChangeEvent':
             new_obj_name = event['m_unitTypeName'].decode('utf-8')
             if new_obj_name in units[player.race]:
                 new_obj_info = units[player.race][new_obj_name]
@@ -188,7 +193,7 @@ class AbilityEvent(BaseEvent):
         event = self.event
         summary_stats = self.summary_stats
 
-        if self.event_type == 'NNet.Game.SCmdEvent':
+        if self.type == 'NNet.Game.SCmdEvent':
             if event['m_abil']:
                 if event['m_abil']['m_abilLink'] and event['m_abil']['m_abilCmdIndex']:
                     ability = (
@@ -713,35 +718,37 @@ class CameraUpdateEvent(BaseEvent):
         super().__init__(*args)
 
     def parse_event(self):
-        player = self.player
-        position = (self.event['m_target']['x'], self.event['m_target']['y'])
-        gameloop = self.event['_gameloop']
-        if self.player.current_pac:
-            current_pac = self.player.current_pac
-            # If current PAC is still within camera bounds, count action
-            if current_pac.check_position(position):
-                current_pac.camera_moves.append((gameloop, position))
+        if self.event['m_target']:
+            player = self.player
+            position = (self.event['m_target']['x'], self.event['m_target']['y'])
+            gameloop = self.event['_gameloop']
 
-            # If current PAC is out of camera bounds
-            # and meets min duration, save it
-            elif current_pac.check_duration(gameloop):
-                current_pac.final_camera_position = position
-                current_pac.final_gameloop = gameloop
+            if self.player.current_pac:
+                current_pac = self.player.current_pac
+                # If current PAC is still within camera bounds, count action
+                if current_pac.check_position(position):
+                    current_pac.camera_moves.append((gameloop, position))
 
-                if current_pac.actions:
-                    player.pac_list.append(current_pac)
-                player.current_pac = PerceptionActionCycle(position, gameloop)
-                player.current_pac.camera_moves.append((gameloop, position))
+                # If current PAC is out of camera bounds
+                # and meets min duration, save it
+                elif current_pac.check_duration(gameloop):
+                    current_pac.final_camera_position = position
+                    current_pac.final_gameloop = gameloop
 
-            # If current PAC is out of camera bounds
-            # and does not meet min duration,
-            # discard current PAC and create new one
+                    if current_pac.actions:
+                        player.pac_list.append(current_pac)
+                    player.current_pac = PerceptionActionCycle(position, gameloop)
+                    player.current_pac.camera_moves.append((gameloop, position))
+
+                # If current PAC is out of camera bounds
+                # and does not meet min duration,
+                # discard current PAC and create new one
+                else:
+                    player.current_pac = PerceptionActionCycle(position, gameloop)
+                    player.current_pac.camera_moves.append((gameloop, position))
             else:
                 player.current_pac = PerceptionActionCycle(position, gameloop)
                 player.current_pac.camera_moves.append((gameloop, position))
-        else:
-            player.current_pac = PerceptionActionCycle(position, gameloop)
-            player.current_pac.camera_moves.append((gameloop, position))
 
 
 class PlayerStatsEvent(BaseEvent):
@@ -773,35 +780,35 @@ class PlayerStatsEvent(BaseEvent):
             )
 
         if gameloop == self.game.game_length:
-            summary_stats['resources_lost']['minerals'] = event['m_stats']['m_scoreValueMineralsLostArmy']
-            summary_stats['resources_lost']['gas'] = event['m_stats']['m_scoreValueVespeneLostArmy']
+            summary_stats['resources_lost']['minerals'][player.player_id] = event['m_stats']['m_scoreValueMineralsLostArmy']
+            summary_stats['resources_lost']['gas'][player.player_id] = event['m_stats']['m_scoreValueVespeneLostArmy']
 
-            player_minerals = unspent_resources['minerals']
-            player_gas = unspent_resources['gas']
-            summary_stats['avg_unspent_resources']['minerals'] = round(
+            player_minerals = player.unspent_resources['minerals']
+            player_gas = player.unspent_resources['gas']
+            summary_stats['avg_unspent_resources']['minerals'][player.player_id] = round(
                 sum(player_minerals)/len(player_minerals), 1
             )
-            summary_stats['avg_unspent_resources']['gas'] = round(
+            summary_stats['avg_unspent_resources']['gas'][player.player_id] = round(
                 sum(player_gas)/len(player_gas), 1
             )
 
-            player_minerals_collection = collection_rate['minerals']
-            player_gas_collection = collection_rate['gas']
-            summary_stats['avg_resource_collection_rate']['minerals'] = round(
+            player_minerals_collection = player.collection_rate['minerals']
+            player_gas_collection = player.collection_rate['gas']
+            summary_stats['avg_resource_collection_rate']['minerals'][player.player_id] = round(
                 sum(player_minerals_collection)/len(player_minerals_collection), 1
             )
-            summary_stats['avg_resource_collection_rate']['gas'] = round(
+            summary_stats['avg_resource_collection_rate']['gas'][player.player_id] = round(
                 sum(player_gas_collection)/len(player_gas_collection), 1
             )
 
-            total_collection_rate = summary_stats['avg_resource_collection_rate']['minerals'][event['m_playerId']] + summary_stats['avg_resource_collection_rate']['gas'][event['m_playerId']]
-            total_avg_unspent = summary_stats['avg_unspent_resources']['minerals'][event['m_playerId']] + summary_stats['avg_unspent_resources']['gas'][event['m_playerId']]
+            total_collection_rate = summary_stats['avg_resource_collection_rate']['minerals'][player.player_id] + summary_stats['avg_resource_collection_rate']['gas'][player.player_id]
+            total_avg_unspent = summary_stats['avg_unspent_resources']['minerals'][player.player_id] + summary_stats['avg_unspent_resources']['gas'][player.player_id]
             player_sq = player.calc_sq(unspent_resources=total_avg_unspent, collection_rate=total_collection_rate)
-            summary_stats['sq'] = player_sq
+            summary_stats['sq'][player.player_id] = player_sq
 
             current_workers = event['m_stats']['m_scoreValueWorkersActiveCount']
-            workers_produced = summary_stats['workers_produced']
-            summary_stats['workers_lost'] = workers_produced + 12 - current_workers
+            workers_produced = summary_stats['workers_produced'][player.player_id]
+            summary_stats['workers_lost'][player.player_id] = workers_produced + 12 - current_workers
 
         return summary_stats
 

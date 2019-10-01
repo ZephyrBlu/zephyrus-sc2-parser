@@ -63,11 +63,12 @@ class Player:
         else:
             avg_pac_gap = 0
 
-        summary_stats['pac']['per_min'][self.player_id] = round(pac_per_min, 2)
-        summary_stats['pac']['avg_action_latency'][self.player_id] = round(avg_pac_action_latency, 2)
-        summary_stats['pac']['avg_actions'][self.player_id] = round(avg_actions_per_pac, 2)
-        summary_stats['pac']['avg_gap'][self.player_id] = round(avg_pac_gap, 2)
+        summary_stats['avg_pac_per_min'][self.player_id] = round(pac_per_min, 2)
+        summary_stats['avg_pac_action_latency'][self.player_id] = round(avg_pac_action_latency, 2)
+        summary_stats['avg_pac_actions'][self.player_id] = round(avg_actions_per_pac, 2)
+        summary_stats['avg_pac_gap'][self.player_id] = round(avg_pac_gap, 2)
+        return summary_stats
 
-    def calc_sq(*, unspent_resources, collection_rate):
+    def calc_sq(self, *, unspent_resources, collection_rate):
         sq = math.ceil(35 * (0.00137 * collection_rate - math.log(unspent_resources if unspent_resources > 0 else 1)) + 240)
         return sq

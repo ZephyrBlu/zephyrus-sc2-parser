@@ -1,6 +1,3 @@
-import copy
-
-
 class PlayerState:
     def __init__(self, player, gameloop):
         self.player = player

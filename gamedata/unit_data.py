@@ -131,6 +131,7 @@ units = {
         'Phoenix': {
             'obj_id': [100],
             'priority': 81,
+            'type': ['unit'],
             'mineral_cost': 150,
             'gas_cost': 100,
             'supply': 2,
