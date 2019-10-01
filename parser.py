@@ -167,12 +167,12 @@ def parse_replay(filename):
                 if gameloop >= current_tick or gameloop == game_length:
                     player1_state = PlayerState(
                         players[0],
-                        gameloop
+                        gameloop,
                     )
 
                     player2_state = PlayerState(
                         players[1],
-                        gameloop
+                        gameloop,
                     )
 
                     current_game.state.append((player1_state, player2_state))
