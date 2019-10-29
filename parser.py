@@ -75,7 +75,15 @@ def setup(filename):
     # getting correct game version and protocol
     contents = archive.header['user_data_header']['content']
 
-    header = versions.latest().decode_replay_header(contents)
+    header = None
+
+    for i in range(0, 5):
+        try:
+            header = versions.latest().decode_replay_header(contents)
+            if header:
+                break
+        except Exception as error:
+            print(f'{error} occured')
 
     base_build = header['m_version']['m_baseBuild']
     protocol = versions.build(base_build)

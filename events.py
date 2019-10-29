@@ -23,6 +23,9 @@ class BaseEvent:
         if event['_event'] in no_player:
             return False
 
+        if game is None:
+            return None
+
         for player in game.players:
             if 'm_controlPlayerId' in event:
                 if player.player_id == event['m_controlPlayerId']:
