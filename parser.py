@@ -227,4 +227,4 @@ def parse_replay(filename):
     return players_export, current_game.timeline, summary_stats, metadata_export
 
 
-# parse_replay('failed.SC2Replay')
+# parse_replay('test_pvt.SC2Replay')

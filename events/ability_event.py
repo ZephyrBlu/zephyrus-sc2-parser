@@ -13,7 +13,7 @@ class AbilityEvent(BaseEvent):
 
         if self.type == 'NNet.Game.SCmdEvent':
             if event['m_abil']:
-                if event['m_abil']['m_abilLink'] and event['m_abil']['m_abilCmdIndex']:
+                if event['m_abil']['m_abilLink'] and type(event['m_abil']['m_abilCmdIndex']) is int:
                     ability = (
                         event['m_abil']['m_abilLink'],
                         event['m_abil']['m_abilCmdIndex']
