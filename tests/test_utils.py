@@ -33,6 +33,7 @@ player_id_assignment_testdata = [
     ),
 ]
 
+
 @pytest.mark.parametrize("players, expected_players", player_id_assignment_testdata)
 def test_create_players_player_id_assignment(players, expected_players):
     if len(players) == 1:
@@ -52,63 +53,63 @@ def test_create_players_player_id_assignment(players, expected_players):
         print("Player ID was set correctly")
 
 
-# mock_event = {'_event': None, '_gameloop': None}
-# event_identification_testdata = [
-#     ('NNet.Replay.Tracker.SUnitInitEvent', ObjectEvent(None, None, None, mock_event)),
-#     ('NNet.Replay.Tracker.SUnitDoneEvent', ObjectEvent(None, None, None, mock_event)),
-#     ('NNet.Replay.Tracker.SUnitBornEvent', ObjectEvent(None, None, None, mock_event)),
-#     ('NNet.Replay.Tracker.SUnitDiedEvent', ObjectEvent(None, None, None, mock_event)),
-#     ('NNet.Replay.Tracker.SUnitTypeChangeEvent', ObjectEvent(None, None, None, mock_event)),
-#     ('NNet.Game.SCmdEvent', AbilityEvent(None, None, mock_event)),
-#     ('NNet.Game.SCommandManagerStateEvent', AbilityEvent(None, None, mock_event)),
-#     ('NNet.Game.SSelectionDeltaEvent', SelectionEvent(None, mock_event)),
-#     ('NNet.Game.SControlGroupUpdateEvent', ControlGroupEvent(None, mock_event)),
-#     ('NNet.Replay.Tracker.SUpgradeEvent', UpgradeEvent(None, mock_event)),
-#     ('NNet.Game.SCameraUpdateEvent', CameraUpdateEvent(None, mock_event)),
-#     ('NNet.Replay.Tracker.SPlayerStatsEvent', PlayerStatsEvent(None, None, mock_event)),
-#     ('Not a captured event', None),
-# ]
+mock_event = {'_event': None, '_gameloop': None}
+event_identification_testdata = [
+    ('NNet.Replay.Tracker.SUnitInitEvent', ObjectEvent(None, None, None, mock_event)),
+    ('NNet.Replay.Tracker.SUnitDoneEvent', ObjectEvent(None, None, None, mock_event)),
+    ('NNet.Replay.Tracker.SUnitBornEvent', ObjectEvent(None, None, None, mock_event)),
+    ('NNet.Replay.Tracker.SUnitDiedEvent', ObjectEvent(None, None, None, mock_event)),
+    ('NNet.Replay.Tracker.SUnitTypeChangeEvent', ObjectEvent(None, None, None, mock_event)),
+    ('NNet.Game.SCmdEvent', AbilityEvent(None, None, mock_event)),
+    ('NNet.Game.SCommandManagerStateEvent', AbilityEvent(None, None, mock_event)),
+    ('NNet.Game.SSelectionDeltaEvent', SelectionEvent(None, mock_event)),
+    ('NNet.Game.SControlGroupUpdateEvent', ControlGroupEvent(None, mock_event)),
+    ('NNet.Replay.Tracker.SUpgradeEvent', UpgradeEvent(None, mock_event)),
+    ('NNet.Game.SCameraUpdateEvent', CameraUpdateEvent(None, mock_event)),
+    ('NNet.Replay.Tracker.SPlayerStatsEvent', PlayerStatsEvent(None, None, mock_event)),
+    ('Not a captured event', None),
+]
 
-# @pytest.mark.parametrize("event_type, expected_event", event_identification_testdata)
-# def test_create_event_event_identification(event_type, expected_event):
-#     mock_event = {'_event': None, '_gameloop': None}
 
-#     object_events = [
-#         'NNet.Replay.Tracker.SUnitInitEvent',
-#         'NNet.Replay.Tracker.SUnitDoneEvent',
-#         'NNet.Replay.Tracker.SUnitBornEvent',
-#         'NNet.Replay.Tracker.SUnitDiedEvent',
-#         'NNet.Replay.Tracker.SUnitTypeChangeEvent'
-#     ]
+@pytest.mark.parametrize("event_type, expected_event", event_identification_testdata)
+def test_create_event_event_identification(event_type, expected_event):
+    mock_event = {'_event': None, '_gameloop': None}
 
-#     ability_events = [
-#         'NNet.Game.SCmdEvent',
-#         'NNet.Game.SCommandManagerStateEvent'
-#     ]
+    object_events = [
+        'NNet.Replay.Tracker.SUnitInitEvent',
+        'NNet.Replay.Tracker.SUnitDoneEvent',
+        'NNet.Replay.Tracker.SUnitBornEvent',
+        'NNet.Replay.Tracker.SUnitDiedEvent',
+        'NNet.Replay.Tracker.SUnitTypeChangeEvent'
+    ]
 
-#     if event_type in object_events:
-#         current_event = ObjectEvent(None, None, None, mock_event)
+    ability_events = [
+        'NNet.Game.SCmdEvent',
+        'NNet.Game.SCommandManagerStateEvent'
+    ]
 
-#     elif event_type in ability_events:
-#         current_event = AbilityEvent(None, None, mock_event)
+    if event_type in object_events:
+        current_event = ObjectEvent(None, None, None, mock_event)
 
-#     elif event_type == 'NNet.Game.SSelectionDeltaEvent':
-#         current_event = SelectionEvent(None, mock_event)
+    elif event_type in ability_events:
+        current_event = AbilityEvent(None, None, mock_event)
 
-#     elif event_type == 'NNet.Game.SControlGroupUpdateEvent':
-#         current_event = ControlGroupEvent(None, mock_event)
+    elif event_type == 'NNet.Game.SSelectionDeltaEvent':
+        current_event = SelectionEvent(None, mock_event)
 
-#     elif event_type == 'NNet.Replay.Tracker.SUpgradeEvent':
-#         current_event = UpgradeEvent(None, mock_event)
+    elif event_type == 'NNet.Game.SControlGroupUpdateEvent':
+        current_event = ControlGroupEvent(None, mock_event)
 
-#     elif event_type == 'NNet.Game.SCameraUpdateEvent':
-#         current_event = CameraUpdateEvent(None, mock_event)
+    elif event_type == 'NNet.Replay.Tracker.SUpgradeEvent':
+        current_event = UpgradeEvent(None, mock_event)
 
-#     elif event_type == 'NNet.Replay.Tracker.SPlayerStatsEvent':
-#         current_event = PlayerStatsEvent(None, None, mock_event)
+    elif event_type == 'NNet.Game.SCameraUpdateEvent':
+        current_event = CameraUpdateEvent(None, mock_event)
 
-#     else:
-#         current_event = None
+    elif event_type == 'NNet.Replay.Tracker.SPlayerStatsEvent':
+        current_event = PlayerStatsEvent(None, None, mock_event)
 
-#     assert type(current_event) == type(expected_event), f"Event does not match expected for {event_type} event"
+    else:
+        current_event = None
 
+    assert type(current_event) == type(expected_event), f"Event does not match expected for {event_type} event"

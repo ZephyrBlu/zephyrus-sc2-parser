@@ -13,6 +13,7 @@ validate_player_rating_testdata = [
     ([{'m_scaledRating': 1000}, {'m_scaledRating': 'abc'}], False),
 ]
 
+
 @pytest.mark.parametrize("mmr_data, expected", validate_player_rating_testdata)
 def test_summary_stats_get_player_rating(mmr_data, expected):
 
@@ -52,7 +53,7 @@ def test_summary_stats_get_player_rating(mmr_data, expected):
 parse_replay_testdata = [
     (ValueError, 'unreadable header'),
     (ImportError, 'unsupported protocol'),
-    (KeyError, 'unreadable file info'),    
+    (KeyError, 'unreadable file info'),
 ]
 
 # get real files that cause these failures for testing?
