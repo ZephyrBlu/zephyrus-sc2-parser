@@ -1,9 +1,6 @@
 import datetime
 import math
-from zephyrus_sc2_parser.events import (
-    ObjectEvent, AbilityEvent, SelectionEvent, ControlGroupEvent,
-    UpgradeEvent, CameraUpdateEvent, PlayerStatsEvent
-)
+from zephyrus_sc2_parser.events import *
 from zephyrus_sc2_parser.game.player import Player
 
 
