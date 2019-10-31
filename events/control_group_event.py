@@ -17,8 +17,8 @@ class ControlGroupEvent(BaseEvent):
 
         for index, obj in enumerate(ctrl_group):
             for group_num, group_info in obj.control_groups.items():
-                if index == group_num:
-                    del obj.control_groups[index]
+                if ctrl_group_num == group_num and index == group_info:
+                    del obj.control_groups[group_num]
                     break
 
     def _copy_from_selection(self, target, selection):
