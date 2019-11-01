@@ -33,8 +33,8 @@ class PlayerStatsEvent(BaseEvent):
             summary_stats['resources_lost']['minerals'][player.player_id] = event['m_stats']['m_scoreValueMineralsLostArmy']
             summary_stats['resources_lost']['gas'][player.player_id] = event['m_stats']['m_scoreValueVespeneLostArmy']
 
-            player_minerals = player.unspent_resources['minerals']
-            player_gas = player.unspent_resources['gas']
+            player_minerals = unspent_resources['minerals']
+            player_gas = unspent_resources['gas']
             summary_stats['avg_unspent_resources']['minerals'][player.player_id] = round(
                 sum(player_minerals)/len(player_minerals), 1
             )
@@ -42,8 +42,8 @@ class PlayerStatsEvent(BaseEvent):
                 sum(player_gas)/len(player_gas), 1
             )
 
-            player_minerals_collection = player.collection_rate['minerals']
-            player_gas_collection = player.collection_rate['gas']
+            player_minerals_collection = collection_rate['minerals']
+            player_gas_collection = collection_rate['gas']
             summary_stats['avg_resource_collection_rate']['minerals'][player.player_id] = round(
                 sum(player_minerals_collection)/len(player_minerals_collection), 1
             )
