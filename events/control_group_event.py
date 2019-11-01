@@ -57,7 +57,7 @@ class ControlGroupEvent(BaseEvent):
         final_bitmask = ''.join(bitmask_sects)
 
         if len(final_bitmask) > length:
-            final_bitmask = final_bitmask[:length + 1]
+            final_bitmask = final_bitmask[:length]
         else:
             final_bitmask = final_bitmask.ljust(length, '0')
 
