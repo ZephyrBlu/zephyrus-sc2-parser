@@ -11,7 +11,10 @@ class AbilityEvent(BaseEvent):
         event = self.event
         summary_stats = self.summary_stats
 
-        if self.type == 'NNet.Game.SCmdEvent':
+        if not player:
+            return
+
+        elif self.type == 'NNet.Game.SCmdEvent':
             if event['m_abil']:
                 if event['m_abil']['m_abilLink'] and type(event['m_abil']['m_abilCmdIndex']) is int:
                     ability = (

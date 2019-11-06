@@ -80,27 +80,26 @@ def setup(filename):
     for i in range(0, 5):
         try:
             header = versions.latest().decode_replay_header(contents)
-            if header:
-                break
+
+            base_build = header['m_version']['m_baseBuild']
+            protocol = versions.build(base_build)
+
+            # accessing neccessary parts of file for data
+            contents = archive.read_file('replay.tracker.events')
+            details = archive.read_file('replay.details')
+            gameInfo = archive.read_file('replay.game.events')
+            init_data = archive.read_file('replay.initData')
+
+            metadata = json.loads(archive.read_file('replay.gamemetadata.json'))
+
+            # translating data into dict format info
+            game_events = protocol.decode_replay_game_events(gameInfo)
+            player_info = protocol.decode_replay_details(details)
+            tracker_events = protocol.decode_replay_tracker_events(contents)
+            detailed_info = protocol.decode_replay_initdata(init_data)
+            break
         except Exception as error:
             print(f'{error} occured')
-
-    base_build = header['m_version']['m_baseBuild']
-    protocol = versions.build(base_build)
-
-    # accessing neccessary parts of file for data
-    contents = archive.read_file('replay.tracker.events')
-    details = archive.read_file('replay.details')
-    gameInfo = archive.read_file('replay.game.events')
-    init_data = archive.read_file('replay.initData')
-
-    metadata = json.loads(archive.read_file('replay.gamemetadata.json'))
-
-    # translating data into dict format info
-    game_events = protocol.decode_replay_game_events(gameInfo)
-    player_info = protocol.decode_replay_details(details)
-    tracker_events = protocol.decode_replay_tracker_events(contents)
-    detailed_info = protocol.decode_replay_initdata(init_data)
 
     # all info is returned as generators
     #
@@ -125,16 +124,20 @@ def parse_replay(filename):
         players = create_players(player_info, events)
     except ValueError as error:
         print('A ValueError occured:', error, 'unreadable header')
-        return None, None, None
+        return None, None, None, None
     except ImportError as error:
         print('An ImportError occured:', error, 'unsupported protocol')
-        return None, None, None
+        return None, None, None, None
     except KeyError as error:
         print('A KeyError error occured:', error, 'unreadable file info')
-        return None, None, None
+        return None, None, None, None
 
     game_map = player_info['m_title'].decode('utf-8')
     played_at = convert_time(player_info['m_timeUTC'])
+
+    if not players:
+        return None, None, None, None
+
     current_game = Game(
         players,
         game_map,

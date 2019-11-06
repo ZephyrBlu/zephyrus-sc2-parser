@@ -12,7 +12,10 @@ class CameraUpdateEvent(BaseEvent):
             position = (self.event['m_target']['x'], self.event['m_target']['y'])
             gameloop = self.event['_gameloop']
 
-            if self.player.current_pac:
+            if not player:
+                return
+
+            elif self.player.current_pac:
                 current_pac = self.player.current_pac
                 # If current PAC is still within camera bounds, count action
                 if current_pac.check_position(position):

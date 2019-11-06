@@ -11,6 +11,10 @@ class PlayerStatsEvent(BaseEvent):
         gameloop = self.event['_gameloop']
         event = self.event
         summary_stats = self.summary_stats
+
+        if not player:
+            return
+
         unspent_resources = self.player.unspent_resources
         collection_rate = self.player.collection_rate
 

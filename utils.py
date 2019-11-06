@@ -49,9 +49,35 @@ def create_players(player_info, events):
 
     # if only one player then playerID is always 0
     if len(players) == 1:
+        # player_obj = min(players, key=lambda x: x.player_id)
+        # player_obj.player_id = events[setup_index]['m_playerId']
+        # player_obj.user_id = events[setup_index]['m_userId']
+        return None
+
+    # if both user_id's larger than 2 then lowest user_id first, the largest
+    elif min(players) > 2:
         player_obj = min(players, key=lambda x: x.player_id)
         player_obj.player_id = events[setup_index]['m_playerId']
         player_obj.user_id = events[setup_index]['m_userId']
+
+        player_obj = max(players, key=lambda x: x.player_id)
+        player_obj.player_id = events[setup_index+1]['m_playerId']
+        player_obj.user_id = events[setup_index+1]['m_userId']
+
+    # if both user_id's under 2 then the largest is set as 2 and the smallest is set as 1
+    # specifically in that order to prevent assignment conflicts
+    elif max(players) < 2:
+        player_obj = max(players, key=lambda x: x.player_id)
+        player_obj.player_id = events[setup_index+1]['m_playerId']
+        player_obj.user_id = events[setup_index+1]['m_userId']
+
+        player_obj = min(players, key=lambda x: x.player_id)
+        player_obj.player_id = events[setup_index]['m_playerId']
+        player_obj.user_id = events[setup_index]['m_userId']
+
+    # else specific numbers don't matter and smallest user_id correlates to playerID of 1
+    # and largest user_id correlates to playerID of 2
+    # not sure if I need this
     else:
         player_obj = min(players, key=lambda x: x.player_id)
         player_obj.player_id = events[setup_index]['m_playerId']

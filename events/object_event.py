@@ -92,7 +92,7 @@ class ObjectEvent(BaseEvent):
         protocol = self.protocol
         gameloop = event['_gameloop']
 
-        if not obj:
+        if not obj or not player:
             return None
 
         if self.type == 'NNet.Replay.Tracker.SUnitInitEvent':
