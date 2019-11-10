@@ -21,6 +21,8 @@ class PlayerState:
                 'gas': self.player.collection_rate['gas'][-1],
             }
 
+            total_collection_rate = self.player.collection_rate['minerals'][-1] + self.player.collection_rate['gas'][-1]
+
             unspent_resources = {
                 'minerals': self.player.unspent_resources['minerals'][-1],
                 'gas': self.player.unspent_resources['gas'][-1],
@@ -30,9 +32,22 @@ class PlayerState:
             'gameloop': self.gameloop,
             'resource_collection_rate': collection_rate,
             'unspent_resources': unspent_resources,
+            'resource_collection_rate_all': total_collection_rate,
             'unit': {},
             'building': {},
-            'current_selection': {}
+            'current_selection': {},
+            'workers_active': 0,
+            'workers_killed': 0,
+            'army_value': {
+                'minerals': 0,
+                'gas': 0,
+            },
+            'resources_lost': {
+                'minerals': 0,
+                'gas': 0,
+            },
+            'total_army_value': 0,
+            'total_resources_lost': 0,
         }
 
         for obj in self.player.objects.values():
@@ -52,8 +67,24 @@ class PlayerState:
                         }
 
                     object_summary[obj_type][obj.name][obj.status] += 1
-            if worker and 'worker' not in object_summary['unit'][obj.name]['type']:
-                object_summary['unit'][obj.name]['type'].append('worker')
+            if worker:
+                if obj.status == 'live':
+                    object_summary['workers_active'] += 1
+                elif obj.status == 'died':
+                    object_summary['workers_killed'] += 1
+
+                if 'worker' not in object_summary['unit'][obj.name]['type']:
+                    object_summary['unit'][obj.name]['type'].append('worker')
+
+            if 'unit' in object_summary['unit'][obj.name]['type'] and 'worker' not in object_summary['unit'][obj.name]['type']:
+                if obj.status == 'live':
+                    object_summary['army_value']['minerals'] += obj.mineral_cost
+                    object_summary['army_value']['gas'] += obj.gas_cost
+                    object_summary['total_army_value'] += obj.mineral_cost + obj.gas_cost
+                elif obj.status == 'died':
+                    object_summary['resources_lost']['minerals'] += obj.mineral_cost
+                    object_summary['resources_lost']['gas'] += obj.gas_cost
+                    object_summary['total_resources_lost'] += obj.mineral_cost + obj.gas_cost
 
         for obj in self.player.current_selection:
             if obj.name not in object_summary['current_selection']:
