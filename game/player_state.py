@@ -11,6 +11,8 @@ class PlayerState:
                 'gas': 0,
             }
 
+            total_collection_rate = 0
+
             unspent_resources = {
                 'minerals': 0,
                 'gas': 0,
@@ -76,7 +78,7 @@ class PlayerState:
                 if 'worker' not in object_summary['unit'][obj.name]['type']:
                     object_summary['unit'][obj.name]['type'].append('worker')
 
-            if 'unit' in object_summary['unit'][obj.name]['type'] and 'worker' not in object_summary['unit'][obj.name]['type']:
+            elif 'unit' in obj.type:
                 if obj.status == 'live':
                     object_summary['army_value']['minerals'] += obj.mineral_cost
                     object_summary['army_value']['gas'] += obj.gas_cost
