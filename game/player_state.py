@@ -37,6 +37,7 @@ class PlayerState:
             'resource_collection_rate_all': total_collection_rate,
             'unit': {},
             'building': {},
+            'upgrade': [],
             'current_selection': {},
             'workers_active': 0,
             'workers_killed': 0,
@@ -51,6 +52,9 @@ class PlayerState:
             'total_army_value': 0,
             'total_resources_lost': 0,
         }
+
+        for upg in self.player.upgrades:
+            object_summary['upgrade'].append(upg)
 
         for obj in self.player.objects.values():
             worker = False

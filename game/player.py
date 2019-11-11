@@ -11,6 +11,7 @@ class Player:
         self.region_id = region_id
         self.realm_id = realm_id
         self.objects = {}
+        self.upgrades = []
         self.current_selection = []
         self.control_groups = {}
         self.active_ability = None
