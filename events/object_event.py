@@ -74,7 +74,7 @@ class ObjectEvent(BaseEvent):
             # remove = ctrl_group[index]
             # print(f'{obj.name} being updated')
             # print(f'{remove} deleted @: {index}')
-            if len(ctrl_group) - 1 <= index:
+            if len(ctrl_group) - 1 >= index:
                 del ctrl_group[index]
 
             ctrl_group.append(obj)
