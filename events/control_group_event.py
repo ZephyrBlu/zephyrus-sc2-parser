@@ -1,4 +1,4 @@
-from zephyrus_sc2_parser.events.base_event import BaseEvent
+from .base_event import BaseEvent
 import math
 
 
@@ -159,7 +159,11 @@ class ControlGroupEvent(BaseEvent):
 
         if event['m_controlGroupUpdate'] == 2:
             player.current_selection = []
-            control_group = player.control_groups[ctrl_group_num]
+
+            if ctrl_group_num in player.control_groups:
+                control_group = player.control_groups[ctrl_group_num]
+            else:
+                control_group = []
             self._copy_from_selection(player.current_selection, control_group)
 
         if event['m_controlGroupUpdate'] == 3:
