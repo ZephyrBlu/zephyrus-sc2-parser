@@ -167,8 +167,9 @@ class ControlGroupEvent(BaseEvent):
             self._copy_from_selection(player.current_selection, control_group)
 
         if event['m_controlGroupUpdate'] == 3:
-            self._remove_obj_group_info(ctrl_group_num)
-            del player.control_groups[ctrl_group_num]
+            if ctrl_group_num in player.control_groups:
+                self._remove_obj_group_info(ctrl_group_num)
+                del player.control_groups[ctrl_group_num]
 
         if event['m_controlGroupUpdate'] == 4:
             player.control_groups[ctrl_group_num] = []
