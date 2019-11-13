@@ -3,9 +3,9 @@ import json
 import math
 from s2protocol import versions
 import heapq
-from .game.game import Game
-from .game.player_state import PlayerState
-from .utils import create_event, create_players, convert_time
+from zephyrus_sc2_parser.game.game import Game
+from zephyrus_sc2_parser.game.player_state import PlayerState
+from zephyrus_sc2_parser.utils import create_event, create_players, convert_time
 
 
 def initial_summary_stats(game, metadata, detailed_info):

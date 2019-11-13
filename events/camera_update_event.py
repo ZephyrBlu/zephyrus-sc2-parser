@@ -1,5 +1,5 @@
-from .base_event import BaseEvent
-from ..game.perception_action_cycle import PerceptionActionCycle
+from zephyrus_sc2_parser.events.base_event import BaseEvent
+from zephyrus_sc2_parser.game.perception_action_cycle import PerceptionActionCycle
 
 
 class CameraUpdateEvent(BaseEvent):

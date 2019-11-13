@@ -1,7 +1,7 @@
-from .base_event import BaseEvent
-from ..game.game_obj import GameObj
-from ..gamedata.unit_data import units
-from ..gamedata.building_data import buildings
+from zephyrus_sc2_parser.events.base_event import BaseEvent
+from zephyrus_sc2_parser.game.game_obj import GameObj
+from zephyrus_sc2_parser.gamedata.unit_data import units
+from zephyrus_sc2_parser.gamedata.building_data import buildings
 import copy
 
 
