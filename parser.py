@@ -1,14 +1,15 @@
 import mpyq
 import json
 import math
-from s2protocol import versions
+from .s2protocol_fixed import versions
 import heapq
 from zephyrus_sc2_parser.game.game import Game
 from zephyrus_sc2_parser.game.player_state import PlayerState
 from zephyrus_sc2_parser.utils import create_event, create_players, convert_time
+import logging
 
 
-def initial_summary_stats(game, metadata, detailed_info):
+def initial_summary_stats(game, metadata, detailed_info, local=False):
     summary_stats = {
         'mmr': {1: 0, 2: 0},
         'mmr_diff': {1: 0, 2: 0},
@@ -37,8 +38,10 @@ def initial_summary_stats(game, metadata, detailed_info):
     }
 
     mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
-    if not mmr_data[0]['m_scaledRating'] or mmr_data[1]['m_scaledRating']:
-        return None
+    if not mmr_data[0]['m_scaledRating'] or not mmr_data[1]['m_scaledRating']:
+        logging.debug('One or more players has no MMR')
+        if not local:
+            return None
 
     ranked_game = False
     player1_mmr = mmr_data[0]['m_scaledRating']
@@ -100,10 +103,11 @@ def setup(filename):
             detailed_info = protocol.decode_replay_initdata(init_data)
             error = False
             break
-        except Exception:
+        except Exception as e:
+            logging.error(f'An error occurred while decoding: {e}')
             pass
-
     if error:
+        logging.critical('Replay could not be decoded')
         return None, None, None, None, None, None
 
     # all info is returned as generators
@@ -123,28 +127,30 @@ def setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename):
+def parse_replay(filename, *, local=False):
     try:
         events, player_info, detailed_info, metadata, game_length, protocol = setup(filename)
 
         if events is None:
+            logging.critical('Aborting replay due to bad decode...')
             return None, None, None, None
 
         players = create_players(player_info, events)
     except ValueError as error:
-        print('A ValueError occured:', error, 'unreadable header')
+        logging.critical('A ValueError occured:', error, 'unreadable header')
         return None, None, None, None
     except ImportError as error:
-        print('An ImportError occured:', error, 'unsupported protocol')
+        logging.critical('An ImportError occured:', error, 'unsupported protocol')
         return None, None, None, None
     except KeyError as error:
-        print('A KeyError error occured:', error, 'unreadable file info')
+        logging.critical('A KeyError error occured:', error, 'unreadable file info')
         return None, None, None, None
 
     game_map = player_info['m_title'].decode('utf-8')
     played_at = convert_time(player_info['m_timeUTC'])
 
     if not players:
+        logging.debug('Aborting replay due to <2 players...')
         return None, None, None, None
 
     current_game = Game(
@@ -156,9 +162,10 @@ def parse_replay(filename):
         protocol
     )
 
-    summary_stats = initial_summary_stats(current_game, metadata, detailed_info)
+    summary_stats = initial_summary_stats(current_game, metadata, detailed_info, local)
 
     if summary_stats is None:
+        logging.debug('Aborting replay due to missing MMR value(s)')
         return None, None, None, None
 
     action_events = [
