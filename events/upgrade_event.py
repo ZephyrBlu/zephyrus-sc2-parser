@@ -1,5 +1,5 @@
-from zephyrus_sc2_parser.events.base_event import BaseEvent
-from zephyrus_sc2_parser.gamedata.upgrade_data import upgrades
+from .base_event import BaseEvent
+from ..gamedata.upgrade_data import upgrades
 
 
 class UpgradeEvent(BaseEvent):

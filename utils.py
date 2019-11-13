@@ -1,7 +1,7 @@
 import datetime
 import math
-from zephyrus_sc2_parser.events import *
-from zephyrus_sc2_parser.game.player import Player
+from .events import *
+from .game.player import Player
 
 
 def convert_time(windows_time):

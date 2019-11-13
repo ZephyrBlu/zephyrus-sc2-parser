@@ -1,4 +1,4 @@
-from zephyrus_sc2_parser.events.base_event import BaseEvent
+from .base_event import BaseEvent
 
 
 class PlayerStatsEvent(BaseEvent):
