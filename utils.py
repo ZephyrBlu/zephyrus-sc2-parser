@@ -2,11 +2,12 @@ import datetime
 import math
 from zephyrus_sc2_parser.events import *
 from zephyrus_sc2_parser.game.player import Player
+import pytz
 
 
 def convert_time(windows_time):
     unix_epoch_time = math.floor(windows_time/10000000)-11644473600
-    replay_datetime = datetime.datetime.fromtimestamp(unix_epoch_time).strftime('%Y-%m-%d %H:%M:%S')
+    replay_datetime = datetime.datetime.fromtimestamp(unix_epoch_time).replace(tzinfo=pytz.utc)
     return replay_datetime
 
 
