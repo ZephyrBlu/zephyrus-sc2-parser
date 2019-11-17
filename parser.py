@@ -37,7 +37,7 @@ def initial_summary_stats(game, metadata, detailed_info):
     }
 
     mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
-    if not mmr_data[1]['m_scaledRating'] or mmr_data[2]['m_scaledRating']:
+    if not mmr_data[0]['m_scaledRating'] or mmr_data[1]['m_scaledRating']:
         return None
 
     ranked_game = False
