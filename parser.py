@@ -37,7 +37,8 @@ def initial_summary_stats(game, metadata, detailed_info):
     }
 
     mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
-    if not mmr_data[1]['m_scaledRating'] or mmr_data[2]['m_scaledRating']:
+
+    if not mmr_data[0]['m_scaledRating'] or not mmr_data[1]['m_scaledRating']:
         return None, None, None
 
     ranked_game = False
@@ -77,6 +78,7 @@ def setup(filename):
 
     header = None
 
+    error = True
     for i in range(0, 5):
         try:
             header = versions.latest().decode_replay_header(contents)
@@ -97,9 +99,13 @@ def setup(filename):
             player_info = protocol.decode_replay_details(details)
             tracker_events = protocol.decode_replay_tracker_events(contents)
             detailed_info = protocol.decode_replay_initdata(init_data)
+            error = False
             break
-        except Exception as error:
-            print(f'{error} occured')
+        except Exception:
+            pass
+
+    if error:
+        return None, None, None, None, None, None
 
     # all info is returned as generators
     #
@@ -121,6 +127,10 @@ def setup(filename):
 def parse_replay(filename):
     try:
         events, player_info, detailed_info, metadata, game_length, protocol = setup(filename)
+
+        if events is None:
+            return None, None, None, None
+
         players = create_players(player_info, events)
     except ValueError as error:
         print('A ValueError occured:', error, 'unreadable header')
@@ -148,6 +158,9 @@ def parse_replay(filename):
     )
 
     summary_stats = initial_summary_stats(current_game, metadata, detailed_info)
+
+    if summary_stats is None:
+        return None, None, None, None
 
     action_events = [
         'NNet.Game.SControlGroupUpdateEvent',

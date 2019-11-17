@@ -4,8 +4,16 @@ import math
 class Player:
     def __init__(self, player_id, profile_id, region_id, realm_id, name, race):
         self.player_id = player_id
-        self.name = name
-        self.race = race
+
+        if type(name) is bytes:
+            self.name = name.decode('utf-8')
+        else:
+            self.name = name
+        if type(name) is bytes:
+            self.race = race.decode('utf-8')
+        else:
+            self.race = race
+
         self.user_id = None
         self.profile_id = profile_id
         self.region_id = region_id
