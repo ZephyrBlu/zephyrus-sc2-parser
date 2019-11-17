@@ -3,6 +3,7 @@ import math
 from .events import *
 from .game.player import Player
 import pytz
+import logging
 
 
 def convert_time(windows_time):
@@ -50,6 +51,7 @@ def create_players(player_info, events):
 
     # if only one player then playerID is always 0
     if len(players) == 1:
+        logging.info('Only one player in the game')
         # player_obj = min(players, key=lambda x: x.player_id)
         # player_obj.player_id = events[setup_index]['m_playerId']
         # player_obj.user_id = events[setup_index]['m_userId']
