@@ -89,11 +89,11 @@ typeinfos = [
     ('_struct',[[('m_color',61,-1)]]),  #62
     ('_array',[(0,4),46]),  #63
     ('_array',[(0,17),6]),  #64
-    ('_array',[(0,13),6]),  #65
+    ('_array',[(0,16),6]),  #65
     ('_array',[(0,3),6]),  #66
     ('_struct',[[('m_key',6,-2),('m_rewards',64,-1)]]),  #67
     ('_array',[(0,17),67]),  #68
-    ('_struct',[[('m_control',10,-27),('m_userId',60,-26),('m_teamId',1,-25),('m_colorPref',62,-24),('m_racePref',44,-23),('m_difficulty',3,-22),('m_aiBuild',10,-21),('m_handicap',0,-20),('m_observe',24,-19),('m_logoIndex',6,-18),('m_hero',46,-17),('m_skin',46,-16),('m_mount',46,-15),('m_artifacts',63,-14),('m_workingSetSlotId',25,-13),('m_rewards',64,-12),('m_toonHandle',20,-11),('m_licenses',65,-10),('m_tandemLeaderId',60,-9),('m_commander',46,-8),('m_commanderLevel',6,-7),('m_hasSilencePenalty',13,-6),('m_tandemId',60,-5),('m_commanderMasteryLevel',6,-4),('m_commanderMasteryTalents',66,-3),('m_trophyId',6,-2),('m_rewardOverrides',68,-1)]]),  #69
+    ('_struct',[[('m_control',10,-31),('m_userId',60,-30),('m_teamId',1,-29),('m_colorPref',62,-28),('m_racePref',44,-27),('m_difficulty',3,-26),('m_aiBuild',10,-25),('m_handicap',0,-24),('m_observe',24,-23),('m_logoIndex',6,-22),('m_hero',46,-21),('m_skin',46,-20),('m_mount',46,-19),('m_artifacts',63,-18),('m_workingSetSlotId',25,-17),('m_rewards',64,-16),('m_toonHandle',20,-15),('m_licenses',65,-14),('m_tandemLeaderId',60,-13),('m_commander',46,-12),('m_commanderLevel',6,-11),('m_hasSilencePenalty',13,-10),('m_tandemId',60,-9),('m_commanderMasteryLevel',6,-8),('m_commanderMasteryTalents',66,-7),('m_trophyId',6,-6),('m_rewardOverrides',68,-5),('m_brutalPlusDifficulty',6,-4),('m_retryMutationIndexes',66,-3),('m_aCEnemyRace',6,-2),('m_aCEnemyWaveType',6,-1)]]),  #69
     ('_array',[(0,5),69]),  #70
     ('_struct',[[('m_phase',12,-11),('m_maxUsers',2,-10),('m_maxObservers',2,-9),('m_slots',70,-8),('m_randomSeed',6,-7),('m_hostUserId',60,-6),('m_isSinglePlayer',13,-5),('m_pickedMapTag',10,-4),('m_gameDuration',6,-3),('m_defaultDifficulty',3,-2),('m_defaultAIBuild',10,-1)]]),  #71
     ('_struct',[[('m_userInitialData',50,-3),('m_gameDescription',59,-2),('m_lobbyState',71,-1)]]),  #72

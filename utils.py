@@ -6,6 +6,21 @@ import pytz
 import logging
 
 
+non_english_races = {
+    b'\xed\x94\x84\xeb\xa1\x9c\xed\x86\xa0\xec\x8a\xa4': 'Protoss',
+    b'\xe6\x98\x9f\xe7\x81\xb5': 'Protoss',
+    b'\xe7\xa5\x9e\xe6\x97\x8f': 'Protoss',
+    b'\xd0\x9f\xd1\x80\xd0\xbe\xd1\x82\xd0\xbe\xd1\x81\xd1\x81\xd1\x8b': 'Protoss',
+    b'\xec\xa0\x80\xea\xb7\xb8': 'Zerg',
+    b'\xe5\xbc\x82\xe8\x99\xab': 'Zerg',
+    b'\xe8\x9f\xb2\xe6\x97\x8f': 'Zerg',
+    b'\xed\x85\x8c\xeb\x9e\x80': 'Terran',
+    b'\xe4\xba\xba\xe9\xa1\x9e': 'Terran',
+    b'\xd0\xa2\xd0\xb5\xd1\x80\xd1\x80\xd0\xb0\xd0\xbd\xd1\x8b': 'Terran',
+    b'\xe4\xba\xba\xe7\xb1\xbb': 'Terran'
+}
+
+
 def convert_time(windows_time):
     unix_epoch_time = math.floor(windows_time/10000000)-11644473600
     replay_datetime = datetime.datetime.fromtimestamp(unix_epoch_time).replace(tzinfo=pytz.utc)
@@ -16,6 +31,7 @@ def create_players(player_info, events):
     # get player name and race
     # workingSetSlotId correlates to playerIDs
     players = []
+    races = ['Protoss', 'Terran', 'Zerg']
 
     # find and record players
     for count, player in enumerate(player_info['m_playerList']):
@@ -39,6 +55,9 @@ def create_players(player_info, events):
                 player['m_race'].decode('utf-8')
             )
             players.append(new_player)
+
+        if new_player.race not in races:
+            new_player.race = non_english_races[new_player.race.encode('utf-8')]
 
     # first 2 events in every replay with 2 players is always setup for playerIDs
     # need to look at the setup to match player IDs to players

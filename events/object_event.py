@@ -65,25 +65,26 @@ class ObjectEvent(BaseEvent):
 
     def _update_obj_group_info(self, obj):
         for group_num, index in obj.control_groups.items():
-            ctrl_group = self.player.control_groups[group_num]
+            if group_num in self.player.control_groups:
+                ctrl_group = self.player.control_groups[group_num]
 
-            # print(obj)
-            # print(group_num, index)
-            # print(ctrl_group)
-            # print(self.event)
-            # remove = ctrl_group[index]
-            # print(f'{obj.name} being updated')
-            # print(f'{remove} deleted @: {index}')
-            if len(ctrl_group) - 1 >= index:
-                del ctrl_group[index]
+                # print(obj)
+                # print(group_num, index)
+                # print(ctrl_group)
+                # print(self.event)
+                # remove = ctrl_group[index]
+                # print(f'{obj.name} being updated')
+                # print(f'{remove} deleted @: {index}')
+                if len(ctrl_group) - 1 >= index:
+                    del ctrl_group[index]
 
-            ctrl_group.append(obj)
-            ctrl_group.sort(key=lambda x: x.tag)
+                ctrl_group.append(obj)
+                ctrl_group.sort(key=lambda x: x.tag)
 
-            for index, obj in enumerate(ctrl_group):
-                obj.control_groups[group_num] = index
-            # print(self.event)
-            # print()
+                for index, obj in enumerate(ctrl_group):
+                    obj.control_groups[group_num] = index
+                # print(self.event)
+                # print()
 
     def parse_event(self):
         obj = self._get_or_create_game_object()

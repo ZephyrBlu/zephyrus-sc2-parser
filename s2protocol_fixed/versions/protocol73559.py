@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from s2protocol.decoders import *
+from zephyrus_sc2_parser.s2protocol_fixed.decoders import *
 
 
 

@@ -55,7 +55,11 @@ class Player:
     def calc_pac(self, summary_stats, game_length):
         game_length_minutes = game_length / 22.4 / 60
 
-        pac_per_min = len(self.pac_list) / game_length_minutes
+        if game_length_minutes > 0:
+            pac_per_min = len(self.pac_list) / game_length_minutes
+        else:
+            pac_per_min = 0
+
         if self.pac_list:
             avg_pac_action_latency = sum(pac.actions[0] - pac.camera_moves[0][0] for pac in self.pac_list) / len(self.pac_list) / 22.4
             avg_actions_per_pac = sum(len(pac.actions) for pac in self.pac_list) / len(self.pac_list)

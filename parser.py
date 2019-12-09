@@ -1,7 +1,6 @@
 import mpyq
 import json
 import math
-from .s2protocol_fixed import versions
 import heapq
 from .game.game import Game
 from .game.player_state import PlayerState
@@ -9,7 +8,7 @@ from .utils import create_event, create_players, convert_time
 import logging
 
 
-def initial_summary_stats(game, metadata, detailed_info):
+def initial_summary_stats(game, metadata, detailed_info, local=False):
     summary_stats = {
         'mmr': {1: 0, 2: 0},
         'mmr_diff': {1: 0, 2: 0},
@@ -41,7 +40,8 @@ def initial_summary_stats(game, metadata, detailed_info):
 
     if not mmr_data[0]['m_scaledRating'] or not mmr_data[1]['m_scaledRating']:
         logging.debug('One or more players has no MMR')
-        return None
+        if not local:
+            return None
 
     ranked_game = False
     player1_mmr = mmr_data[0]['m_scaledRating']
@@ -128,7 +128,7 @@ def setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename):
+def parse_replay(filename, *, local=False, detailed=False):
     try:
         events, player_info, detailed_info, metadata, game_length, protocol = setup(filename)
 
@@ -163,7 +163,7 @@ def parse_replay(filename):
         protocol
     )
 
-    summary_stats = initial_summary_stats(current_game, metadata, detailed_info)
+    summary_stats = initial_summary_stats(current_game, metadata, detailed_info, local)
 
     if summary_stats is None:
         logging.debug('Aborting replay due to missing MMR value(s)')
@@ -226,14 +226,16 @@ def parse_replay(filename):
     players_export = {}
     for player in players:
         summary_stats = player.calc_pac(summary_stats, game_length)
-        del player.__dict__['pac_list']
-        del player.__dict__['current_pac']
-        del player.__dict__['objects']
-        del player.__dict__['current_selection']
-        del player.__dict__['control_groups']
-        del player.__dict__['active_ability']
-        del player.__dict__['unspent_resources']
-        del player.__dict__['collection_rate']
+
+        if not detailed:
+            del player.__dict__['pac_list']
+            del player.__dict__['current_pac']
+            del player.__dict__['objects']
+            del player.__dict__['current_selection']
+            del player.__dict__['control_groups']
+            del player.__dict__['active_ability']
+            del player.__dict__['unspent_resources']
+            del player.__dict__['collection_rate']
         players_export[player.player_id] = player
 
         for p in players:
