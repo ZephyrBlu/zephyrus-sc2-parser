@@ -140,6 +140,15 @@ units = {
             'gas_cost': 100,
             'supply': 2,
         },
+        # Phoenix pick up state
+        # 'Phoenix': {
+        #     'obj_id': [100],
+        #     'priority': 81,
+        #     'type': ['unit'],
+        #     'mineral_cost': 150,
+        #     'gas_cost': 100,
+        #     'supply': 2,
+        # },
         'VoidRay': {
             'obj_id': [102],
             'priority': 78,
