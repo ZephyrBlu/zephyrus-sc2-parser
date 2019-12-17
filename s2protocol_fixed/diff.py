@@ -8,7 +8,7 @@ import sys
 import argparse
 import pprint
 
-from s2protocol.versions import build
+from zephyrus_sc2_parser.s2protocol_fixed.versions import build
 
 def diff_things(typeinfo_index, thing_a, thing_b):
     if type(thing_a) != type(thing_b):

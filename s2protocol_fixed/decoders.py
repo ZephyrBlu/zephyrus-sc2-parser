@@ -20,7 +20,7 @@
 
 import struct
 
-from s2protocol.compat import byte_to_int
+from zephyrus_sc2_parser.s2protocol_fixed.compat import byte_to_int
 
 
 class TruncatedError(Exception):

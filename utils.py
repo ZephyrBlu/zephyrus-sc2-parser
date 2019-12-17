@@ -6,12 +6,6 @@ import pytz
 import logging
 
 
-def convert_time(windows_time):
-    unix_epoch_time = math.floor(windows_time/10000000)-11644473600
-    replay_datetime = datetime.datetime.fromtimestamp(unix_epoch_time).replace(tzinfo=pytz.utc)
-    return replay_datetime
-
-
 non_english_races = {
     b'\xed\x94\x84\xeb\xa1\x9c\xed\x86\xa0\xec\x8a\xa4': 'Protoss',
     b'\xe6\x98\x9f\xe7\x81\xb5': 'Protoss',
@@ -25,6 +19,12 @@ non_english_races = {
     b'\xd0\xa2\xd0\xb5\xd1\x80\xd1\x80\xd0\xb0\xd0\xbd\xd1\x8b': 'Terran',
     b'\xe4\xba\xba\xe7\xb1\xbb': 'Terran'
 }
+
+
+def convert_time(windows_time):
+    unix_epoch_time = math.floor(windows_time/10000000)-11644473600
+    replay_datetime = datetime.datetime.fromtimestamp(unix_epoch_time).replace(tzinfo=pytz.utc)
+    return replay_datetime
 
 
 def create_players(player_info, events):

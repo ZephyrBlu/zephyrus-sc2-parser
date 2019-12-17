@@ -1,8 +1,8 @@
 import mpyq
 import json
 import math
-from .s2protocol_fixed import versions
 import heapq
+from zephyrus_sc2_parser.s2protocol_fixed import versions
 from zephyrus_sc2_parser.game.game import Game
 from zephyrus_sc2_parser.game.player_state import PlayerState
 from zephyrus_sc2_parser.utils import create_event, create_players, convert_time
@@ -138,7 +138,7 @@ def setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename, *, local=False):
+def parse_replay(filename, *, local=False, detailed=False):
     try:
         events, player_info, detailed_info, metadata, game_length, protocol = setup(filename)
 
@@ -239,14 +239,16 @@ def parse_replay(filename, *, local=False):
     players_export = {}
     for player in players:
         summary_stats = player.calc_pac(summary_stats, game_length)
-        del player.__dict__['pac_list']
-        del player.__dict__['current_pac']
-        del player.__dict__['objects']
-        del player.__dict__['current_selection']
-        del player.__dict__['control_groups']
-        del player.__dict__['active_ability']
-        del player.__dict__['unspent_resources']
-        del player.__dict__['collection_rate']
+
+        if not detailed:
+            del player.__dict__['pac_list']
+            del player.__dict__['current_pac']
+            del player.__dict__['objects']
+            del player.__dict__['current_selection']
+            del player.__dict__['control_groups']
+            del player.__dict__['active_ability']
+            del player.__dict__['unspent_resources']
+            del player.__dict__['collection_rate']
         players_export[player.player_id] = player
 
         for p in players:
