@@ -36,12 +36,21 @@ The parser is hosted on PyPI. You can install it through pip
 
 `pip install zephyrus_sc2_parser`
 
-`parse_replay` is imported by default but you can import it manually for specificity if you want
+You can import `parse_replay` as a top level import
 
-`import zephyrus_sc2_parser` or `from zephyrus_sc2_parser import parse_replay`
+`from zephyrus_sc2_parser import parse_replay`
 
-You must pass in the path to the replay file you want to parse. You can optionally use the `local` flag to indicate
-you want to parse a replay without MMR, otherwise the parser will abort the replay. `local` is set to False by default.
+### Required Arguments
+
+The only required argument is the relative path of the replay you want to parse
+
+### Optional Arguments
+
+You can optionally use the `local` flag to indicate you want to parse a replay without MMR, otherwise the parser will abort the replay. `local` is set to False by default.
+
+The `detailed` flag is also useful if you want to access raw data stored during parsing such as each player's objects or camera movements.
+
+### Return Values
 
 The parser returns 4 values, a dictionary containing both player objects, a list of recorded game states, a dictionary of summary stats containing
 general information about both players and a dictionary of metadata about the game.
