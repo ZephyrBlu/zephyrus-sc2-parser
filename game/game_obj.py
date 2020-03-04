@@ -11,6 +11,7 @@ class GameObj:
         self.control_groups = {}
         self.birth_time = None
         self.death_time = None
+        self.morph_time = None
         self.position = None
         self.status = None
         self.killed_by = None

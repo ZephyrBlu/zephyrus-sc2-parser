@@ -148,6 +148,7 @@ class ObjectEvent(BaseEvent):
             obj.mineral_cost = new_obj_info['mineral_cost']
             obj.gas_cost = new_obj_info['gas_cost']
             obj.supply = new_obj_info['supply']
+            obj.morph_time = gameloop
 
             if 'Egg' in old_name or 'Cocoon' in old_name:
                 self._update_obj_group_info(obj)

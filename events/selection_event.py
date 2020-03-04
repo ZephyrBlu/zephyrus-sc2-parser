@@ -1,4 +1,5 @@
 from zephyrus_sc2_parser.events.base_event import BaseEvent
+from zephyrus_sc2_parser.gamedata.unit_data import units
 import math
 
 
@@ -21,6 +22,13 @@ class SelectionEvent(BaseEvent):
             selection.append(obj)
 
         selection.sort(key=lambda x: x.tag)
+
+    def _is_morph(self):
+        # checking for Archon being added
+        for obj_type in self.event['m_delta']['m_addSubgroups']:
+            if obj_type['m_unitLink'] == units['Protoss']['Archon']['obj_id'][0]:
+                return True
+        return False
 
     def _handle_zero_indices(self, ctrl_group_num, *, selection_type):
         """
@@ -80,11 +88,14 @@ class SelectionEvent(BaseEvent):
 
         if selection_type == 'new':
             new_game_ids = event['m_delta']['m_addUnitTags']
+            is_morph = self._is_morph()
 
             # reverse order of current selection so object removals
             # don't affect future removals
             for i in range(len(selection) - 1, -1, -1):
                 if i in selection_indices:
+                    if is_morph:
+                        selection[i].morph_time = event.gameloop
                     del selection[i]
             self._add_to_selection(ctrl_group_num, new_game_ids)
 
@@ -122,9 +133,6 @@ class SelectionEvent(BaseEvent):
 
         sub:
         """
-        if selection_type == 'new':
-            return
-
         player = self.player
         event = self.event
         mask_x = event['m_delta']['m_removeMask']['Mask'][0]
@@ -141,7 +149,12 @@ class SelectionEvent(BaseEvent):
 
         for i in range(length - 1, -1, -1):
             if bitmask[i] == '1':
+                if selection_type == 'new' and self._is_morph():
+                    selection[i].morph_time = event.gameloop
                 del selection[i]
+
+        if selection_type == 'new':
+            self._add_to_selection(ctrl_group_num, event['m_delta']['m_addUnitTags'])
 
     def _handle_none(self, ctrl_group_num, *, selection_type):
         """
