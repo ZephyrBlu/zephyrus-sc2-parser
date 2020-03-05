@@ -92,7 +92,7 @@ class ObjectEvent(BaseEvent):
         event = self.event
         summary_stats = self.summary_stats
         protocol = self.protocol
-        gameloop = event['_gameloop']
+        gameloop = self.gameloop
 
         if not obj or not player:
             return None
@@ -148,7 +148,20 @@ class ObjectEvent(BaseEvent):
             obj.mineral_cost = new_obj_info['mineral_cost']
             obj.gas_cost = new_obj_info['gas_cost']
             obj.supply = new_obj_info['supply']
-            obj.morph_time = gameloop
+
+            # organised in alphabetically sorted order
+            morph_units = [
+                ['BanelingCocoon', 'Zergling'],
+                ['Baneling', 'BanelingCocoon'],
+                ['OverlordCocoon', 'Overseer'],
+                ['OverlordTransport', 'TransportOverlordCocoon'],
+                ['Ravager', 'RavagerCocoon'],
+                ['LurkerMP', 'LurkerMPEgg'],
+                ['BroodLord', 'BroodLordCocoon']
+            ]
+
+            if sorted([old_name, new_obj_name]) in morph_units:
+                obj.morph_time = gameloop
 
             if 'Egg' in old_name or 'Cocoon' in old_name:
                 self._update_obj_group_info(obj)

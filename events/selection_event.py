@@ -95,7 +95,7 @@ class SelectionEvent(BaseEvent):
             for i in range(len(selection) - 1, -1, -1):
                 if i in selection_indices:
                     if is_morph:
-                        selection[i].morph_time = event.gameloop
+                        selection[i].morph_time = self.gameloop
                     del selection[i]
             self._add_to_selection(ctrl_group_num, new_game_ids)
 
@@ -150,7 +150,7 @@ class SelectionEvent(BaseEvent):
         for i in range(length - 1, -1, -1):
             if bitmask[i] == '1':
                 if selection_type == 'new' and self._is_morph():
-                    selection[i].morph_time = event.gameloop
+                    selection[i].morph_time = self.gameloop
                 del selection[i]
 
         if selection_type == 'new':
