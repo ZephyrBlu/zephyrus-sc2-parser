@@ -545,7 +545,7 @@ units = {
             'gas_cost': 100,
             'supply': 2,
         },
-        'SwarmhostMP': {
+        'SwarmHostMP': {
             'obj_id': [441],
             'priority': 86,
             'type': ['unit'],
