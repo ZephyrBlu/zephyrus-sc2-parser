@@ -73,7 +73,6 @@ units = {
             # not sure how to dynamically calc cost
             'mineral_cost': 100,
             'gas_cost': 300,
-
             'supply': 4,
         },
         'Observer': {
@@ -391,7 +390,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 0,
             'gas_cost': 0,
-            'supply': None,
+            'supply': 0,
         },
         'Egg': {
             'obj_id': [125],
@@ -399,7 +398,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 0,
             'gas_cost': 0,
-            'supply': None,
+            'supply': 0,
         },
         'Drone': {
             'obj_id': [126],
@@ -439,7 +438,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 25,
             'gas_cost': 25,
-            'supply': 0,
+            'supply': 0.5,
         },
         'Roach': {
             'obj_id': [132],
@@ -455,7 +454,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 25,
             'gas_cost': 75,
-            'supply': 0,
+            'supply': 3,
         },
         'TransportOverlordCocoon': {
             'obj_id': [181],
@@ -511,7 +510,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 50,
             'gas_cost': 100,
-            'supply': 1,
+            'supply': 3,
         },
         'LurkerMPEgg': {
             'obj_id': [175],
@@ -519,7 +518,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 50,
             'gas_cost': 100,
-            'supply': 1,
+            'supply': 3,
         },
         'LurkerMPBurrowed': {
             'obj_id': [173],
@@ -527,7 +526,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 50,
             'gas_cost': 100,
-            'supply': 0,
+            'supply': 3,
         },
         'Mutalisk': {
             'obj_id': [130],
@@ -623,7 +622,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 0,
             'gas_cost': 0,
-            'supply': 0,
+            'supply': 4,
         },
         'BroodlingEscort': {
             'obj_id': None,
@@ -647,7 +646,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 25,
             'gas_cost': 75,
-            'supply': 1,
+            'supply': 3,
         },
         'BanelingCocoon': {
             'obj_id': [28],
@@ -655,7 +654,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 25,
             'gas_cost': 25,
-            'supply': 0,
+            'supply': 0.5,
         },
         'BroodLordCocoon': {
             'obj_id': [135],
@@ -663,7 +662,7 @@ units = {
             'type': ['unit'],
             'mineral_cost': 150,
             'gas_cost': 150,
-            'supply': 2,
+            'supply': 3,
         },
     }
 }

@@ -25,13 +25,20 @@ class Player:
         self.active_ability = None
         self.pac_list = []
         self.current_pac = None
+        self.supply = 0
+        self.supply_cap = 0
+        self.supply_block = 0
         self.unspent_resources = {
             'minerals': [],
-            'gas': []
+            'gas': [],
         }
         self.collection_rate = {
             'minerals': [],
-            'gas': []
+            'gas': [],
+        }
+        self.resources_collected = {
+            'minerals': 0,
+            'gas': 0,
         }
 
     def __lt__(self, other):
@@ -51,6 +58,18 @@ class Player:
 
     def __ne__(self, other):
         return not self.player_id == other
+
+    def calc_supply(self):
+        total_supply = 0
+        total_supply_provided = 0
+
+        for obj_id, obj in self.objects.items():
+            if obj.status == 'live' or ('Overlord' not in obj.name and obj.status == 'in_progress' and 'unit' in obj.type):
+                total_supply += obj.supply
+                total_supply_provided += obj.supply_provided
+
+        self.supply = total_supply
+        self.supply_cap = total_supply_provided
 
     def calc_pac(self, summary_stats, game_length):
         game_length_minutes = game_length / 22.4 / 60

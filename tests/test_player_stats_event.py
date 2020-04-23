@@ -295,6 +295,6 @@ def test_parse_event_summary_stats(
 
         current_workers = event['m_stats']['m_scoreValueWorkersActiveCount']
         workers_produced = summary_stats['workers_produced'][player.player_id]
-        summary_stats['workers_lost'][player.player_id] = workers_produced + 12 - current_workers
+        summary_stats['workers_lost'][player.player_id] = workers_produced - current_workers
 
     assert summary_stats == expected_summary_stats

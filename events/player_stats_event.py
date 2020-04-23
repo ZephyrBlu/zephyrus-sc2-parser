@@ -15,6 +15,39 @@ class PlayerStatsEvent(BaseEvent):
         if not player:
             return
 
+        self.player.supply = event['m_stats']['m_scoreValueFoodUsed'] // 4096
+        self.player.supply_cap = event['m_stats']['m_scoreValueFoodMade'] // 4096
+
+        if gameloop != self.game.game_length:
+            if self.player.supply >= self.player.supply_cap:
+                self.player.supply_block += 112
+
+        self.player.resources_collected['minerals'] = (
+            event['m_stats']['m_scoreValueMineralsCurrent'] +
+            event['m_stats']['m_scoreValueMineralsUsedInProgressArmy'] +
+            event['m_stats']['m_scoreValueMineralsUsedInProgressEconomy'] +
+            event['m_stats']['m_scoreValueMineralsUsedInProgressTechnology'] +
+            event['m_stats']['m_scoreValueMineralsUsedCurrentArmy'] +
+            event['m_stats']['m_scoreValueMineralsUsedCurrentEconomy'] +
+            event['m_stats']['m_scoreValueMineralsUsedCurrentTechnology'] +
+            event['m_stats']['m_scoreValueMineralsLostArmy'] +
+            event['m_stats']['m_scoreValueMineralsLostEconomy'] +
+            event['m_stats']['m_scoreValueMineralsLostTechnology']
+        )
+
+        self.player.resources_collected['gas'] = (
+            event['m_stats']['m_scoreValueVespeneCurrent'] +
+            event['m_stats']['m_scoreValueVespeneUsedInProgressArmy'] +
+            event['m_stats']['m_scoreValueVespeneUsedInProgressEconomy'] +
+            event['m_stats']['m_scoreValueVespeneUsedInProgressTechnology'] +
+            event['m_stats']['m_scoreValueVespeneUsedCurrentArmy'] +
+            event['m_stats']['m_scoreValueVespeneUsedCurrentEconomy'] +
+            event['m_stats']['m_scoreValueVespeneUsedCurrentTechnology'] +
+            event['m_stats']['m_scoreValueVespeneLostArmy'] +
+            event['m_stats']['m_scoreValueVespeneLostEconomy'] +
+            event['m_stats']['m_scoreValueVespeneLostTechnology']
+        )
+
         unspent_resources = self.player.unspent_resources
         collection_rate = self.player.collection_rate
 
@@ -34,8 +67,13 @@ class PlayerStatsEvent(BaseEvent):
             )
 
         if gameloop == self.game.game_length:
+            summary_stats['supply_block'][player.player_id] = self.player.supply_block
+
             summary_stats['resources_lost']['minerals'][player.player_id] = event['m_stats']['m_scoreValueMineralsLostArmy']
             summary_stats['resources_lost']['gas'][player.player_id] = event['m_stats']['m_scoreValueVespeneLostArmy']
+
+            summary_stats['resources_collected']['minerals'][player.player_id] = self.player.resources_collected['minerals']
+            summary_stats['resources_collected']['gas'][player.player_id] = self.player.resources_collected['gas']
 
             player_minerals = unspent_resources['minerals']
             player_gas = unspent_resources['gas']
@@ -62,6 +100,6 @@ class PlayerStatsEvent(BaseEvent):
 
             current_workers = event['m_stats']['m_scoreValueWorkersActiveCount']
             workers_produced = summary_stats['workers_produced'][player.player_id]
-            summary_stats['workers_lost'][player.player_id] = workers_produced + 12 - current_workers
+            summary_stats['workers_lost'][player.player_id] = workers_produced - current_workers
 
         return summary_stats

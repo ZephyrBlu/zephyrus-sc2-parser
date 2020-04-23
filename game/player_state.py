@@ -41,6 +41,9 @@ class PlayerState:
             'current_selection': {},
             'workers_active': 0,
             'workers_killed': 0,
+            'supply': self.player.supply,
+            'supply_cap': self.player.supply_cap,
+            'supply_block': self.player.supply_block,
             'army_value': {
                 'minerals': 0,
                 'gas': 0,
@@ -49,8 +52,13 @@ class PlayerState:
                 'minerals': 0,
                 'gas': 0,
             },
+            'resources_collected': {
+                'minerals': self.player.resources_collected['minerals'],
+                'gas': self.player.resources_collected['gas'],
+            },
             'total_army_value': 0,
             'total_resources_lost': 0,
+            'total_resouces_collected': 0,
         }
 
         for upg in self.player.upgrades:
@@ -68,6 +76,8 @@ class PlayerState:
                             'live': 0,
                             'died': 0,
                             'in_progress': 0,
+                            'supply': obj.supply,
+                            'supply_provided': obj.supply_provided,
                             'mineral_cost': obj.mineral_cost,
                             'gas_cost': obj.gas_cost,
                         }

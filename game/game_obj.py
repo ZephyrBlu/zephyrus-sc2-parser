@@ -8,6 +8,9 @@ class GameObj:
         self.priority = priority
         self.mineral_cost = mineral_cost
         self.gas_cost = gas_cost
+        self.supply = 0
+        self.supply_provided = 0
+        self.queue = []
         self.control_groups = {}
         self.birth_time = None
         self.death_time = None

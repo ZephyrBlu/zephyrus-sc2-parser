@@ -165,3 +165,5 @@ class ObjectEvent(BaseEvent):
 
             if 'Egg' in old_name or 'Cocoon' in old_name:
                 self._update_obj_group_info(obj)
+
+        # player.calc_supply()

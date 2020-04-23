@@ -37,9 +37,14 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
             'minerals': {1: 0, 2: 0},
             'gas': {1: 0, 2: 0}
         },
+        'resources_collected': {
+            'minerals': {1: 0, 2: 0},
+            'gas': {1: 0, 2: 0},
+        },
         'workers_produced': {1: 0, 2: 0},
         'workers_killed': {1: 0, 2: 0},
         'workers_lost': {1: 0, 2: 0},
+        'supply_block': {1: 0, 2: 0},
         'inject_count': {1: 0, 2: 0},
         'sq': {1: 0, 2: 0},
         'avg_pac_per_min': {1: 0, 2: 0},
@@ -129,6 +134,10 @@ def setup(filename):
 
     events = heapq.merge(game_events, tracker_events, key=lambda x: x['_gameloop'])
     events = sorted(events, key=lambda x: x['_gameloop'])
+
+    # for event in events:
+    #     print(event)
+    #     print('\n')
 
     for event in events:
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
