@@ -47,6 +47,9 @@ class ObjectEvent(BaseEvent):
                 obj['gas_cost']
             )
 
+            if 'cooldown' in obj:
+                new_game_obj.cooldown = obj['cooldown']
+
             for value in obj['type']:
                 new_game_obj.type.append(value)
 
@@ -99,6 +102,34 @@ class ObjectEvent(BaseEvent):
 
         if self.type == 'NNet.Replay.Tracker.SUnitInitEvent':
             obj.status = 'in_progress'
+            obj.position = {
+                'x': event['m_x'],
+                'y': event['m_x'],
+            }
+
+            if player.warpgate_cooldowns and 'unit' in obj.type:
+                first_cooldown = player.warpgate_cooldowns[0]
+                time_past_cooldown = gameloop - (first_cooldown[0] + first_cooldown[1])
+
+                if time_past_cooldown >= 0:
+                    player.warpgate_cooldowns.pop(0)
+                    player.warpgate_efficiency = (
+                        player.warpgate_efficiency[0] + first_cooldown[1],
+                        player.warpgate_efficiency[1] + time_past_cooldown
+                    )
+
+            # only warped in units generate this event
+            if 'unit' in obj.type:
+                player.warpgate_cooldowns.append((gameloop, obj.cooldown))
+                player.warpgate_cooldowns.sort(key=lambda x: x[0] + x[1])
+
+                warpgate_count = 0
+                for obj_id, obj in player.objects.items():
+                    if obj.name == 'WarpGate':
+                        warpgate_count += 1
+
+                while len(player.warpgate_cooldowns) > warpgate_count:
+                    player.warpgate_cooldowns.pop()
 
         elif self.type == 'NNet.Replay.Tracker.SUnitDoneEvent':
             obj.birth_time = gameloop
@@ -111,9 +142,18 @@ class ObjectEvent(BaseEvent):
             if 'worker' in obj.type:
                 summary_stats['workers_produced'][player.player_id] += 1
 
+            if not obj.position:
+                obj.position = {
+                    'x': event['m_x'],
+                    'y': event['m_x'],
+                }
+
         elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
             obj.status = 'died'
             obj.death_time = gameloop
+
+            if obj.name == 'WarpGate' and player.warpgate_cooldowns:
+                player.warpgate_cooldowns.pop()
 
             obj_killer_tag = event['m_killerUnitTagIndex']
             obj_killer_recycle = event['m_killerUnitTagRecycle']

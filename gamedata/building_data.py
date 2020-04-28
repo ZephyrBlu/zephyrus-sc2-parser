@@ -7,6 +7,7 @@ buildings = {
             'mineral_cost': 400,
             'gas_cost': 0,
             'supply': 15,
+            'energy': 50,
         },
         'Pylon': {
             'obj_id': [82],
@@ -71,6 +72,7 @@ buildings = {
             'mineral_cost': 100,
             'gas_cost': 0,
             'supply': 0,
+            'energy': 100,
         },
         'RoboticsFacility': {
             'obj_id': [93],
@@ -153,6 +155,7 @@ buildings = {
             'mineral_cost': 150,
             'gas_cost': 0,
             'supply': 0,
+            'energy': 50,
         },
         'OrbitalCommandFlying': {
             'obj_id': [154],
@@ -161,6 +164,7 @@ buildings = {
             'mineral_cost': 150,
             'gas_cost': 0,
             'supply': 0,
+            'energy': 50,
         },
         'PlanetaryFortress': {
             'obj_id': [152],

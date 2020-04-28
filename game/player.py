@@ -22,6 +22,8 @@ class Player:
         self.upgrades = []
         self.current_selection = []
         self.control_groups = {}
+        self.warpgate_cooldowns = []
+        self.warpgate_efficiency = (0, 0)
         self.active_ability = None
         self.pac_list = []
         self.current_pac = None

@@ -10,12 +10,14 @@ class GameObj:
         self.gas_cost = gas_cost
         self.supply = 0
         self.supply_provided = 0
-        self.queue = []
+        self.cooldown = None
+        self.queue = None
         self.control_groups = {}
         self.birth_time = None
         self.death_time = None
         self.morph_time = None
         self.position = None
+        self.target = None
         self.status = None
         self.killed_by = None
 

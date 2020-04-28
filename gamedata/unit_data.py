@@ -15,6 +15,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 0,
             'supply': 2,
+            'cooldown': 446,
         },
         'Stalker': {
             'obj_id': [96],
@@ -23,6 +24,7 @@ units = {
             'mineral_cost': 125,
             'gas_cost': 50,
             'supply': 2,
+            'cooldown': 512,
         },
         'Sentry': {
             'obj_id': [99],
@@ -31,6 +33,8 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 100,
             'supply': 2,
+            'energy': 50,
+            'cooldown': 512,
         },
         'Adept': {
             'obj_id': [439],
@@ -39,6 +43,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 25,
             'supply': 2,
+            'cooldown': 446,
         },
         'AdeptPhaseShift': {
             'obj_id': [1036],
@@ -55,6 +60,8 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 150,
             'supply': 2,
+            'energy': 50,
+            'cooldown': 714,
         },
         'DarkTemplar': {
             'obj_id': [98],
@@ -63,6 +70,7 @@ units = {
             'mineral_cost': 125,
             'gas_cost': 125,
             'supply': 2,
+            'cooldown': 714,
         },
         'Archon': {
             'obj_id': [163],
@@ -138,6 +146,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 100,
             'supply': 2,
+            'energy': 50,
         },
         # Phoenix pick up state
         # 'Phoenix': {
@@ -163,6 +172,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 150,
             'supply': 3,
+            'energy': 50,
         },
         'OracleStasisTrap': {
             'obj_id': [951],
@@ -203,6 +213,7 @@ units = {
             'mineral_cost': 400,
             'gas_cost': 400,
             'supply': 8,
+            'energy': 50,
         }
     },
     'Terran': {
@@ -253,6 +264,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 125,
             'supply': 2,
+            'energy': 75,
         },
         'Hellion': {
             'obj_id': [75],
@@ -292,6 +304,14 @@ units = {
             'type': ['unit'],
             'mineral_cost': 150,
             'gas_cost': 125,
+            'supply': 3,
+        },
+        'Cyclone': {
+            'obj_id': [],
+            'priority': None,
+            'type': ['unit'],
+            'mineral_cost': 150,
+            'gas_cost': 100,
             'supply': 3,
         },
         'SiegeTankSieged': {
@@ -341,6 +361,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 100,
             'supply': 2,
+            'energy': 50,
         },
         'Liberator': {
             'obj_id': [437, 449],
@@ -365,6 +386,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 200,
             'supply': 2,
+            'energy': 50,
         },
         'AutoTurret': {
             'obj_id': [53],
@@ -373,6 +395,15 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+        },
+        'Banshee': {
+            'obj_id': [],
+            'priority': None,
+            'type': ['unit'],
+            'mineral_cost': 150,
+            'gas_cost': 100,
+            'supply': 3,
+            'energy': 50,
         },
         'Battlecruiser': {
             'obj_id': [79],
@@ -423,6 +454,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 0,
             'supply': 2,
+            'energy': 25,
         },
         'Zergling': {
             'obj_id': [127],
@@ -479,6 +511,7 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 50,
             'supply': 0,
+            'energy': 50,
         },
         'OverseerSiegeMode': {
             'obj_id': [151],
@@ -487,6 +520,7 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 50,
             'supply': 0,
+            'energy': 50,
         },
         'OverlordTransport': {
             'obj_id': [177],
@@ -583,6 +617,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 150,
             'supply': 2,
+            'energy': 50,
         },
         'InfestedTerransEgg': {
             'obj_id': [187],
@@ -607,6 +642,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 200,
             'supply': 3,
+            'energy': 50,
         },
         'Ultralisk': {
             'obj_id': [131],

@@ -61,6 +61,10 @@ class PlayerState:
             'total_resouces_collected': 0,
         }
 
+        # if warpgate_efficiency isn't default
+        if self.player.warpgate_efficiency[0] > 0:
+            object_summary['warpgate_efficiency'] = self.player.warpgate_efficiency
+
         for upg in self.player.upgrades:
             object_summary['upgrade'].append(upg)
 

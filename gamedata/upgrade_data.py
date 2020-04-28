@@ -1,5 +1,45 @@
 upgrades = {
     'Protoss': {
+        'ObserverGraviticBooster': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'GraviticDrive': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'ExtendedThermalLance': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'PsiStormTech': {
+            'mineral_cost': 200,
+            'gas_cost': 200,
+        },
+        'WarpGateResearch': {
+            'mineral_cost': 50,
+            'gas_cost': 50,
+        },
+        'Charge': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'BlinkTech': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'PhoenixRangeUpgrade': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'AdeptPiercingAttack': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'DarkTemplarBlinkUpgrade': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
         'ProtossGroundWeaponsLevel1': {
             'mineral_cost': 100,
             'gas_cost': 100,
@@ -62,6 +102,66 @@ upgrades = {
         },
     },
     'Terran': {
+        'Stimpack': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        # Concussive Shells
+        'PunisherGrenades': {
+            'mineral_cost': 50,
+            'gas_cost': 50,
+        },
+        'PersonalCloaking': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'EnhancedShockwaves': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'BansheeCloak': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'RavenCorvidReactor': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        # Yamato
+        'BattlecruiserEnableSpecializations': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'DrillClaws': {
+            'mineral_cost': 75,
+            'gas_cost': 75,
+        }
+        # Need to verify Cyclone upgrade
+        'MagFieldLaunchers': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        # Need to verify Cyclone upgrade
+        'RapidFireLaunchers': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'BansheeSpeed': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'LiberatorRangeUpgrade': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'SmartServos': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'MedivacIncreaseSpeedBoost': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
         'TerranInfantryWeaponsLevel1': {
             'mineral_cost': 100,
             'gas_cost': 100,
@@ -124,6 +224,56 @@ upgrades = {
         },
     },
     'Zerg': {
+        'GlialReconstitution': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'TunnelingClaws': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'ChitinousPlating': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        # Add Anabolic Synthesis
+        'OverlordSpeed': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'Burrow': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'ZerglingAttackSpeed': {
+            'mineral_cost': 200,
+            'gas_cost': 200,
+        },
+        'ZerglingMovementSpeed': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'CentrificalHooks': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'EvolveGroovedSpines': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'EvolveMuscularAugments': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        'NeuralParasite': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        'InfestorEnergyUpgrade': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        # Add MicrobialShroud
         'ZergMeleeWeaponsLevel1': {
             'mineral_cost': 100,
             'gas_cost': 100,
