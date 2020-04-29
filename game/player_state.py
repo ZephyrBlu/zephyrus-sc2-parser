@@ -86,6 +86,10 @@ class PlayerState:
                             'gas_cost': obj.gas_cost,
                         }
 
+                        obj_energy = obj.calc_energy(gameloop)
+                        if obj_energy:
+                            object_summary[obj_type][obj.name]['energy'] = obj_energy
+
                     object_summary[obj_type][obj.name][obj.status] += 1
             if worker:
                 if obj.status == 'live':

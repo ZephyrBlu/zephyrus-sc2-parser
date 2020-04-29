@@ -47,6 +47,9 @@ class ObjectEvent(BaseEvent):
                 obj['gas_cost']
             )
 
+            if 'energy' in obj:
+                new_game_obj.energy = obj['energy']
+
             if 'cooldown' in obj:
                 new_game_obj.cooldown = obj['cooldown']
 

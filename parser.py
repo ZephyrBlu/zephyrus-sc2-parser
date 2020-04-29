@@ -135,10 +135,10 @@ def setup(filename):
     events = heapq.merge(game_events, tracker_events, key=lambda x: x['_gameloop'])
     events = sorted(events, key=lambda x: x['_gameloop'])
 
-    # for event in events:
-    #     # if 'SCameraUpdateEvent' not in event['_event']:  # == 'NNet.Replay.Tracker.SUnitPositionsEvent':
-    #     print(event)
-    #     print('\n')
+    for event in events:
+        # if 'SCameraUpdateEvent' not in event['_event']:  # == 'NNet.Replay.Tracker.SUnitPositionsEvent':
+        print(event)
+        print('\n')
 
     for event in events:
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':

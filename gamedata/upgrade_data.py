@@ -135,7 +135,7 @@ upgrades = {
         'DrillClaws': {
             'mineral_cost': 75,
             'gas_cost': 75,
-        }
+        },
         # Need to verify Cyclone upgrade
         'MagFieldLaunchers': {
             'mineral_cost': 100,
