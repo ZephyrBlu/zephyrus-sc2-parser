@@ -8,4 +8,5 @@ class Game:
         self.events = events
         self.state = []
         self.timeline = []
+        self.engagements = []
         self.protocol = protocol

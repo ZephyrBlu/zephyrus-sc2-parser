@@ -2,6 +2,8 @@ import mpyq
 import json
 import math
 import heapq
+from sc2_simulator import simulate_engagement
+from zephyrus_sc2_parser.gamedata.unit_data import units
 from zephyrus_sc2_parser.s2protocol_fixed import versions
 from zephyrus_sc2_parser.game.game import Game
 from zephyrus_sc2_parser.game.player_state import PlayerState
@@ -135,10 +137,10 @@ def setup(filename):
     events = heapq.merge(game_events, tracker_events, key=lambda x: x['_gameloop'])
     events = sorted(events, key=lambda x: x['_gameloop'])
 
-    for event in events:
-        # if 'SCameraUpdateEvent' not in event['_event']:  # == 'NNet.Replay.Tracker.SUnitPositionsEvent':
-        print(event)
-        print('\n')
+    # for event in events:
+    #     # if event['_event'] == 'NNet.Game.SCmdEvent':  # == 'NNet.Replay.Tracker.SUnitPositionsEvent':
+    #     print(event)
+    #     print('\n')
 
     for event in events:
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
@@ -154,18 +156,18 @@ def parse_replay(filename, *, local=False, detailed=False):
 
         if events is None:
             logging.critical('Aborting replay due to bad decode...')
-            return None, None, None, None
+            return None, None, None, None, None
 
         players = create_players(player_info, events)
     except ValueError as error:
         logging.critical('A ValueError occured:', error, 'unreadable header')
-        return None, None, None, None
+        return None, None, None, None, None
     except ImportError as error:
         logging.critical('An ImportError occured:', error, 'unsupported protocol')
-        return None, None, None, None
+        return None, None, None, None, None
     except KeyError as error:
         logging.critical('A KeyError error occured:', error, 'unreadable file info')
-        return None, None, None, None
+        return None, None, None, None, None
 
     if player_info['m_title'] in non_english_maps:
         game_map = non_english_maps[player_info['m_title']]
@@ -175,7 +177,7 @@ def parse_replay(filename, *, local=False, detailed=False):
 
     if not players:
         logging.debug('Aborting replay due to <2 players...')
-        return None, None, None, None
+        return None, None, None, None, None
 
     current_game = Game(
         players,
@@ -190,7 +192,7 @@ def parse_replay(filename, *, local=False, detailed=False):
 
     if summary_stats is None:
         logging.debug('Aborting replay due to missing MMR value(s)')
-        return None, None, None, None
+        return None, None, None, None, None
 
     action_events = [
         'NNet.Game.SControlGroupUpdateEvent',
@@ -200,14 +202,13 @@ def parse_replay(filename, *, local=False, detailed=False):
     ]
 
     current_tick = 0
+    engagements = []
+    total_time = 0
     for event in events:
         gameloop = event['_gameloop']
         if gameloop <= game_length:
             current_event = create_event(current_game, event, protocol, summary_stats)
             if current_event:
-                # print(event)
-                # print('\n')
-
                 result = current_event.parse_event()
 
                 if result:
@@ -235,6 +236,20 @@ def parse_replay(filename, *, local=False, detailed=False):
                         2: player2_state.summary
                     })
 
+                    player_units = {1: [], 2: []}
+                    for p_id, p in enumerate(players):
+                        for obj in p.objects.values():
+                            if obj.status == 'live':
+                                player_units[p_id + 1].append(obj.name)
+
+                    current_game.engagements.append((
+                        player_units[1],
+                        player_units[2],
+                        players[0].upgrades,
+                        players[1].upgrades,
+                        gameloop,
+                    ))
+
                     current_tick += 112
 
     # for player in players:
@@ -246,6 +261,23 @@ def parse_replay(filename, *, local=False, detailed=False):
     #         print(k, v)
     #     print('\n')
 
+    engagement_outcomes = simulate_engagement(current_game.engagements)
+    engagement_analysis = []
+    for winner, unit_health, gameloop in engagement_outcomes:
+        total_health = {1: (0, 0), 2: (0, 0)}
+        for unit in unit_health:
+            total_health[unit[0]] = (
+                total_health[unit[0]][0] + unit[2],
+                total_health[unit[0]][1] + unit[3],
+            )
+        if total_health[1][1] > 0 and total_health[2][1] > 0:
+            engagement_analysis.append({
+                'winner': winner,
+                'army': { 'health': total_health[winner] },
+                'remaining_health':  round((total_health[winner][0] / total_health[winner][1]) * 100, 1),
+                'gameloop': gameloop,
+            })
+
     players_export = {}
     for player in players:
         summary_stats = player.calc_pac(summary_stats, game_length)
@@ -256,9 +288,14 @@ def parse_replay(filename, *, local=False, detailed=False):
             del player.__dict__['objects']
             del player.__dict__['current_selection']
             del player.__dict__['control_groups']
+            del player.__dict__['warpgate_cooldowns']
+            del player.__dict__['warpgate_efficiency']
             del player.__dict__['active_ability']
             del player.__dict__['unspent_resources']
             del player.__dict__['collection_rate']
+            del player.__dict__['resources_collected']
+            del player.__dict__['supply']
+            del player.__dict__['supply_cap']
         players_export[player.player_id] = player
 
         for p in players:
@@ -272,4 +309,4 @@ def parse_replay(filename, *, local=False, detailed=False):
         'winner': current_game.winner
     }
 
-    return players_export, current_game.timeline, summary_stats, metadata_export
+    return players_export, current_game.timeline, engagement_analysis, summary_stats, metadata_export

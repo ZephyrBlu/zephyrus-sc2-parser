@@ -86,9 +86,15 @@ class PlayerState:
                             'gas_cost': obj.gas_cost,
                         }
 
-                        obj_energy = obj.calc_energy(gameloop)
+                        obj_energy = obj.calc_energy(self.gameloop)
                         if obj_energy:
                             object_summary[obj_type][obj.name]['energy'] = obj_energy
+
+                    obj_inject_efficiency = obj.calc_inject_efficiency(self.gameloop)
+                    if obj_inject_efficiency:
+                        if 'race' not in object_summary:
+                            object_summary['race'] = {'inject_efficiency': []}
+                        object_summary['race']['inject_efficiency'].append(obj_inject_efficiency)
 
                     object_summary[obj_type][obj.name][obj.status] += 1
             if worker:

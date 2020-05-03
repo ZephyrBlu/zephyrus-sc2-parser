@@ -43,6 +43,9 @@ class GameObj:
         current_gameloop = 0
         current_energy = self.energy
         for ability in self.abilities_used:
+            if 'energy_cost' not in ability:
+                continue
+
             if ability['used_at'] >=  energy_maxout(current_gameloop, current_energy):
                 current_energy = 200
             else:
@@ -56,3 +59,52 @@ class GameObj:
             current_energy += energy_regen_rate * (gameloop - current_gameloop)
 
         return current_energy
+
+    def calc_inject_efficiency(self, gameloop):
+        if not self.abilities_used:
+            return None
+
+        # only 1 inject = 100% efficiency
+        if len(self.abilities_used) == 1:
+            return 1
+
+        # ~29sec
+        inject_delay = 650
+
+        missed_inject_time = 0
+        current_gameloop = self.abilities_used[0][1]
+        for i in range(1, len(self.abilities_used)):
+            current_inject = self.abilities_used[i]
+
+            time_diff = current_inject[1] - current_gameloop - 650
+
+            # time diff < 0, inject was queued, 100% efficiency
+            if time_diff > 0:
+                missed_inject_time += time_diff
+                current_gameloop = current_inject[1]
+            else:
+                current_gameloop = current_inject[1] + 650
+
+        return 1 - (missed_inject_time / (current_gameloop - self.abilities_used[0][1] + 650))
+
+    def calc_orbital_efficiency(self, gameloop):
+        if not self.abilities_used:
+            return None
+
+        # only 1 inject = 100% efficiency
+        if len(self.abilities_used) == 1:
+            return 1
+
+        orbital_efficiency = None
+        ability_usage = {}
+        for ability in self.abilities_used:
+            print(ability)
+            if ability[0]['ability_name'] not in ability_usage:
+                ability_usage[ability[0]['ability_name']] = 0
+            ability_usage[ability[0]['ability_name']] += 1
+
+            current_energy = self.calc_energy(ability[1])
+            print(current_energy)
+
+        return 1 - (missed_inject_time / (current_gameloop - self.abilities_used[0][1] + 650))
+
