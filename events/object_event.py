@@ -122,7 +122,7 @@ class ObjectEvent(BaseEvent):
                     )
 
             # only warped in units generate this event
-            if 'unit' in obj.type:
+            if 'unit' in obj.type and obj.name != 'Archon':
                 player.warpgate_cooldowns.append((gameloop, obj.cooldown))
                 player.warpgate_cooldowns.sort(key=lambda x: x[0] + x[1])
 
