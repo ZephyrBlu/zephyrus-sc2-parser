@@ -1,3 +1,10 @@
 __pycache__/
+.pytest_cache/
 .idea/
+dist/
+build/
+*.egg-info/
 *.coverage
+*.SC2Replay
+ex.py
+test.py
