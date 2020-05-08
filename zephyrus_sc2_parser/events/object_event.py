@@ -111,7 +111,7 @@ class ObjectEvent(BaseEvent):
             obj.status = 'in_progress'
             obj.position = {
                 'x': event['m_x'],
-                'y': event['m_x'],
+                'y': event['m_y'],
             }
 
             if player.warpgate_cooldowns and 'unit' in obj.type:
@@ -152,7 +152,7 @@ class ObjectEvent(BaseEvent):
             if not obj.position:
                 obj.position = {
                     'x': event['m_x'],
-                    'y': event['m_x'],
+                    'y': event['m_y'],
                 }
 
         elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
@@ -196,6 +196,9 @@ class ObjectEvent(BaseEvent):
             obj.gas_cost = new_obj_info['gas_cost']
             obj.supply = new_obj_info['supply']
 
+            if 'energy' in new_obj_info:
+                obj.energy = new_obj_info['energy']
+
             # organised in alphabetically sorted order
             morph_units = [
                 ['BanelingCocoon', 'Zergling'],
@@ -204,7 +207,8 @@ class ObjectEvent(BaseEvent):
                 ['OverlordTransport', 'TransportOverlordCocoon'],
                 ['Ravager', 'RavagerCocoon'],
                 ['LurkerMP', 'LurkerMPEgg'],
-                ['BroodLord', 'BroodLordCocoon']
+                ['BroodLord', 'BroodLordCocoon'],
+                ['CommandCenter', 'OrbitalCommand'],
             ]
 
             if sorted([old_name, new_obj_name]) in morph_units:
