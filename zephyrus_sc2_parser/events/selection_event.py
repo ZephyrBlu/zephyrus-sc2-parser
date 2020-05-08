@@ -1,5 +1,4 @@
 from zephyrus_sc2_parser.events.base_event import BaseEvent
-from zephyrus_sc2_parser.gamedata.unit_data import units
 import math
 
 
@@ -24,9 +23,11 @@ class SelectionEvent(BaseEvent):
         selection.sort(key=lambda x: x.tag)
 
     def _is_morph(self):
+        units = self.game.gamedata['units']
+
         # checking for Archon being added
         for obj_type in self.event['m_delta']['m_addSubgroups']:
-            if obj_type['m_unitLink'] == units['Protoss']['Archon']['obj_id'][0]:
+            if obj_type['m_unitLink'] == units['Protoss']['Archon']['obj_id']:
                 return True
         return False
 
