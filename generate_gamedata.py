@@ -24,7 +24,7 @@ for file_path in path.iterdir():
                 'building': copy.deepcopy(buildings),
             }
         elif 'abilities' in file_path.name:
-            version_data = { 'ability': copy.deepcopy(abilities) }
+            version_data = {'ability': copy.deepcopy(abilities)}
             new_version_data = {}
         else:
             continue
@@ -49,7 +49,7 @@ for file_path in path.iterdir():
                             break
                     elif data_type == 'ability':
                         if obj_name in abilities:
-                            new_version_data[obj_id] = { 'ability_name': obj_name }
+                            new_version_data[obj_id] = {'ability_name': obj_name}
                             new_version_data[obj_id].update(abilities[obj_name])
                     else:
                         continue
@@ -57,7 +57,7 @@ for file_path in path.iterdir():
         for i in range(0, len(protocols)):
             prot_version = protocols[i]
 
-            if prev_protocol[data_type] <= prot_version <= version:
+            if prev_protocol[data_type] < prot_version <= version:
                 if not os.path.isdir(f'zephyrus_sc2_parser/gamedata/{prot_version}'):
                     os.mkdir(f'zephyrus_sc2_parser/gamedata/{prot_version}')
                     Path(f'zephyrus_sc2_parser/gamedata/{prot_version}/__init__.py').touch()

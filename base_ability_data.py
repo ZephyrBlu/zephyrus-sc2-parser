@@ -111,6 +111,9 @@ abilities = {
     'ChronoBoostEnergyCost': {
         'energy_cost': 50,
     },
+    'NexusMassRecall': {
+        'energy_cost': 50,
+    },
     # --------------------------------------
     # --------------------------------------
     # --------------- TERRAN ---------------
@@ -124,7 +127,9 @@ abilities = {
     },
     'RallyCommand': {},
     'StimpackMarauder': {},
-    'SupplyDrop': {},
+    'SupplyDrop': {
+        'energy_cost': 50,
+    },
     'Stimpack': {},
     'GhostCloak': {
         'energy_cost': 25,
@@ -136,6 +141,9 @@ abilities = {
         'energy_cost': 25,
     },
     'MedivacTransport': {},
+    'ScannerSweep': {
+        'energy_cost': 50,
+    },
     'Yamato': {},
     # Assume this is for Viking
     'AssaultMode': {},
