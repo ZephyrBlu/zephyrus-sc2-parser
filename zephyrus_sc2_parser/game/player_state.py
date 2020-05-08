@@ -59,6 +59,7 @@ class PlayerState:
             'total_army_value': 0,
             'total_resources_lost': 0,
             'total_resouces_collected': 0,
+            'race': {},
         }
 
         # if warpgate_efficiency isn't default
@@ -86,17 +87,26 @@ class PlayerState:
                             'gas_cost': obj.gas_cost,
                         }
 
-                        obj_energy = obj.calc_energy(self.gameloop)
-                        if obj_energy:
-                            object_summary[obj_type][obj.name]['energy'] = obj_energy
+                # Nexus, Orbital and Hatchery calculations
+                if obj_type == 'building':
+                    obj_energy = obj.calc_energy(self.gameloop)
+                    if obj_energy and obj.status == 'live':
+                        if not object_summary['race']:
+                            object_summary['race'] = {
+                                'energy': {},
+                            }
+
+                        if obj.name not in object_summary['race']['energy']:
+                            object_summary['race']['energy'][obj.name] = []
+                        object_summary['race']['energy'][obj.name].append((obj_energy, *obj.energy_efficiency))
 
                     obj_inject_efficiency = obj.calc_inject_efficiency(self.gameloop)
                     if obj_inject_efficiency:
-                        if 'race' not in object_summary:
-                            object_summary['race'] = {'inject_efficiency': []}
+                        if 'inject_efficiency' not in object_summary['race']:
+                            object_summary['race']['inject_efficiency'] = []
                         object_summary['race']['inject_efficiency'].append(obj_inject_efficiency)
-
                     object_summary[obj_type][obj.name][obj.status] += 1
+
             if worker:
                 if obj.status == 'live':
                     object_summary['workers_active'] += 1

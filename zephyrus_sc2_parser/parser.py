@@ -50,6 +50,8 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
         'supply_block': {1: 0, 2: 0},
         'inject_count': {1: 0, 2: 0},
         'sq': {1: 0, 2: 0},
+        'energy': {1: {}, 2: {}},
+        'ability_usage': {1: {}, 2: {}},
         'avg_pac_per_min': {1: 0, 2: 0},
         'avg_pac_action_latency': {1: 0, 2: 0},
         'avg_pac_actions': {1: 0, 2: 0},
@@ -252,15 +254,6 @@ def parse_replay(filename, *, local=False, detailed=False):
 
                     current_tick += 112
 
-    # for player in players:
-    #     print(player.name)
-    #     for k, v in current_game.state[-1][player.player_id - 1].summary['unit'].items():
-    #         print(k, v)
-
-    #     for k, v in current_game.state[-1][player.player_id - 1].summary['building'].items():
-    #         print(k, v)
-    #     print('\n')
-
     engagement_outcomes = simulate_engagement(current_game.engagements)
     engagement_analysis = []
     for winner, unit_health, gameloop in engagement_outcomes:
@@ -273,7 +266,7 @@ def parse_replay(filename, *, local=False, detailed=False):
         if total_health[1][1] > 0 and total_health[2][1] > 0:
             engagement_analysis.append({
                 'winner': winner,
-                'army': { 'health': total_health[winner] },
+                'army': {'health': total_health[winner]},
                 'remaining_health':  round((total_health[winner][0] / total_health[winner][1]) * 100, 1),
                 'gameloop': gameloop,
             })
@@ -281,6 +274,21 @@ def parse_replay(filename, *, local=False, detailed=False):
     players_export = {}
     for player in players:
         summary_stats = player.calc_pac(summary_stats, game_length)
+
+        energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']
+        energy_efficiency = {}
+        energy_idle_time = {}
+        for obj_name, energy_info in energy_stats.items():
+            energy_efficiency[obj_name] = []
+            energy_idle_time[obj_name] = []
+            for obj_data in energy_info:
+                energy_efficiency[obj_name].append(obj_data[1])
+                energy_idle_time[obj_name].append(obj_data[2])
+
+        summary_stats['energy'][player.player_id] = {
+            'efficiency': energy_efficiency,
+            'idle_time': energy_idle_time,
+        }
 
         if not detailed:
             del player.__dict__['pac_list']

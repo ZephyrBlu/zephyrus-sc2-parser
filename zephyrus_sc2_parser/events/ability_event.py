@@ -1,5 +1,4 @@
 from zephyrus_sc2_parser.events.base_event import BaseEvent
-from zephyrus_sc2_parser.gamedata.ability_data import abilities
 
 
 class AbilityEvent(BaseEvent):
@@ -7,7 +6,7 @@ class AbilityEvent(BaseEvent):
         super().__init__(*args)
         self.summary_stats = summary_stats
 
-    def _get_game_object(self):
+    def _get_target_object(self):
         event = self.event
 
         if 'None' in event['m_data'] or 'TargetUnit' not in event['m_data']:
@@ -28,43 +27,85 @@ class AbilityEvent(BaseEvent):
         event = self.event
         gameloop = self.gameloop
         summary_stats = self.summary_stats
+        abilities = self.game.gamedata['abilities']
+
+        command_abilities = {
+            'ChronoBoostEnergyCost': 'Nexus',
+            'CalldownMULE': 'OrbitalCommand',
+            'SupplyDrop': 'OrbitalCommand',
+            'ScannerSweep': 'OrbitalCommand',
+        }
 
         if not player:
             return
 
         if self.type == 'NNet.Game.SCmdEvent':
-            if event['m_abil']:
-                if event['m_abil']['m_abilLink'] and type(event['m_abil']['m_abilCmdIndex']) is int:
-                    obj = self._get_game_object()
-                    queued = False
-                    if 'm_cmdFlags' in event:
-                        bitwise = event['m_cmdFlags'] & 2
-                        if bitwise == 2:
-                            queued = True
+            if event['m_abil'] and event['m_abil']['m_abilLink'] and event['m_abil']['m_abilLink'] in abilities and type(event['m_abil']['m_abilCmdIndex']) is int:
+                obj = self._get_target_object()
+                queued = False
+                if 'm_cmdFlags' in event:
+                    bitwise = event['m_cmdFlags'] & 2
+                    if bitwise == 2:
+                        queued = True
 
-                    ability = (
-                        event['m_abil']['m_abilLink'],
-                        event['m_abil']['m_abilCmdIndex'],
-                        obj,
-                        queued,
-                    )
-                else:
-                    ability = None
-                player.active_ability = ability
+                target_position = None
+                if 'm_data' in event:
+                    if 'TargetUnit' in event['m_data']:
+                        target_position = event['m_data']['TargetUnit']['m_snapshotPoint']
+                    elif 'TargetPoint' in event['m_data']:
+                        target_position = event['m_data']['TargetPoint']
 
-                # inject
-                if player.active_ability and player.active_ability[0] == 111 and obj:
+                ability = (
+                    abilities[event['m_abil']['m_abilLink']],
+                    obj,
+                    target_position,
+                    queued,
+                )
+            else:
+                ability = None
+            player.active_ability = ability
+
+            if player.active_ability:
+                ability_name = player.active_ability[0]['ability_name']
+                if ability_name == 'SpawnLarva' and obj:
                     # ~1sec
                     if not obj.abilities_used:
-                        obj.abilities_used.append((abilities[111], gameloop))
-                    elif (gameloop - obj.abilities_used[-1][1]) > 22 or player.active_ability[3]:
-                        obj.abilities_used.append((abilities[111], gameloop))
+                        obj.abilities_used.append((player.active_ability[0], gameloop))
+                    elif (gameloop - obj.abilities_used[-1][1]) > 22 or player.active_ability[2]:
+                        obj.abilities_used.append((player.active_ability[0], gameloop))
 
-                if player.active_ability and player.active_ability[0] == 717:
-                    pass
+                # the building the target is closest to is where the ability is used from
+                elif ability_name in command_abilities.keys():
+                    ability_buildings = []
+                    for obj in player.objects.values():
+                        if obj.name == command_abilities[ability_name]:
+                            current_obj_energy = obj.calc_energy(gameloop)
+                            # abilities cost 50 energy to use
+                            # if <50 energy the building is not available to cast
+                            if current_obj_energy and current_obj_energy >= 50:
+                                ability_buildings.append(obj)
 
-                # # MULE and Supply Drop
-                # if player.active_ability and (player.active_ability[0] == 90 or player.active_ability[0] == 113):
-                #     obj.abilities_used.append((abilities[player.active_ability], gameloop))
+                    if ability_buildings:
+                        ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
+                        ability_obj.abilities_used.append((player.active_ability[0], gameloop))
+        else:
+            if player.active_ability:
+                ability_name = player.active_ability[0]['ability_name']
+                if ability_name in command_abilities.keys():
+                    obj = player.active_ability[1]
+                    ability_buildings = []
+                    for obj in player.objects.values():
+                        if obj.name == command_abilities[ability_name]:
+                            current_obj_energy = obj.calc_energy(gameloop)
+                            # abilities cost 50 energy to use
+                            # if <50 energy the building is not available to cast
+                            if current_obj_energy and current_obj_energy >= 50:
+                                ability_buildings.append(obj)
+                                if obj.tag == 212:
+                                    print(obj, current_obj_energy, ability_name, f'{gameloop//22.4//60}min {round(gameloop/22.4 % 60, 0)}sec')
+
+                    if ability_buildings:
+                        ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
+                        ability_obj.abilities_used.append((player.active_ability[0], gameloop))
 
         return summary_stats
