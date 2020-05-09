@@ -1,5 +1,6 @@
 class PlayerState:
-    def __init__(self, player, gameloop):
+    def __init__(self, game, player, gameloop):
+        self.game = game
         self.player = player
         self.gameloop = gameloop
         self.summary = self.create_object_summary()
@@ -69,6 +70,13 @@ class PlayerState:
         for upg in self.player.upgrades:
             object_summary['upgrade'].append(upg)
 
+        if self.player.race == 'Zerg':
+            map_creep_coverage, tumor_count = self.player.calc_creep(self.game.map)
+            object_summary['race']['creep'] = {
+                'coverage': map_creep_coverage,
+                'tumors': tumor_count,
+            }
+
         for obj in self.player.objects.values():
             worker = False
             for obj_type in obj.type:
@@ -88,7 +96,7 @@ class PlayerState:
                         }
 
                 # Nexus, Orbital and Hatchery calculations
-                if obj_type == 'building':
+                if obj_type == 'building' and (obj.name == 'Nexus' or obj.name == 'OrbitalCommand'):
                     obj_energy = obj.calc_energy(self.gameloop)
                     if obj_energy and obj.status == 'live':
                         if not object_summary['race']:

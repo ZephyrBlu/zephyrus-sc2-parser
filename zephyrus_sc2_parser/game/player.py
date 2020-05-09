@@ -30,6 +30,7 @@ class Player:
         self.supply = 0
         self.supply_cap = 0
         self.supply_block = 0
+        self._creep_tiles = None
         self.unspent_resources = {
             'minerals': [],
             'gas': [],
@@ -72,6 +73,85 @@ class Player:
 
         self.supply = total_supply
         self.supply_cap = total_supply_provided
+
+    def calc_creep(self, map_info):
+        if self.race != 'Zerg':
+            return None, None
+
+        if not self._creep_tiles:
+            self._creep_tiles = set()
+
+        creep_tumor_count = 0
+        for obj in self.objects.values():
+            if obj.status != 'live':
+                continue
+
+            # odd tile objects position += 0.5. Rounded off in events
+            if obj.name == 'Hatchery' or obj.name == 'Lair' or obj.name == 'Hive':
+                creep_radius = 12
+            elif obj.name == 'CreepTumorBurrowed':
+                creep_tumor_count += 1
+                creep_radius = 10
+            else:
+                continue
+
+            # add 0.5 to get center of central tile
+            building_position = (obj.position['x'] + 0.5, obj.position['y'] + 0.5)
+
+            def add_tiles(tile_range, current_position):
+                # always add midpoint in row
+                self._creep_tiles.add(current_position)
+
+                # if only 1 tile in row, we're done
+                # else expand horizontally, count new tiles until max radius
+                # this should never happen with the improved approximation
+                if tile_range != 0:
+                    for j in range(0, tile_range + 1):
+                        self._creep_tiles.add((current_position[0] + j, current_position[1]))
+                        self._creep_tiles.add((current_position[0] - j, current_position[1]))
+
+            # adding middle row tiles
+            add_tiles(creep_radius, building_position)
+
+            for i in range(0, creep_radius//2):
+                row_increment = i + 1
+
+                # ----- full-size rows -----
+                # add radius/2 full-size rows to improve area approximation
+                add_tiles(
+                    creep_radius,
+                    (building_position[0], building_position[1] + row_increment),
+                )
+
+                # tile actions are mirrored in y-axis
+                add_tiles(
+                    creep_radius,
+                    (building_position[0], building_position[1] - row_increment),
+                )
+
+                # ----- decreasing size rows -----
+                add_tiles(
+                    creep_radius - row_increment,
+                    (
+                        building_position[0],
+                        building_position[1] + row_increment + creep_radius/2
+                    ),
+                )
+
+                # tile actions are mirrored in y-axis
+                add_tiles(
+                    creep_radius - row_increment,
+                    (
+                        building_position[0],
+                        building_position[1] - row_increment - creep_radius/2
+                    ),
+                )
+
+        map_tiles = map_info['width'] * map_info['height']
+        creep_coverage = round(len(self._creep_tiles) / map_tiles, 3)
+
+        return creep_coverage, creep_tumor_count
+        # return (len(self._creep_tiles), creep_coverage, map_info), creep_tumor_count
 
     def calc_pac(self, summary_stats, game_length):
         game_length_minutes = game_length / 22.4 / 60

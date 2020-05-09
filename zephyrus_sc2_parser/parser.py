@@ -7,7 +7,7 @@ from zephyrus_sc2_parser.s2protocol_fixed import versions
 from zephyrus_sc2_parser.game.game import Game
 from zephyrus_sc2_parser.game.player_state import PlayerState
 from zephyrus_sc2_parser.utils import (
-    import_gamedata, create_event, create_players, convert_time
+    import_gamedata, get_map_info, create_event, create_players, convert_time
 )
 import logging
 
@@ -155,7 +155,6 @@ def setup(filename):
 def parse_replay(filename, *, local=False, detailed=False):
     try:
         events, player_info, detailed_info, metadata, game_length, protocol = setup(filename)
-
         if events is None:
             logging.critical('Aborting replay due to bad decode...')
             return None, None, None, None, None
@@ -171,19 +170,25 @@ def parse_replay(filename, *, local=False, detailed=False):
         logging.critical('A KeyError error occured:', error, 'unreadable file info')
         return None, None, None, None, None
 
-    if player_info['m_title'] in non_english_maps:
-        game_map = non_english_maps[player_info['m_title']]
-    else:
-        game_map = player_info['m_title'].decode('utf-8')
-    played_at = convert_time(player_info['m_timeUTC'])
-
     if not players:
         logging.debug('Aborting replay due to <2 players...')
         return None, None, None, None, None
 
+    if player_info['m_title'] in non_english_maps:
+        game_map = non_english_maps[player_info['m_title']]
+    else:
+        game_map = player_info['m_title'].decode('utf-8')
+
+    played_at = convert_time(player_info['m_timeUTC'])
+    map_info = get_map_info(player_info, game_map)
+
+    if not map_info:
+        logging.debug('Aborting replay due to missing map data')
+        return None, None, None, None, None
+
     current_game = Game(
         players,
-        game_map,
+        map_info,
         played_at,
         game_length,
         events,
@@ -222,11 +227,13 @@ def parse_replay(filename, *, local=False, detailed=False):
                 players.sort()
                 if gameloop >= current_tick or gameloop == game_length:
                     player1_state = PlayerState(
+                        current_game,
                         players[0],
                         gameloop,
                     )
 
                     player2_state = PlayerState(
+                        current_game,
                         players[1],
                         gameloop,
                     )
@@ -265,8 +272,8 @@ def parse_replay(filename, *, local=False, detailed=False):
         if total_health[1][1] > 0 and total_health[2][1] > 0:
             engagement_analysis.append({
                 'winner': winner,
-                'army': {'health': total_health[winner]},
-                'remaining_health':  round((total_health[winner][0] / total_health[winner][1]) * 100, 1),
+                'health': total_health[winner],
+                'remaining_health':  round((total_health[winner][0] / total_health[winner][1]), 3),
                 'gameloop': gameloop,
             })
 
@@ -274,20 +281,22 @@ def parse_replay(filename, *, local=False, detailed=False):
     for player in players:
         summary_stats = player.calc_pac(summary_stats, game_length)
 
-        energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']
-        energy_efficiency = {}
-        energy_idle_time = {}
-        for obj_name, energy_info in energy_stats.items():
-            energy_efficiency[obj_name] = []
-            energy_idle_time[obj_name] = []
-            for obj_data in energy_info:
-                energy_efficiency[obj_name].append(obj_data[1])
-                energy_idle_time[obj_name].append(obj_data[2])
+        if 'energy' in current_game.timeline[-1][player.player_id]['race']:
+            energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']
+            energy_efficiency = {}
+            energy_idle_time = {}
 
-        summary_stats['energy'][player.player_id] = {
-            'efficiency': energy_efficiency,
-            'idle_time': energy_idle_time,
-        }
+            for obj_name, energy_info in energy_stats.items():
+                energy_efficiency[obj_name] = []
+                energy_idle_time[obj_name] = []
+                for obj_data in energy_info:
+                    energy_efficiency[obj_name].append(obj_data[1])
+                    energy_idle_time[obj_name].append(obj_data[2])
+
+            summary_stats['energy'][player.player_id] = {
+                'efficiency': energy_efficiency,
+                'idle_time': energy_idle_time,
+            }
 
         if not detailed:
             del player.__dict__['pac_list']
@@ -311,7 +320,7 @@ def parse_replay(filename, *, local=False, detailed=False):
 
     metadata_export = {
         'time_played_at': current_game.played_at,
-        'map': current_game.map,
+        'map': current_game.map['name'],
         'game_length': math.floor(current_game.game_length/22.4),
         'winner': current_game.winner
     }

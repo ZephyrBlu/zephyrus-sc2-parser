@@ -95,6 +95,7 @@ class AbilityEvent(BaseEvent):
                 if ability_name in command_abilities.keys():
                     obj = player.active_ability[1]
                     ability_buildings = []
+
                     for obj in player.objects.values():
                         if obj.name == command_abilities[ability_name]:
                             current_obj_energy = obj.calc_energy(gameloop)
@@ -102,8 +103,6 @@ class AbilityEvent(BaseEvent):
                             # if <50 energy the building is not available to cast
                             if current_obj_energy and current_obj_energy >= 50:
                                 ability_buildings.append(obj)
-                                if obj.tag == 212:
-                                    print(obj, current_obj_energy, ability_name, f'{gameloop//22.4//60}min {round(gameloop/22.4 % 60, 0)}sec')
 
                     if ability_buildings:
                         ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
