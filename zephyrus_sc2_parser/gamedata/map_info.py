@@ -1,0 +1,1 @@
+maps = {'Cerulean Fall LE': {'width': 168, 'height': 160}, 'Triton LE': {'width': 216, 'height': 216}}
