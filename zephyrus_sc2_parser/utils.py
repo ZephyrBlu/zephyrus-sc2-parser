@@ -1,5 +1,10 @@
 import datetime
 import math
+import mpyq
+import binascii
+import requests
+import struct
+from io import BytesIO
 from importlib import import_module
 from zephyrus_sc2_parser.events import *
 from zephyrus_sc2_parser.game.player import Player
@@ -125,6 +130,45 @@ def import_gamedata(protocol):
         'buildings': building_data.buildings,
         'abilities': ability_data.abilities,
         'upgrades': upgrade_data.upgrades,
+    }
+
+
+def get_map_info(player_info, game_map):
+    map_bytes = player_info['m_cacheHandles'][-1]
+    server = map_bytes[4:8].decode('utf8').strip('\x00 ').lower()
+    file_hash = binascii.b2a_hex(map_bytes[8:]).decode('utf8')
+    file_type = map_bytes[0:4].decode('utf8')
+
+    map_file = None
+    for i in range(0, 5):
+        map_response = requests.get(f'http://{server}.depot.battle.net:1119/{file_hash}.{file_type}')
+        if map_response.status_code == 200:
+            map_file = BytesIO(map_response.content)
+            break
+        logging.error(f'Could not fetch {game_map} map file. Retrying...')
+
+    if not map_file:
+        logging.critical(f'Failed to fetch {game_map} map file')
+        return None
+
+    map_archive = mpyq.MPQArchive(map_file)
+    map_data = BytesIO(map_archive.read_file('MapInfo'))
+    map_data.seek(4)
+
+    # returns tuple of 32 byte unsigned integer
+    unpack_int = struct.Struct('<I').unpack
+    version = unpack_int(map_data.read(4))[0]
+    if version >= 0x18:
+        # trash bytes
+        unpack_int(map_data.read(4))
+        unpack_int(map_data.read(4))
+    map_width = unpack_int(map_data.read(4))[0]
+    map_height = unpack_int(map_data.read(4))[0]
+
+    return {
+        'name': game_map,
+        'width': map_width,
+        'height': map_height,
     }
 
 
