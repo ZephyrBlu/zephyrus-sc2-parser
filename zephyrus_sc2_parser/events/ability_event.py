@@ -31,6 +31,7 @@ class AbilityEvent(BaseEvent):
 
         command_abilities = {
             'ChronoBoostEnergyCost': 'Nexus',
+            'NexusMassRecall': 'Nexus',
             'CalldownMULE': 'OrbitalCommand',
             'SupplyDrop': 'OrbitalCommand',
             'ScannerSweep': 'OrbitalCommand',

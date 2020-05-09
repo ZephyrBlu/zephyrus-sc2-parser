@@ -51,7 +51,6 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
         'inject_count': {1: 0, 2: 0},
         'sq': {1: 0, 2: 0},
         'energy': {1: {}, 2: {}},
-        'ability_usage': {1: {}, 2: {}},
         'avg_pac_per_min': {1: 0, 2: 0},
         'avg_pac_action_latency': {1: 0, 2: 0},
         'avg_pac_actions': {1: 0, 2: 0},
