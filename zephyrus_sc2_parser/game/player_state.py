@@ -45,6 +45,7 @@ class PlayerState:
             'supply': self.player.supply,
             'supply_cap': self.player.supply_cap,
             'supply_block': self.player.supply_block,
+            'spm': 0,
             'army_value': {
                 'minerals': 0,
                 'gas': 0,
@@ -63,6 +64,8 @@ class PlayerState:
             'race': {},
         }
 
+        object_summary['spm'] = self.player.calc_spm(self.gameloop, recent=True)
+
         # if warpgate_efficiency isn't default
         if self.player.warpgate_efficiency[0] > 0:
             object_summary['warpgate_efficiency'] = self.player.warpgate_efficiency
@@ -77,7 +80,11 @@ class PlayerState:
                 'tumors': tumor_count,
             }
 
+        current_idle_larva = 0
         for obj in self.player.objects.values():
+            if obj.name == 'Larva' and obj.status == 'live':
+                current_idle_larva += 1
+
             worker = False
             for obj_type in obj.type:
                 if obj_type == 'worker':
@@ -120,6 +127,9 @@ class PlayerState:
                             object_summary['race']['inject_efficiency'] = []
                         object_summary['race']['inject_efficiency'].append(obj_inject_efficiency)
                     object_summary[obj_type][obj.name][obj.status] += 1
+
+            if current_idle_larva:
+                self.player.idle_larva.append(current_idle_larva)
 
             if worker:
                 if obj.status == 'live':

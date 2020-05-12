@@ -9,14 +9,26 @@ class CameraUpdateEvent(BaseEvent):
     def parse_event(self):
         if self.event['m_target']:
             player = self.player
-            position = (self.event['m_target']['x'], self.event['m_target']['y'])
+            position = (self.event['m_target']['x']/256, self.event['m_target']['y']/256)
             gameloop = self.event['_gameloop']
 
             if not player:
                 return
 
-            elif self.player.current_pac:
-                current_pac = self.player.current_pac
+            if not player.prev_screen_position:
+                player.prev_screen_position = position
+            else:
+                x_diff = player.prev_screen_position[0] - position[0]
+                y_diff = player.prev_screen_position[1] - position[1]
+
+                # if x^2 + y^2 > 15^2 then add screen
+                # 15 tiles is cut off
+                if (x_diff**2) + (y_diff**2) >= 225:
+                    player.screens.append(gameloop)
+                player.prev_screen_position = position
+
+            if player.current_pac:
+                current_pac = player.current_pac
                 # If current PAC is still within camera bounds, count action
                 if current_pac.check_position(position):
                     current_pac.camera_moves.append((gameloop, position))

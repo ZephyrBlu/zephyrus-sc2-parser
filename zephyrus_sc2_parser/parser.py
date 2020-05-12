@@ -26,7 +26,6 @@ non_english_maps = {
 def initial_summary_stats(game, metadata, detailed_info, local=False):
     summary_stats = {
         'mmr': {1: 0, 2: 0},
-        'mmr_diff': {1: 0, 2: 0},
         'avg_resource_collection_rate': {
             'minerals': {1: 0, 2: 0},
             'gas': {1: 0, 2: 0}
@@ -36,6 +35,7 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
             'gas': {1: 0, 2: 0}
         },
         'apm': {1: 0, 2: 0},
+        'spm': {1: 0, 2: 0},
         'resources_lost': {
             'minerals': {1: 0, 2: 0},
             'gas': {1: 0, 2: 0}
@@ -48,13 +48,12 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
         'workers_killed': {1: 0, 2: 0},
         'workers_lost': {1: 0, 2: 0},
         'supply_block': {1: 0, 2: 0},
-        'inject_count': {1: 0, 2: 0},
         'sq': {1: 0, 2: 0},
-        'energy': {1: {}, 2: {}},
         'avg_pac_per_min': {1: 0, 2: 0},
         'avg_pac_action_latency': {1: 0, 2: 0},
         'avg_pac_actions': {1: 0, 2: 0},
         'avg_pac_gap': {1: 0, 2: 0},
+        'race': {1: {}, 2: {}},
     }
 
     mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
@@ -84,10 +83,6 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
             summary_stats['mmr'][player_id] = mmr_data[player_id-1]['m_scaledRating']
         else:
             summary_stats['mmr'][player_id] = 0
-
-    if ranked_game:
-        summary_stats['mmr_diff'][1] = player1_mmr-player2_mmr
-        summary_stats['mmr_diff'][2] = player2_mmr-player1_mmr
 
     return summary_stats
 
@@ -280,6 +275,10 @@ def parse_replay(filename, *, local=False, detailed=False):
     players_export = {}
     for player in players:
         summary_stats = player.calc_pac(summary_stats, game_length)
+        summary_stats['spm'][player.player_id] = player.calc_spm(current_game.game_length)
+
+        if player.race == 'Zerg':
+            summary_stats['race'][player.player_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
 
         if 'energy' in current_game.timeline[-1][player.player_id]['race']:
             energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']
@@ -293,7 +292,7 @@ def parse_replay(filename, *, local=False, detailed=False):
                     energy_efficiency[obj_name].append(obj_data[1])
                     energy_idle_time[obj_name].append(obj_data[2])
 
-            summary_stats['energy'][player.player_id] = {
+            summary_stats['race'][player.player_id]['energy'] = {
                 'efficiency': energy_efficiency,
                 'idle_time': energy_idle_time,
             }

@@ -19,9 +19,9 @@ class PerceptionActionCycle:
         """
         x_diff = abs(new_position[0] - self.initial_camera_position[0])
         y_diff = abs(new_position[1] - self.initial_camera_position[1])
-        total_diff = x_diff + y_diff
+        total_diff = (x_diff**2) + (y_diff**2)
 
-        if total_diff > 6:
+        if total_diff > self.min_camera_move**2:
             return False
         return True
 
@@ -33,6 +33,6 @@ class PerceptionActionCycle:
         If the difference is greater than 4 units,
         the PAC is valid and a boolean (True) is returned.
         """
-        if new_gameloop - self.initial_gameloop > 4:
+        if new_gameloop - self.initial_gameloop > self.min_duration:
             return True
         return False

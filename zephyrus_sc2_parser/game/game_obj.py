@@ -92,7 +92,7 @@ class GameObj:
                     time_past_min_energy += gameloop - current_gameloop
                 else:
                     time_past_min_energy += gameloop - min_usable_energy_gameloop
-                self.energy_efficiency = (round(1 - (time_past_min_energy / gameloop), 3), time_past_min_energy)
+                self.energy_efficiency = (round(1 - (time_past_min_energy / gameloop), 3), round(time_past_min_energy / 22.4, 1))
 
         if gameloop >= energy_maxout(current_gameloop, current_energy, max_energy):
             current_energy = max_energy
