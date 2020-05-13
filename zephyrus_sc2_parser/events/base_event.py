@@ -18,12 +18,12 @@ class BaseEvent:
         if game is None:
             return None
 
-        for player in game.players:
+        for p_id, player in game.players.items():
             if 'm_controlPlayerId' in event:
-                if player.player_id == event['m_controlPlayerId']:
+                if p_id == event['m_controlPlayerId']:
                     return player
             elif 'm_playerId' in event:
-                if player.player_id == event['m_playerId']:
+                if p_id == event['m_playerId']:
                     return player
             elif '_userid' in event:
                 if player.user_id == event['_userid']['m_userId']:

@@ -116,7 +116,12 @@ def create_players(player_info, events):
         player_obj.player_id = events[setup_index+1]['m_playerId']
         player_obj.user_id = events[setup_index+1]['m_userId']
 
-    return players
+    players.sort(key=lambda x: x.player_id)
+
+    return {
+        1: players[0],
+        2: players[1],
+    }
 
 
 def import_gamedata(protocol):

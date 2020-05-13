@@ -219,17 +219,16 @@ def parse_replay(filename, *, local=False, detailed=False):
                     current_event.player.current_pac.actions.append(gameloop)
 
                 # 112 = 5sec of game time
-                players.sort()
                 if gameloop >= current_tick or gameloop == game_length:
                     player1_state = PlayerState(
                         current_game,
-                        players[0],
+                        players[1],
                         gameloop,
                     )
 
                     player2_state = PlayerState(
                         current_game,
-                        players[1],
+                        players[2],
                         gameloop,
                     )
 
@@ -240,16 +239,16 @@ def parse_replay(filename, *, local=False, detailed=False):
                     })
 
                     player_units = {1: [], 2: []}
-                    for p_id, p in enumerate(players):
+                    for p_id, p in players.items():
                         for obj in p.objects.values():
                             if obj.status == 'live':
-                                player_units[p_id + 1].append(obj.name)
+                                player_units[p_id].append(obj.name)
 
                     current_game.engagements.append((
                         player_units[1],
                         player_units[2],
-                        players[0].upgrades,
                         players[1].upgrades,
+                        players[2].upgrades,
                         gameloop,
                     ))
 
@@ -273,12 +272,50 @@ def parse_replay(filename, *, local=False, detailed=False):
             })
 
     players_export = {}
-    for player in players:
+    for p_id, player in players.items():
         summary_stats = player.calc_pac(summary_stats, game_length)
         summary_stats['spm'][player.player_id] = player.calc_spm(current_game.game_length)
 
+        opp_id = 1 if p_id == 2 else 2
+
         if player.race == 'Zerg':
+            print(current_game.timeline[-1][player.player_id]['race'])
+            summary_stats['race'][player.player_id]['inject_efficiency'] = current_game.timeline[-1][player.player_id]['race']['inject_efficiency']
             summary_stats['race'][player.player_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
+            summary_stats['race'][player.player_id]['creep'] = current_game.timeline[-1][player.player_id]['race']['creep']
+
+        elif player.race == 'Protoss':
+            opp_player = players[opp_id]
+
+            protoss_splash = {
+                'HighTemplar': (0, 0),
+                'Disruptor': (0, 0),
+                'Colossus': (0, 0),
+            }
+
+            units = current_game.gamedata['units']
+
+            for obj in opp_player.objects.values():
+                if obj.killed_by and obj.killed_by.name in protoss_splash:
+                    protoss_splash[obj.killed_by] = (
+                        protoss_splash[obj.killed_by][0] + units[obj.name]['mineral_cost'],
+                        protoss_splash[obj.killed_by][1] + units[obj.name]['gas_cost'],
+                    )
+
+            splash_efficiency = {}
+            for splash_unit, resources_killed in protoss_splash.items():
+                # if not default
+                if resources_killed != (0, 0):
+                    unit_mineral_cost = units[splash_unit]['mineral_cost']
+                    unit_gas_cost = units[splash_unit]['gas_cost']
+
+                    splash_efficiency[splash_unit] = (
+                        round(resources_killed[0] / unit_mineral_cost, 2),
+                        round(resources_killed[1] / unit_gas_cost, 2),
+                    )
+
+            if splash_efficiency:
+                summary_stats['race'][player.player_id]['splash_efficiency'] = splash_efficiency
 
         if 'energy' in current_game.timeline[-1][player.player_id]['race']:
             energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']
@@ -297,6 +334,13 @@ def parse_replay(filename, *, local=False, detailed=False):
                 'idle_time': energy_idle_time,
             }
 
+        if 'warpgate_efficiency' in current_game.timeline[-1][player.player_id]['race']:
+            warpgate_efficiency = current_game.timeline[-1][player.player_id]['race']['warpgate_efficiency']
+            summary_stats['race'][player.player_id]['warpgate'] = {
+                'efficiency': warpgate_efficiency[0],
+                'idle_time': warpgate_efficiency[1],
+            }
+
         if not detailed:
             del player.__dict__['pac_list']
             del player.__dict__['current_pac']
@@ -313,9 +357,7 @@ def parse_replay(filename, *, local=False, detailed=False):
             del player.__dict__['supply_cap']
         players_export[player.player_id] = player
 
-        for p in players:
-            if p.player_id != player.player_id:
-                summary_stats['workers_killed'][p.player_id] = summary_stats['workers_lost'][player.player_id]
+        summary_stats['workers_killed'][opp_id] = summary_stats['workers_lost'][player.player_id]
 
     metadata_export = {
         'time_played_at': current_game.played_at,

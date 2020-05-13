@@ -44,7 +44,7 @@ class PlayerState:
             'workers_killed': 0,
             'supply': self.player.supply,
             'supply_cap': self.player.supply_cap,
-            'supply_block': self.player.supply_block,
+            'supply_block': round(self.player.supply_block / 22.4, 1),
             'spm': 0,
             'army_value': {
                 'minerals': 0,
@@ -60,7 +60,7 @@ class PlayerState:
             },
             'total_army_value': 0,
             'total_resources_lost': 0,
-            'total_resouces_collected': 0,
+            'total_resouces_collected': self.player.resources_collected['minerals'] + self.player.resources_collected['gas'],
             'race': {},
         }
 
@@ -68,7 +68,10 @@ class PlayerState:
 
         # if warpgate_efficiency isn't default
         if self.player.warpgate_efficiency[0] > 0:
-            object_summary['warpgate_efficiency'] = self.player.warpgate_efficiency
+            object_summary['race']['warpgate_efficiency'] = (
+                round(1 - self.player.warpgate_efficiency[1] / self.player.warpgate_efficiency[0], 3),
+                round(self.player.warpgate_efficiency[1] / 22.4, 1),
+            )
 
         for upg in self.player.upgrades:
             object_summary['upgrade'].append(upg)
@@ -101,16 +104,19 @@ class PlayerState:
                             'mineral_cost': obj.mineral_cost,
                             'gas_cost': obj.gas_cost,
                         }
+                    object_summary[obj_type][obj.name][obj.status] += 1
+
+                command_structures = ['Hatchery', 'Lair', 'Hive', 'Nexus', 'OrbitalCommand']
 
                 # Nexus, Orbital and Hatchery calculations
-                if obj_type == 'building' and (obj.name == 'Nexus' or obj.name == 'OrbitalCommand'):
+                if obj_type == 'building' and (obj.name in command_structures):
                     obj_energy = obj.calc_energy(self.gameloop)
                     if obj_energy and obj.status == 'live':
-                        if not object_summary['race']:
-                            object_summary['race'] = {
-                                'energy': {},
-                                'abilities_used': {},
-                            }
+                        if 'energy' not in object_summary['race']:
+                            object_summary['race']['energy'] = {}
+
+                        if 'abilities_used' not in object_summary['race']:
+                            object_summary['race']['abilities_used'] = {}
 
                         if obj.name not in object_summary['race']['energy']:
                             object_summary['race']['energy'][obj.name] = []

@@ -102,7 +102,7 @@ class GameObj:
         return round(current_energy, 1)
 
     def calc_inject_efficiency(self, gameloop):
-        if not self.abilities_used or self.name != 'Hatchery':
+        if not self.abilities_used or self.name not in ['Hatchery', 'Lair', 'Hive']:
             return None
 
         # only 1 inject = 100% efficiency

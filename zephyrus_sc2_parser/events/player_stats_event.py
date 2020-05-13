@@ -67,7 +67,7 @@ class PlayerStatsEvent(BaseEvent):
             )
 
         if gameloop == self.game.game_length:
-            summary_stats['supply_block'][player.player_id] = self.player.supply_block
+            summary_stats['supply_block'][player.player_id] = round(self.player.supply_block / 22.4, 1)
 
             summary_stats['resources_lost']['minerals'][player.player_id] = event['m_stats']['m_scoreValueMineralsLostArmy']
             summary_stats['resources_lost']['gas'][player.player_id] = event['m_stats']['m_scoreValueVespeneLostArmy']

@@ -19,7 +19,7 @@ class ObjectEvent(BaseEvent):
         game_id = self.protocol.unit_tag(unit_tag_index, unit_tag_recycle)
 
         if self.player is False:
-            for p in self.game.players:
+            for p in self.game.players.values():
                 if game_id in p.objects:
                     self.player = p
                     return self.player.objects[game_id]
@@ -167,7 +167,7 @@ class ObjectEvent(BaseEvent):
 
             if obj_killer_tag and obj_killer_recycle:
                 obj_killer_id = protocol.unit_tag(obj_killer_tag, obj_killer_recycle)
-                for p in self.game.players:
+                for p in self.game.players.values():
                     if obj_killer_id in p.objects:
                         obj.killed_by = p.objects[obj_killer_id]
 
