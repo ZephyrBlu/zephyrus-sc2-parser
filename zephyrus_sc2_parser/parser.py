@@ -2,7 +2,6 @@ import mpyq
 import json
 import math
 import heapq
-from sc2_simulator import simulate_engagement
 from zephyrus_sc2_parser.s2protocol_fixed import versions
 from zephyrus_sc2_parser.game.game import Game
 from zephyrus_sc2_parser.game.player_state import PlayerState
@@ -11,6 +10,12 @@ from zephyrus_sc2_parser.utils import (
 )
 import logging
 
+is_engagement_simulator_installed = False
+try:
+    from sc2_simulator import simulate_engagement
+    is_engagement_simulator_installed = True
+except ImportError:
+    pass
 
 non_english_maps = {
     b'\xec\x95\x84\xed\x81\xac\xeb\xa1\x9c\xed\x8f\xb4\xeb\xa6\xac\xec\x8a\xa4 \x2d \xeb\x9e\x98\xeb\x8d\x94': 'Acropolis LE',
@@ -62,15 +67,7 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
         if not local:
             return None
 
-    ranked_game = False
-    player1_mmr = mmr_data[0]['m_scaledRating']
-    player2_mmr = mmr_data[1]['m_scaledRating']
     for p in metadata['Players']:
-        if player1_mmr and player2_mmr:
-            ranked_game = True
-        else:
-            ranked_game = False
-
         if p['Result'] == 'Win':
             game.winner = p['PlayerID']
 
@@ -254,22 +251,24 @@ def parse_replay(filename, *, local=False, detailed=False):
 
                     current_tick += 112
 
-    engagement_outcomes = simulate_engagement(current_game.engagements)
     engagement_analysis = []
-    for winner, unit_health, gameloop in engagement_outcomes:
-        total_health = {1: (0, 0), 2: (0, 0)}
-        for unit in unit_health:
-            total_health[unit[0]] = (
-                total_health[unit[0]][0] + unit[2],
-                total_health[unit[0]][1] + unit[3],
-            )
-        if total_health[1][1] > 0 and total_health[2][1] > 0:
-            engagement_analysis.append({
-                'winner': winner,
-                'health': total_health[winner],
-                'remaining_health':  round((total_health[winner][0] / total_health[winner][1]), 3),
-                'gameloop': gameloop,
-            })
+    if is_engagement_simulator_installed:
+        engagement_outcomes = simulate_engagement(current_game.engagements)
+        for winner, unit_health, gameloop in engagement_outcomes:
+            total_health = {1: (0, 0), 2: (0, 0)}
+            for unit in unit_health:
+                total_health[unit[0]] = (
+                    total_health[unit[0]][0] + unit[2],
+                    total_health[unit[0]][1] + unit[3],
+                )
+
+            if total_health[1][1] > 0 and total_health[2][1] > 0:
+                engagement_analysis.append({
+                    'winner': winner,
+                    'health': total_health[winner],
+                    'remaining_health':  round((total_health[winner][0] / total_health[winner][1]), 3),
+                    'gameloop': gameloop,
+                })
 
     players_export = {}
     for p_id, player in players.items():
