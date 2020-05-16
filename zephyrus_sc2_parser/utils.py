@@ -4,6 +4,7 @@ import mpyq
 import binascii
 import requests
 import struct
+from pathlib import Path
 from io import BytesIO
 from importlib import import_module
 from zephyrus_sc2_parser.events import *
@@ -178,7 +179,8 @@ def get_map_info(player_info, game_map):
             },
         })
 
-        with open(f'zephyrus_sc2_parser/gamedata/map_info.py', 'w') as map_info:
+        map_info_path = Path(__file__).resolve().parent / 'gamedata' / 'map_info.py'
+        with open(map_info_path, 'w') as map_info:
             map_info.write(f'maps = {maps}')
 
     game_map_info = {
