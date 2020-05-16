@@ -77,6 +77,16 @@ class Player:
     #     self.supply = total_supply
     #     self.supply_cap = total_supply_provided
 
+    def to_json(self):
+        return {
+            'name': self.name,
+            'race': self.race,
+            'player_id': self.player_id,
+            'realm_id': self.realm_id,
+            'region_id': self.region_id,
+            'profile_id': self.profile_id,
+        }
+
     def calc_spm(self, gameloop, *, recent=False):
         if not recent:
             return round(len(self.screens) / (gameloop / 22.4 / 60), 1)

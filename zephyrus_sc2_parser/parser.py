@@ -144,7 +144,7 @@ def setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename, *, local=False, detailed=False):
+def parse_replay(filename, *, local=False):
     try:
         events, player_info, detailed_info, metadata, game_length, protocol = setup(filename)
         if events is None:
@@ -339,22 +339,7 @@ def parse_replay(filename, *, local=False, detailed=False):
                 'idle_time': warpgate_efficiency[1],
             }
 
-        if not detailed:
-            del player.__dict__['pac_list']
-            del player.__dict__['current_pac']
-            del player.__dict__['objects']
-            del player.__dict__['current_selection']
-            del player.__dict__['control_groups']
-            del player.__dict__['warpgate_cooldowns']
-            del player.__dict__['warpgate_efficiency']
-            del player.__dict__['active_ability']
-            del player.__dict__['unspent_resources']
-            del player.__dict__['collection_rate']
-            del player.__dict__['resources_collected']
-            del player.__dict__['supply']
-            del player.__dict__['supply_cap']
         players_export[player.player_id] = player
-
         summary_stats['workers_killed'][opp_id] = summary_stats['workers_lost'][player.player_id]
 
     metadata_export = {
