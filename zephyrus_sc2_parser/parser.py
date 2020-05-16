@@ -296,16 +296,16 @@ def parse_replay(filename, *, local=False):
             for obj in opp_player.objects.values():
                 if obj.killed_by and obj.killed_by.name in protoss_splash:
                     protoss_splash[obj.killed_by.name] = (
-                        protoss_splash[obj.killed_by.name][0] + units[obj.name]['mineral_cost'],
-                        protoss_splash[obj.killed_by.name][1] + units[obj.name]['gas_cost'],
+                        protoss_splash[obj.killed_by.name][0] + units[opp_player.race][obj.name]['mineral_cost'],
+                        protoss_splash[obj.killed_by.name][1] + units[opp_player.race][obj.name]['gas_cost'],
                     )
 
             splash_efficiency = {}
             for splash_unit, resources_killed in protoss_splash.items():
                 # if not default
                 if resources_killed != (0, 0):
-                    unit_mineral_cost = units[splash_unit]['mineral_cost']
-                    unit_gas_cost = units[splash_unit]['gas_cost']
+                    unit_mineral_cost = units[player.race][splash_unit]['mineral_cost']
+                    unit_gas_cost = units[player.race][splash_unit]['gas_cost']
 
                     splash_efficiency[splash_unit] = (
                         round(resources_killed[0] / unit_mineral_cost, 2),
