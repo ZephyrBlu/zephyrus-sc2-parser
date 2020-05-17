@@ -15,9 +15,37 @@ prev_protocol = {
     'ability': 0,
 }
 
+version_protocols = {}
+
+for file_path in path.iterdir():
+    version = int(file_path.name[:5])
+    if 'units' in file_path.name:
+        data_type = 'unit'
+    elif 'abilities' in file_path.name:
+        data_type = 'ability'
+    else:
+        continue
+
+    for i in range(0, len(protocols)):
+        protocol = protocols[i]
+
+        if prev_protocol[data_type] < protocol <= version:
+            if version not in version_protocols:
+                version_protocols[version] = set()
+            version_protocols[version].add(protocol)
+        elif protocol > version:
+            prev_protocol[data_type] = protocols[i - 1]
+            break
+
+# for prot, data in version_protocols.items():
+#     print(prot)
+#     print(sorted(list(data)))
+#     print('\n\n')
+
 for file_path in path.iterdir():
     if file_path.is_file():
         version = int(file_path.name[:5])
+
         if 'units' in file_path.name:
             version_data = {
                 'unit': copy.deepcopy(units),
@@ -54,13 +82,10 @@ for file_path in path.iterdir():
                     else:
                         continue
 
-        for i in range(0, len(protocols)):
-            prot_version = protocols[i]
-
-            if prev_protocol[data_type] < prot_version <= version:
-                if not os.path.isdir(f'zephyrus_sc2_parser/gamedata/{prot_version}'):
-                    os.mkdir(f'zephyrus_sc2_parser/gamedata/{prot_version}')
-                    Path(f'zephyrus_sc2_parser/gamedata/{prot_version}/__init__.py').touch()
+            for prot in list(version_protocols[version]):
+                if not os.path.isdir(f'zephyrus_sc2_parser/gamedata/{prot}'):
+                    os.mkdir(f'zephyrus_sc2_parser/gamedata/{prot}')
+                    Path(f'zephyrus_sc2_parser/gamedata/{prot}/__init__.py').touch()
 
                 for data_type, data in version_data.items():
                     if data_type == 'unit' or data_type == 'building':
@@ -72,12 +97,8 @@ for file_path in path.iterdir():
                     else:
                         continue
 
-                    with open(f'zephyrus_sc2_parser/gamedata/{prot_version}/{data_type}_data.py', 'w') as version_file:
-                        version_file.write(f'# Version {prot_version}\n{data_name} = {write_data}')
+                    with open(f'zephyrus_sc2_parser/gamedata/{prot}/{data_type}_data.py', 'w') as version_file:
+                        version_file.write(f'# Version {prot}\n{data_name} = {write_data}')
 
-                with open(f'zephyrus_sc2_parser/gamedata/{prot_version}/upgrade_data.py', 'w') as version_file:
-                    version_file.write(f'# Version {prot_version}\nupgrades = {upgrades}')
-
-            elif prot_version > version:
-                prev_protocol[data_type] = protocols[i - 1]
-                break
+                with open(f'zephyrus_sc2_parser/gamedata/{prot}/upgrade_data.py', 'w') as version_file:
+                    version_file.write(f'# Version {prot}\nupgrades = {upgrades}')
