@@ -294,7 +294,7 @@ def parse_replay(filename, *, local=False):
             units = current_game.gamedata['units']
 
             for obj in opp_player.objects.values():
-                if obj.killed_by and obj.killed_by.name in protoss_splash:
+                if 'unit' in obj.type and obj.killed_by and obj.killed_by.name in protoss_splash:
                     protoss_splash[obj.killed_by.name] = (
                         protoss_splash[obj.killed_by.name][0] + units[opp_player.race][obj.name]['mineral_cost'],
                         protoss_splash[obj.killed_by.name][1] + units[opp_player.race][obj.name]['gas_cost'],
