@@ -10,5 +10,17 @@ class UpgradeEvent(BaseEvent):
         event = self.event
         upgrades = self.game.gamedata['upgrades']
 
+        lowercase_upgrades = {
+            'zerglingmovementspeed': 'ZerglingMovementSpeed',
+            'zerglingattackspeed': 'ZerglingAttackSpeed',
+            'overlordspeed': 'OverlordSpeed',
+        }
+
+        upgrade_name = None
         if event['m_upgradeTypeName'].decode('utf-8') in upgrades[player.race]:
-            player.upgrades.append(event['m_upgradeTypeName'].decode('utf-8'))
+            upgrade_name = event['m_upgradeTypeName'].decode('utf-8')
+        elif event['m_upgradeTypeName'].decode('utf-8') in lowercase_upgrades:
+            upgrade_name = lowercase_upgrades[event['m_upgradeTypeName'].decode('utf-8')]
+
+        if upgrade_name:
+            player.upgrades.append(upgrade_name)

@@ -317,4 +317,3 @@ abilities = {
     'LurkerRemoveHoldFire': {},
     'LurkerDenMPResearch': {},
 }
-

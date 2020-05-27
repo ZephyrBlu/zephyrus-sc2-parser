@@ -45,14 +45,14 @@ units = {
             'supply': 2,
             'cooldown': 446,
         },
-        'AdeptPhaseShift': {
-            'obj_id': [1052],
-            'priority': 54,
-            'type': ['unit'],  # 'temporary'
-            'mineral_cost': 0,
-            'gas_cost': 0,
-            'supply': 0,
-        },
+        # 'AdeptPhaseShift': {
+        #     'obj_id': [1052],
+        #     'priority': 54,
+        #     'type': ['unit'],  # 'temporary'
+        #     'mineral_cost': 0,
+        #     'gas_cost': 0,
+        #     'supply': 0,
+        # },
         'HighTemplar': {
             'obj_id': [98],
             'priority': 93,
@@ -148,15 +148,6 @@ units = {
             'supply': 2,
             'energy': 50,
         },
-        # Phoenix pick up state
-        # 'Phoenix': {
-        #     'obj_id': [100],
-        #     'priority': 81,
-        #     'type': ['unit'],
-        #     'mineral_cost': 150,
-        #     'gas_cost': 100,
-        #     'supply': 2,
-        # },
         'VoidRay': {
             'obj_id': [103],
             'priority': 78,
@@ -173,14 +164,6 @@ units = {
             'gas_cost': 150,
             'supply': 3,
             'energy': 50,
-        },
-        'OracleStasisTrap': {
-            'obj_id': [967],
-            'priority': 0,
-            'type': ['unit'],  # temporary
-            'mineral_cost': 0,
-            'gas_cost': 0,
-            'supply': 0,
         },
         'Tempest': {
             'obj_id': [186],
@@ -275,7 +258,7 @@ units = {
             'supply': 2,
         },
         # HellionTank
-        'Hellbat': {
+        'HellionTank': {
             'obj_id': [75],
             'priority': 6,
             'type': ['unit'],

@@ -130,6 +130,14 @@ buildings = {
             'gas_cost': 150,
             'supply': 0,
         },
+        # 'OracleStasisTrap': {
+        #     'obj_id': [967],
+        #     'priority': 0,
+        #     'type': ['unit'],  # temporary
+        #     'mineral_cost': 0,
+        #     'gas_cost': 0,
+        #     'supply': 0,
+        # },
     },
     'Terran': {
         'CommandCenter': {

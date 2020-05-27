@@ -132,9 +132,9 @@ def setup(filename):
     events = sorted(events, key=lambda x: x['_gameloop'])
 
     # for event in events:
-    #     # if event['_event'] == 'NNet.Game.SCmdEvent':  # == 'NNet.Replay.Tracker.SUnitPositionsEvent':
-    #     print(event)
-    #     print('\n')
+    #     if event['_event'] == 'NNet.Replay.Tracker.SUpgradeEvent':  # == 'NNet.Replay.Tracker.SUnitPositionsEvent':
+    #         print(event)
+    #         print('\n')
 
     for event in events:
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':

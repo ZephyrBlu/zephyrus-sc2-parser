@@ -32,6 +32,7 @@ upgrades = {
             'mineral_cost': 150,
             'gas_cost': 150,
         },
+        # Adept Glaives
         'AdeptPiercingAttack': {
             'mineral_cost': 100,
             'gas_cost': 100,
@@ -39,6 +40,10 @@ upgrades = {
         'DarkTemplarBlinkUpgrade': {
             'mineral_cost': 100,
             'gas_cost': 100,
+        },
+        'FluxVanes': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
         },
         'ProtossGroundWeaponsLevel1': {
             'mineral_cost': 100,
@@ -106,11 +111,16 @@ upgrades = {
             'mineral_cost': 100,
             'gas_cost': 100,
         },
+        'CombatShields': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
         # Concussive Shells
         'PunisherGrenades': {
             'mineral_cost': 50,
             'gas_cost': 50,
         },
+        # Ghost Cloaking
         'PersonalCloaking': {
             'mineral_cost': 150,
             'gas_cost': 150,
@@ -132,25 +142,28 @@ upgrades = {
             'mineral_cost': 150,
             'gas_cost': 150,
         },
+        # Widow Mine Drilling Claws
         'DrillClaws': {
             'mineral_cost': 75,
             'gas_cost': 75,
         },
-        # Need to verify Cyclone upgrade
-        'MagFieldLaunchers': {
+        # Blue Flame
+        'HighCapacityBarrels': {
             'mineral_cost': 100,
             'gas_cost': 100,
         },
-        # Need to verify Cyclone upgrade
-        'RapidFireLaunchers': {
+        # Mag Field Accelerator
+        'CycloneLockOnDamageUpgrade': {
             'mineral_cost': 100,
             'gas_cost': 100,
         },
+        # Hyperflight Rotors
         'BansheeSpeed': {
             'mineral_cost': 150,
             'gas_cost': 150,
         },
-        'LiberatorRangeUpgrade': {
+        # Advanced Ballistics
+        'LiberatorAGRangeUpgrade': {
             'mineral_cost': 150,
             'gas_cost': 150,
         },
@@ -161,6 +174,15 @@ upgrades = {
         'MedivacIncreaseSpeedBoost': {
             'mineral_cost': 100,
             'gas_cost': 100,
+        },
+        'HiSecAutoTracking': {
+            'mineral_cost': 100,
+            'gas_cost': 100,
+        },
+        # Neosteel
+        'TerranBuildingArmor': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
         },
         'TerranInfantryWeaponsLevel1': {
             'mineral_cost': 100,
@@ -228,6 +250,7 @@ upgrades = {
             'mineral_cost': 100,
             'gas_cost': 100,
         },
+        # Roach Tunneling Claws
         'TunnelingClaws': {
             'mineral_cost': 100,
             'gas_cost': 100,
@@ -236,7 +259,21 @@ upgrades = {
             'mineral_cost': 150,
             'gas_cost': 150,
         },
-        # Add Anabolic Synthesis
+        'AnabolicSynthesis': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        # Lurker Adaptive Talons
+        'DiggingClaws': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        # Lurker Seismic Spines
+        'LurkerRange': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
+        # actual name is 'overlordspeed'
         'OverlordSpeed': {
             'mineral_cost': 100,
             'gas_cost': 100,
@@ -245,14 +282,17 @@ upgrades = {
             'mineral_cost': 100,
             'gas_cost': 100,
         },
+        # actual name is 'zerglingattackspeed'
         'ZerglingAttackSpeed': {
             'mineral_cost': 200,
             'gas_cost': 200,
         },
+        # actual name is 'zerglingmovementspeed'
         'ZerglingMovementSpeed': {
             'mineral_cost': 100,
             'gas_cost': 100,
         },
+        # Baneling Speed
         'CentrificalHooks': {
             'mineral_cost': 150,
             'gas_cost': 150,
@@ -273,7 +313,10 @@ upgrades = {
             'mineral_cost': 150,
             'gas_cost': 150,
         },
-        # Add MicrobialShroud
+        'MicrobialShroud': {
+            'mineral_cost': 150,
+            'gas_cost': 150,
+        },
         'ZergMeleeWeaponsLevel1': {
             'mineral_cost': 100,
             'gas_cost': 100,
