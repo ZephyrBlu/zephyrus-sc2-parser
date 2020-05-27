@@ -106,33 +106,32 @@ class PlayerState:
                         }
                     object_summary[obj_type][obj.name][obj.status] += 1
 
-                command_structures = ['Hatchery', 'Lair', 'Hive', 'Nexus', 'OrbitalCommand']
+                    command_structures = ['Hatchery', 'Lair', 'Hive', 'Nexus', 'OrbitalCommand']
 
-                # Nexus, Orbital and Hatchery calculations
-                if obj_type == 'building' and (obj.name in command_structures):
-                    obj_energy = obj.calc_energy(self.gameloop)
-                    if obj_energy and obj.status == 'live':
-                        if 'energy' not in object_summary['race']:
-                            object_summary['race']['energy'] = {}
+                    # Nexus, Orbital and Hatchery calculations
+                    if obj_type == 'building' and (obj.name in command_structures):
+                        obj_energy = obj.calc_energy(self.gameloop)
+                        if obj_energy and obj.status == 'live':
+                            if 'energy' not in object_summary['race']:
+                                object_summary['race']['energy'] = {}
 
-                        if 'abilities_used' not in object_summary['race']:
-                            object_summary['race']['abilities_used'] = {}
+                            if 'abilities_used' not in object_summary['race']:
+                                object_summary['race']['abilities_used'] = {}
 
-                        if obj.name not in object_summary['race']['energy']:
-                            object_summary['race']['energy'][obj.name] = []
-                        object_summary['race']['energy'][obj.name].append((obj_energy, *obj.energy_efficiency))
+                            if obj.name not in object_summary['race']['energy']:
+                                object_summary['race']['energy'][obj.name] = []
+                            object_summary['race']['energy'][obj.name].append((obj_energy, *obj.energy_efficiency))
 
-                        for ability, ability_gameloop in obj.abilities_used:
-                            if ability['ability_name'] not in object_summary['race']['abilities_used']:
-                                object_summary['race']['abilities_used'][ability['ability_name']] = 0
-                            object_summary['race']['abilities_used'][ability['ability_name']] += 1
+                            for ability, ability_gameloop in obj.abilities_used:
+                                if ability['ability_name'] not in object_summary['race']['abilities_used']:
+                                    object_summary['race']['abilities_used'][ability['ability_name']] = 0
+                                object_summary['race']['abilities_used'][ability['ability_name']] += 1
 
-                    obj_inject_efficiency = obj.calc_inject_efficiency(self.gameloop)
-                    if obj_inject_efficiency:
-                        if 'inject_efficiency' not in object_summary['race']:
-                            object_summary['race']['inject_efficiency'] = []
-                        object_summary['race']['inject_efficiency'].append(obj_inject_efficiency)
-                    object_summary[obj_type][obj.name][obj.status] += 1
+                        obj_inject_efficiency = obj.calc_inject_efficiency(self.gameloop)
+                        if obj_inject_efficiency:
+                            if 'inject_efficiency' not in object_summary['race']:
+                                object_summary['race']['inject_efficiency'] = []
+                            object_summary['race']['inject_efficiency'].append(obj_inject_efficiency)
 
             if current_idle_larva:
                 self.player.idle_larva.append(current_idle_larva)
