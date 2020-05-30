@@ -130,7 +130,7 @@ class PlayerState:
                                     object_summary['race']['abilities_used'][ability['ability_name']] = 0
                                 object_summary['race']['abilities_used'][ability['ability_name']] += 1
 
-                                if ability_target:
+                                if 'ability_targets' in object_summary['race'] and ability_target:
                                     if ability_target.name not in object_summary['race']['ability_targets']:
                                         object_summary['race']['ability_targets'][ability_target.name] = 0
                                     object_summary['race']['ability_targets'][ability_target.name] += 1
