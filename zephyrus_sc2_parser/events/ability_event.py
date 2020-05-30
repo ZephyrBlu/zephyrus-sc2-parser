@@ -71,13 +71,14 @@ class AbilityEvent(BaseEvent):
                 if ability_name == 'SpawnLarva' and obj:
                     # ~1sec
                     if not obj.abilities_used:
-                        obj.abilities_used.append((player.active_ability[0], gameloop))
-                    elif (gameloop - obj.abilities_used[-1][1]) > 22 or player.active_ability[2]:
-                        obj.abilities_used.append((player.active_ability[0], gameloop))
+                        obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
+                    elif (gameloop - obj.abilities_used[-1][-1]) > 22 or player.active_ability[2]:
+                        obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
 
                 # the building the target is closest to is where the ability is used from
                 elif ability_name in command_abilities.keys():
                     ability_buildings = []
+
                     for obj in player.objects.values():
                         if obj.name == command_abilities[ability_name]:
                             current_obj_energy = obj.calc_energy(gameloop)
@@ -88,12 +89,11 @@ class AbilityEvent(BaseEvent):
 
                     if ability_buildings:
                         ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
-                        ability_obj.abilities_used.append((player.active_ability[0], gameloop))
+                        ability_obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
         else:
             if player.active_ability:
                 ability_name = player.active_ability[0]['ability_name']
                 if ability_name in command_abilities.keys():
-                    obj = player.active_ability[1]
                     ability_buildings = []
 
                     for obj in player.objects.values():
@@ -106,6 +106,6 @@ class AbilityEvent(BaseEvent):
 
                     if ability_buildings:
                         ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
-                        ability_obj.abilities_used.append((player.active_ability[0], gameloop))
+                        ability_obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
 
         return summary_stats

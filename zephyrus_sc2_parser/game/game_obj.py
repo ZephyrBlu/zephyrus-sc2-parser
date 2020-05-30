@@ -65,7 +65,7 @@ class GameObj:
         current_energy = self.energy
         time_past_min_energy = 0
 
-        for ability, ability_gameloop in self.abilities_used:
+        for ability, ability_target, ability_gameloop in self.abilities_used:
             if 'energy_cost' not in ability:
                 continue
 
@@ -113,19 +113,19 @@ class GameObj:
         inject_delay = 650
 
         missed_inject_time = 0
-        current_gameloop = self.abilities_used[0][1]
+        current_gameloop = self.abilities_used[0][-1]
         for i in range(1, len(self.abilities_used)):
             current_inject = self.abilities_used[i]
 
-            time_diff = current_inject[1] - current_gameloop - inject_delay
+            time_diff = current_inject[-1] - current_gameloop - inject_delay
 
             # time diff < 0, inject was queued, 100% efficiency
             if time_diff > 0:
                 missed_inject_time += time_diff
-                current_gameloop = current_inject[1]
+                current_gameloop = current_inject[-1]
             else:
-                current_gameloop = current_inject[1] + inject_delay
+                current_gameloop = current_inject[-1] + inject_delay
 
-        inject_efficiency = 1 - (missed_inject_time / (current_gameloop - self.abilities_used[0][1] + inject_delay))
+        inject_efficiency = 1 - (missed_inject_time / (current_gameloop - self.abilities_used[0][-1] + inject_delay))
 
-        return round(inject_efficiency, 3)
+        return (round(inject_efficiency, 3), missed_inject_time)
