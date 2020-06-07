@@ -1,5 +1,4 @@
 pytz==2019.2
 requests==2.22.0
 mpyq==0.2.5
-sc2_simulator==0.0.3
 pytest==5.4.2
