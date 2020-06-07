@@ -179,9 +179,12 @@ def get_map_info(player_info, game_map):
             },
         })
 
-        map_info_path = Path(__file__).resolve().parent / 'gamedata' / 'map_info.py'
-        with open(map_info_path, 'w') as map_info:
-            map_info.write(f'maps = {maps}')
+        try:
+            map_info_path = Path(__file__).resolve().parent / 'gamedata' / 'map_info.py'
+            with open(map_info_path, 'w') as map_info:
+                map_info.write(f'maps = {maps}')
+        except OSError:
+            logging.warning('Could not write map details to file')
 
     game_map_info = {
         'name': game_map,
