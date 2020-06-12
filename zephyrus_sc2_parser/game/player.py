@@ -89,7 +89,10 @@ class Player:
 
     def calc_spm(self, gameloop, *, recent=False):
         if not recent:
-            return round(len(self.screens) / (gameloop / 22.4 / 60), 1)
+            try:
+                return round(len(self.screens) / (gameloop / 22.4 / 60), 1)
+            except ZeroDivisionError:
+                return 0
 
         # 1 minute in gameloops
         gameloop_minute = 1344

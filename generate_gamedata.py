@@ -61,6 +61,9 @@ for file_path in path.iterdir():
             reader = csv.reader(data)
 
             for row in reader:
+                if not row:
+                    continue
+
                 obj_id = int(row[0])
                 obj_name = row[1]
 
