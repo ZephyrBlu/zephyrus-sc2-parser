@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name="zephyrus-sc2-parser",
-    version="0.2.17",
+    version="0.2.18",
     author="Luke Holroyd",
     author_email="hello@zephyrus.gg",
     description="Parser for SC2 replay files",

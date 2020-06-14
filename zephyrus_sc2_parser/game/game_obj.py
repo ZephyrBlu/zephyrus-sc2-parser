@@ -95,7 +95,7 @@ class GameObj:
                 try:
                     self.energy_efficiency = (round(1 - (time_past_min_energy / gameloop), 3), round(time_past_min_energy / 22.4, 1))
                 except ZeroDivisionError:
-                    self.energy_efficiency = 0
+                    self.energy_efficiency = (1, round(time_past_min_energy / 22.4, 1))
 
         if gameloop >= energy_maxout(current_gameloop, current_energy, max_energy):
             current_energy = max_energy
