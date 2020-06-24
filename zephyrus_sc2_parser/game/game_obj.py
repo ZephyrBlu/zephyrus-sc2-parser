@@ -19,6 +19,7 @@ class GameObj:
         self.control_groups = {}
         self.abilities_used = []
         self.energy_efficiency = None
+        self.init_time = None
         self.birth_time = None
         self.death_time = None
         self.morph_time = None

@@ -109,6 +109,7 @@ class ObjectEvent(BaseEvent):
 
         if self.type == 'NNet.Replay.Tracker.SUnitInitEvent':
             obj.status = 'in_progress'
+            obj.init_time = gameloop
             obj.position = {
                 'x': event['m_x'],
                 'y': event['m_y'],
