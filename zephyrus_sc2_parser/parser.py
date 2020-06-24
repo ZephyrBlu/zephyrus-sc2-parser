@@ -62,7 +62,7 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
     }
 
     mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
-    if not mmr_data[0]['m_scaledRating'] or not mmr_data[1]['m_scaledRating']:
+    if 'm_scaledRating' not in mmr_data[0] or 'm_scaledRating' not in mmr_data[1]:
         logging.debug('One or more players has no MMR')
         if not local:
             return None
@@ -76,7 +76,7 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
 
         summary_stats['apm'][player_id] = player['APM']
 
-        if mmr_data[player_id-1]['m_scaledRating']:
+        if 'm_scaledRating' in mmr_data[player_id-1]:
             summary_stats['mmr'][player_id] = mmr_data[player_id-1]['m_scaledRating']
         else:
             summary_stats['mmr'][player_id] = 0
