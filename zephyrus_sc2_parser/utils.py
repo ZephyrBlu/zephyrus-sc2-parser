@@ -14,20 +14,25 @@ import pytz
 import logging
 
 
-non_english_races = {
-    b'\xed\x94\x84\xeb\xa1\x9c\xed\x86\xa0\xec\x8a\xa4': 'Protoss',
-    b'\xe6\x98\x9f\xe7\x81\xb5': 'Protoss',
-    b'\xe7\xa5\x9e\xe6\x97\x8f': 'Protoss',
-    b'\xd0\x9f\xd1\x80\xd0\xbe\xd1\x82\xd0\xbe\xd1\x81\xd1\x81\xd1\x8b': 'Protoss',
-    b'\xec\xa0\x80\xea\xb7\xb8': 'Zerg',
-    b'\xe5\xbc\x82\xe8\x99\xab': 'Zerg',
-    b'\xe8\x9f\xb2\xe6\x97\x8f': 'Zerg',
-    b'\xed\x85\x8c\xeb\x9e\x80': 'Terran',
-    b'\xe4\xba\xba\xe9\xa1\x9e': 'Terran',
-    b'\xd0\xa2\xd0\xb5\xd1\x80\xd1\x80\xd0\xb0\xd0\xbd\xd1\x8b': 'Terran',
-    b'\xe4\xba\xba\xe7\xb1\xbb': 'Terran'
+NON_ENGLISH_RACES = {
+    '저그': 'Zerg',
+    '异虫': 'Zerg',
+    '蟲族': 'Zerg',
+    '테란': 'Terran',
+    '人類': 'Terran',
+    '人类': 'Terran',
+    'Terraner': 'Terran',
+    'Терраны': 'Terran',
+    '프로토스': 'Protoss',
+    '神族': 'Protoss',
+    'Protosi': 'Protoss',
+    '星灵': 'Protoss',
+    'Протоссы': 'Protoss',
 }
 
+non_english_races = {}
+for non_eng_race, eng_race in NON_ENGLISH_RACES.items():
+    non_english_races[non_eng_race.encode('utf8')] = eng_race
 
 def convert_time(windows_time):
     unix_epoch_time = math.floor(windows_time/10000000)-11644473600

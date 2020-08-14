@@ -17,16 +17,92 @@ try:
 except ImportError:
     pass
 
-non_english_maps = {
-    b'\xec\x95\x84\xed\x81\xac\xeb\xa1\x9c\xed\x8f\xb4\xeb\xa6\xac\xec\x8a\xa4 \x2d \xeb\x9e\x98\xeb\x8d\x94': 'Acropolis LE',
-    b'\xeb\x94\x94\xec\x8a\xa4\xec\xbd\x94 \xeb\xb8\x94\xeb\x9f\xac\xeb\x93\x9c\xeb\xb0\xb0\xec\x8a\xa4 \x2d \xeb\x9e\x98\xeb\x8d\x94': 'Disco Bloodbath LE',
-    b'\xed\x8a\xb8\xeb\x9d\xbc\xec\x9d\xb4\xed\x8a\xbc \x2d \xeb\x9e\x98\xeb\x8d\x94': 'Triton LE',
-    b'\xec\x9c\x88\xed\x84\xb0\xec\x8a\xa4 \xea\xb2\x8c\xec\x9d\xb4\xed\x8a\xb8 \x2d \xeb\x9e\x98\xeb\x8d\x94': "Winter's Gate LE",
-    b'\xec\x8d\xac\xeb\x8d\x94\xeb\xb2\x84\xeb\x93\x9c \x2d \xeb\x9e\x98\xeb\x8d\x94': 'Thunderbird LE',
-    b'\xec\x9d\xb4\xed\x8e\x98\xeb\xa8\xb8\xeb\xa1\xa0 \x2d \xeb\x9e\x98\xeb\x8d\x94': 'Ephemeron LE',
-    b'\xec\x9b\x94\xeb\x93\x9c \xec\x98\xa4\xeb\xb8\x8c \xec\x8a\xac\xeb\xa6\xac\xed\x8d\xbc\xec\x8a\xa4 \x2d \xeb\x9e\x98\xeb\x8d\x94': 'World of Sleepers LE',
+MAP_NAMES = {
+    "Eternal Empire LE": (
+        "永恆帝國 - 天梯版",
+        "Empire éternel EC",
+        "Ewiges Imperium LE",
+        "이터널 엠파이어 - 래더",
+        "Imperio eterno EE",
+        'Imperio eterno EJ',
+        '永恒帝国-天梯版',
+        'Вечная империя РВ',
+    ),
+    "World of Sleepers LE": (
+        "Welt der Schläfer LE",
+        "休眠者之境 - 天梯版",
+        "Domaine des dormeurs EC",
+        "월드 오브 슬리퍼스 - 래더",
+        'Mundo de durmientes EE',
+    ),
+    "Triton LE": (
+        "Triton EC",
+        "海神信使 - 天梯版",
+        "트라이튼 - 래더",
+        'Tritón EE',
+    ),
+    "Nightshade LE": (
+        "Nocny Mrok ER",
+        "毒茄樹叢 - 天梯版",
+        "나이트쉐이드 - 래더",
+        'Belladona EE',
+        'Belladone EC',
+    ),
+    "Zen LE": (
+        "젠 - 래더",
+        'Zen EC',
+        'Zen EE',
+        'Zen EJ',
+    ),
+    "Ephemeron LE": (
+        "Efemeryda ER",
+        "이페머론 - 래더",
+        'Efímero EE',
+        'Éphémèrion EC',
+    ),
+    "Golden Wall LE": (
+        "골든 월 - 래더",
+        '黄金墙-天梯版',
+        'Mur doré EC',
+    ),
+    "Ever Dream LE": (
+        "에버 드림 - 래더",
+        "永恒梦境-天梯版",
+        "Помечтай РВ",
+    ),
+    "Simulacrum LE": (
+        "시뮬레이크럼 - 래더",
+        'Simulacre EC',
+        'Simulacro EE',
+    ),
+    "Pillars of Gold LE": (
+        '黄金之柱-天梯版',
+        "Piliers d'or EC",
+        '필러스 오브 골드 - 래더',
+    ),
+    "Submarine LE": (
+        '潜水艇-天梯版',
+        "Подводный мир РВ",
+        "Sous-marin EC",
+        '서브머린 - 래더',
+    ),
+    "Deathaura LE": (
+        '死亡光环-天梯版',
+        "Aura de mort EC",
+        '데스오라 - 래더',
+    ),
+    "Ice and Chrome LE": (
+        '冰雪合金-天梯版',
+        'Лед и хром РВ',
+        "Glace et chrome EC",
+        '아이스 앤 크롬 - 래더',
+    ),
 }
 
+non_english_maps = {}
+for map_name, non_eng_name_tuple in MAP_NAMES.items():
+    for non_eng_map_name in non_eng_name_tuple:
+        non_english_maps[non_eng_map_name.encode('utf-8')] = map_name
 
 def initial_summary_stats(game, metadata, detailed_info, local=False):
     summary_stats = {
