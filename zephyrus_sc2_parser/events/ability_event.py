@@ -87,7 +87,7 @@ class AbilityEvent(BaseEvent):
                             if current_obj_energy and current_obj_energy >= 50:
                                 ability_buildings.append(obj)
 
-                    if ability_buildings:
+                    if ability_buildings and player.active_ability[2]:
                         ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
                         ability_obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
         else:
