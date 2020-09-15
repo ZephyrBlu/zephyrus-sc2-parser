@@ -24,7 +24,7 @@ class GameObj:
         self.death_time = None
         self.morph_time = None
         self.position = None
-        self.target = None
+        self.target_position = None
         self.status = None
         self.killed_by = None
 

@@ -45,6 +45,7 @@ class AbilityEvent(BaseEvent):
                 obj = self._get_target_object()
                 queued = False
                 if 'm_cmdFlags' in event:
+                    # feel like this is wrong
                     bitwise = event['m_cmdFlags'] & 2
                     if bitwise == 2:
                         queued = True
@@ -62,6 +63,13 @@ class AbilityEvent(BaseEvent):
                     target_position,
                     queued,
                 )
+
+                if obj and target_position:
+                    obj.target_position = {
+                        'issued_at': gameloop,
+                        'x': target_position['x'] / 4096,
+                        'y': target_position['y'] / 4096,
+                    }
             else:
                 ability = None
             player.active_ability = ability
@@ -75,37 +83,22 @@ class AbilityEvent(BaseEvent):
                     elif (gameloop - obj.abilities_used[-1][-1]) > 22 or player.active_ability[2]:
                         obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
 
-                # the building the target is closest to is where the ability is used from
-                elif ability_name in command_abilities.keys():
-                    ability_buildings = []
+        if player.active_ability:
+            ability_name = player.active_ability[0]['ability_name']
+            # the building the target is closest to is where the ability is used from
+            if ability_name in command_abilities.keys():
+                ability_buildings = []
 
-                    for obj in player.objects.values():
-                        if obj.name == command_abilities[ability_name]:
-                            current_obj_energy = obj.calc_energy(gameloop)
-                            # abilities cost 50 energy to use
-                            # if <50 energy the building is not available to cast
-                            if current_obj_energy and current_obj_energy >= 50:
-                                ability_buildings.append(obj)
+                for obj in player.objects.values():
+                    if obj.name == command_abilities[ability_name]:
+                        current_obj_energy = obj.calc_energy(gameloop)
+                        # abilities cost 50 energy to use
+                        # if <50 energy the building is not available to cast
+                        if current_obj_energy and current_obj_energy >= 50:
+                            ability_buildings.append(obj)
 
-                    if ability_buildings and player.active_ability[2]:
-                        ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
-                        ability_obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
-        else:
-            if player.active_ability:
-                ability_name = player.active_ability[0]['ability_name']
-                if ability_name in command_abilities.keys():
-                    ability_buildings = []
-
-                    for obj in player.objects.values():
-                        if obj.name == command_abilities[ability_name]:
-                            current_obj_energy = obj.calc_energy(gameloop)
-                            # abilities cost 50 energy to use
-                            # if <50 energy the building is not available to cast
-                            if current_obj_energy and current_obj_energy >= 50:
-                                ability_buildings.append(obj)
-
-                    if ability_buildings and player.active_ability[2]:
-                        ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
-                        ability_obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
+                if ability_buildings and player.active_ability[2]:
+                    ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
+                    ability_obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
 
         return summary_stats
