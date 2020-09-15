@@ -159,6 +159,10 @@ class ObjectEvent(BaseEvent):
         elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
             obj.status = 'died'
             obj.death_time = gameloop
+            obj.position = {
+                'x': event['m_x'],
+                'y': event['m_y'],
+            }
 
             if obj.name == 'WarpGate' and player.warpgate_cooldowns:
                 player.warpgate_cooldowns.pop()
