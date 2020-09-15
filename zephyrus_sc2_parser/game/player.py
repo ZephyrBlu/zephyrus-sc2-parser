@@ -29,6 +29,7 @@ class Player:
         self.current_pac = None
         self.prev_screen_position = None
         self.screens = []
+        self.army_positions = []
         self.supply = 0
         self.supply_cap = 0
         self.supply_block = 0

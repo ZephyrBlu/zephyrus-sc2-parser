@@ -63,13 +63,6 @@ class AbilityEvent(BaseEvent):
                     target_position,
                     queued,
                 )
-
-                if obj and target_position:
-                    obj.target_position = {
-                        'issued_at': gameloop,
-                        'x': target_position['x'] / 4096,
-                        'y': target_position['y'] / 4096,
-                    }
             else:
                 ability = None
             player.active_ability = ability
@@ -85,6 +78,16 @@ class AbilityEvent(BaseEvent):
 
         if player.active_ability:
             ability_name = player.active_ability[0]['ability_name']
+            obj = player.active_ability[1]
+            target_position = player.active_ability[2]
+
+            if ability_name == 'attack' and obj and target_position:
+                obj.target_position = {
+                    'issued_at': gameloop,
+                    'x': target_position['x'] / 4096,
+                    'y': target_position['y'] / 4096,
+                }
+
             # the building the target is closest to is where the ability is used from
             if ability_name in command_abilities.keys():
                 ability_buildings = []

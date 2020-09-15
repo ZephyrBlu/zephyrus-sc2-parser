@@ -8,9 +8,10 @@ class BaseEvent:
 
     def _identify_player(self, game, event):
         no_player = [
+            'NNet.Replay.Tracker.SUnitPositionsEvent',
             'NNet.Replay.Tracker.SUnitDoneEvent',
             'NNet.Replay.Tracker.SUnitDiedEvent',
-            'NNet.Replay.Tracker.SUnitTypeChangeEvent'
+            'NNet.Replay.Tracker.SUnitTypeChangeEvent',
         ]
         if event['_event'] in no_player:
             return False

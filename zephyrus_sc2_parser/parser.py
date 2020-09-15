@@ -213,6 +213,8 @@ def setup(filename):
     #         print('\n')
 
     for event in events:
+        # print(event)
+        # print('\n')
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
             game_length = event['_gameloop']
             break
@@ -317,34 +319,34 @@ def parse_replay(filename, *, local=False):
                             if obj.status == 'live':
                                 player_units[p_id].append(obj.name)
 
-                    current_game.engagements.append((
-                        player_units[1],
-                        player_units[2],
-                        players[1].upgrades,
-                        players[2].upgrades,
-                        gameloop,
-                    ))
+                    # current_game.engagements.append((
+                    #     player_units[1],
+                    #     player_units[2],
+                    #     players[1].upgrades,
+                    #     players[2].upgrades,
+                    #     gameloop,
+                    # ))
 
                     current_tick += 112
 
-    engagement_analysis = []
-    if is_engagement_simulator_installed:
-        engagement_outcomes = simulate_engagement(current_game.engagements)
-        for winner, unit_health, gameloop in engagement_outcomes:
-            total_health = {1: (0, 0), 2: (0, 0)}
-            for unit in unit_health:
-                total_health[unit[0]] = (
-                    total_health[unit[0]][0] + unit[2],
-                    total_health[unit[0]][1] + unit[3],
-                )
+    # engagement_analysis = []
+    # if is_engagement_simulator_installed:
+    #     engagement_outcomes = simulate_engagement(current_game.engagements)
+    #     for winner, unit_health, gameloop in engagement_outcomes:
+    #         total_health = {1: (0, 0), 2: (0, 0)}
+    #         for unit in unit_health:
+    #             total_health[unit[0]] = (
+    #                 total_health[unit[0]][0] + unit[2],
+    #                 total_health[unit[0]][1] + unit[3],
+    #             )
 
-            if total_health[1][1] > 0 and total_health[2][1] > 0:
-                engagement_analysis.append({
-                    'winner': winner,
-                    'health': total_health[winner],
-                    'remaining_health':  round((total_health[winner][0] / total_health[winner][1]), 3),
-                    'gameloop': gameloop,
-                })
+    #         if total_health[1][1] > 0 and total_health[2][1] > 0:
+    #             engagement_analysis.append({
+    #                 'winner': winner,
+    #                 'health': total_health[winner],
+    #                 'remaining_health':  round((total_health[winner][0] / total_health[winner][1]), 3),
+    #                 'gameloop': gameloop,
+    #             })
 
     players_export = {}
     for p_id, player in players.items():
@@ -426,4 +428,4 @@ def parse_replay(filename, *, local=False):
         'winner': current_game.winner
     }
 
-    return players_export, current_game.timeline, engagement_analysis, summary_stats, metadata_export
+    return players_export, current_game.timeline, current_game.engagements, summary_stats, metadata_export

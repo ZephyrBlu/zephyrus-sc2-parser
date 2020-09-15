@@ -45,7 +45,8 @@ class ObjectEvent(BaseEvent):
                 unit_tag_index,
                 obj['priority'],
                 obj['mineral_cost'],
-                obj['gas_cost']
+                obj['gas_cost'],
+                obj['movement_speed'] if 'movement_speed' in obj else None,
             )
 
             if 'energy' in obj:

@@ -2,7 +2,7 @@ import math
 
 
 class GameObj:
-    def __init__(self, name, obj_id, game_id, tag, priority, mineral_cost, gas_cost):
+    def __init__(self, name, obj_id, game_id, tag, priority, mineral_cost, gas_cost, movement_speed):
         self.name = name
         self.type = []
         self.obj_id = obj_id
@@ -15,6 +15,7 @@ class GameObj:
         self.supply = 0
         self.supply_provided = 0
         self.cooldown = None
+        self.movement_speed = movement_speed
         self.queue = None
         self.control_groups = {}
         self.abilities_used = []
@@ -25,6 +26,7 @@ class GameObj:
         self.morph_time = None
         self.position = None
         self.target_position = None
+        self.prev_positions = []
         self.status = None
         self.killed_by = None
 
@@ -33,6 +35,39 @@ class GameObj:
 
     def __repr__(self):
         return f'({self.name}, {self.tag})'
+
+    def current_position(self, gameloop):
+        if not self.position:
+            return None
+
+        if not self.target_position or 'building' in self.type or self.status == 'died':
+            return self.position
+
+        gameloop_diff = gameloop - self.target_position['issued_at']
+        position_diff = {
+            'x': self.target_position['x'] - self.position['x'],
+            'y': self.target_position['y'] - self.position['y'],
+        }
+        # speed in tiles/sec, converted to tiles/gameloop
+        time_to_target = position_diff / (self.movement_speed / 22.4)
+        # if we should have already reached our target, set our target as new position
+        if time_to_target >= gameloop_diff:
+            self.position = {
+                'x': self.target_position['x'],
+                'y': self.target_position['y'],
+            }
+            self.target_position = None
+        # if we haven't reached our target yet, scaled the target position
+        # target position is scaled by: time elapsed since command / expected time to target
+        else:
+            position_scalar = gameloop_diff / time_to_target
+            self.position = {
+                'x': self.position['x'] + (position_diff['x'] * position_scalar),
+                'y': self.position['y'] + (position_diff['y'] * position_scalar),
+            }
+            self.target_position['issued_at'] = gameloop
+        self.prev_positions.append((gameloop, self.position))
+        return self.position
 
     def calc_distance(self, other_position):
         # position contains x, y, z in integer form of floats
@@ -44,8 +79,7 @@ class GameObj:
         # simple pythagoras theorem calculation
         x_diff = abs(self.position['x'] - other_position['x'])
         y_diff = abs(self.position['y'] - other_position['y'])
-        distance = math.sqrt(x_diff**2 + y_diff**2)
-
+        distance = math.sqrt((x_diff ** 2) + (y_diff ** 2))
         return distance
 
     def calc_energy(self, gameloop):

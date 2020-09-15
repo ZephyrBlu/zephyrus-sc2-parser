@@ -235,6 +235,9 @@ def create_event(game, event, protocol, summary_stats):
     elif event['_event'] == 'NNet.Replay.Tracker.SPlayerStatsEvent':
         current_event = PlayerStatsEvent(summary_stats, game, event)
 
+    elif event['_event'] == 'NNet.Replay.Tracker.SUnitPositionsEvent':
+        current_event = UnitPositionsEvent(game, event)
+
     else:
         current_event = None
 
