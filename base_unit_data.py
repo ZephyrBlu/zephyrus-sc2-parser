@@ -7,6 +7,7 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 0,
             'supply': 1,
+            'movement_speed': 3.94,
         },
         'Zealot': {
             'obj_id': [96],
@@ -16,6 +17,8 @@ units = {
             'gas_cost': 0,
             'supply': 2,
             'cooldown': 446,
+            # TODO: Add ugprade speed boost
+            'movement_speed': 3.15,
         },
         'Stalker': {
             'obj_id': [97],
@@ -25,6 +28,7 @@ units = {
             'gas_cost': 50,
             'supply': 2,
             'cooldown': 512,
+            'movement_speed': 4.13,
         },
         'Sentry': {
             'obj_id': [100],
@@ -35,6 +39,7 @@ units = {
             'supply': 2,
             'energy': 50,
             'cooldown': 512,
+            'movement_speed': 3.15,
         },
         'Adept': {
             'obj_id': [464],
@@ -44,6 +49,7 @@ units = {
             'gas_cost': 25,
             'supply': 2,
             'cooldown': 446,
+            'movement_speed': 3.5,
         },
         # 'AdeptPhaseShift': {
         #     'obj_id': [1052],
@@ -62,6 +68,7 @@ units = {
             'supply': 2,
             'energy': 50,
             'cooldown': 714,
+            'movement_speed': 2.62,
         },
         'DarkTemplar': {
             'obj_id': [99],
@@ -71,6 +78,7 @@ units = {
             'gas_cost': 125,
             'supply': 2,
             'cooldown': 714,
+            'movement_speed': 3.94,
         },
         'Archon': {
             'obj_id': [164],
@@ -82,6 +90,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 300,
             'supply': 4,
+            'movement_speed': 3.94,
         },
         'Observer': {
             'obj_id': [105],
@@ -90,6 +99,8 @@ units = {
             'mineral_cost': 25,
             'gas_cost': 75,
             'supply': 1,
+            # TODO: Add ugprade speed boost
+            'movement_speed': 2.62,
         },
         'ObserverSiegeMode': {
             'obj_id': [1169],
@@ -98,6 +109,7 @@ units = {
             'mineral_cost': 25,
             'gas_cost': 75,
             'supply': 1,
+            'movement_speed': 0,
         },
         'WarpPrism': {
             'obj_id': [104],
@@ -106,6 +118,8 @@ units = {
             'mineral_cost': 250,
             'gas_cost': 0,
             'supply': 2,
+            # TODO: Add ugprade speed boost
+            'movement_speed': 4.13,
         },
         'WarpPrismPhasing': {
             'obj_id': [159],
@@ -114,6 +128,8 @@ units = {
             'mineral_cost': 250,
             'gas_cost': 0,
             'supply': 2,
+            # TODO: Add ugprade speed boost
+            'movement_speed': 0,
         },
         'Immortal': {
             'obj_id': [106],
@@ -122,6 +138,7 @@ units = {
             'mineral_cost': 275,
             'gas_cost': 100,
             'supply': 4,
+            'movement_speed': 3.15,
         },
         'Colossus': {
             'obj_id': [23],
@@ -130,6 +147,7 @@ units = {
             'mineral_cost': 300,
             'gas_cost': 200,
             'supply': 6,
+            'movement_speed': 3.15,
         },
         'Disruptor': {
             'obj_id': [465],
@@ -138,6 +156,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 150,
             'supply': 3,
+            'movement_speed': 3.15,
         },
         'Phoenix': {
             'obj_id': [101],
@@ -147,6 +166,7 @@ units = {
             'gas_cost': 100,
             'supply': 2,
             'energy': 50,
+            'movement_speed': 5.95,
         },
         'VoidRay': {
             'obj_id': [103],
@@ -155,6 +175,7 @@ units = {
             'mineral_cost': 250,
             'gas_cost': 150,
             'supply': 4,
+            'movement_speed': 4.65,
         },
         'Oracle': {
             'obj_id': [185],
@@ -164,6 +185,7 @@ units = {
             'gas_cost': 150,
             'supply': 3,
             'energy': 50,
+            'movement_speed': 5.6,
         },
         'Tempest': {
             'obj_id': [186],
@@ -172,6 +194,7 @@ units = {
             'mineral_cost': 250,
             'gas_cost': 175,
             'supply': 5,
+            'movement_speed': 3.15,
         },
         'Carrier': {
             'obj_id': [102],
@@ -180,6 +203,7 @@ units = {
             'mineral_cost': 350,
             'gas_cost': 250,
             'supply': 6,
+            'movement_speed': 2.62,
         },
         'Interceptor': {
             'obj_id': [108],
@@ -188,6 +212,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 10.5,
         },
         'Mothership': {
             'obj_id': [30],
@@ -197,6 +222,7 @@ units = {
             'gas_cost': 400,
             'supply': 8,
             'energy': 50,
+            'movement_speed': 2.62,
         }
     },
     'Terran': {
@@ -207,6 +233,7 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 0,
             'supply': 1,
+            'movement_speed': 3.94,
         },
         'MULE': {
             'obj_id': [381],
@@ -215,6 +242,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 3.94,
         },
         'Marine': {
             'obj_id': [70],
@@ -223,6 +251,8 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 0,
             'supply': 1,
+            # TODO: Add Stim speed boost
+            'movement_speed': 3.15,
         },
         'Reaper': {
             'obj_id': [71],
@@ -231,6 +261,7 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 50,
             'supply': 1,
+            'movement_speed': 5.25,
         },
         'Marauder': {
             'obj_id': [73],
@@ -239,6 +270,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 25,
             'supply': 2,
+            'movement_speed': 3.15,
         },
         'Ghost': {
             'obj_id': [72],
@@ -248,6 +280,7 @@ units = {
             'gas_cost': 125,
             'supply': 2,
             'energy': 75,
+            'movement_speed': 3.94,
         },
         'Hellion': {
             'obj_id': [75],
@@ -256,6 +289,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 0,
             'supply': 2,
+            'movement_speed': 5.95,
         },
         # HellionTank
         'HellionTank': {
@@ -265,6 +299,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 0,
             'supply': 2,
+            'movement_speed': 3.15,
         },
         'WidowMine': {
             'obj_id': [436, 448],
@@ -273,6 +308,7 @@ units = {
             'mineral_cost': 75,
             'gas_cost': 25,
             'supply': 2,
+            'movement_speed': 3.94,
         },
         'WidowMineBurrowed': {
             'obj_id': [436, 448],
@@ -281,6 +317,7 @@ units = {
             'mineral_cost': 75,
             'gas_cost': 25,
             'supply': 2,
+            'movement_speed': 0,
         },
         'Cyclone': {
             'obj_id': [460],
@@ -289,6 +326,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 100,
             'supply': 3,
+            'movement_speed': 4.72,
         },
         'SiegeTank': {
             'obj_id': [55],
@@ -297,6 +335,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 125,
             'supply': 3,
+            'movement_speed': 3.15,
         },
         'SiegeTankSieged': {
             'obj_id': [55],
@@ -305,6 +344,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 125,
             'supply': 3,
+            'movement_speed': 0,
         },
         'Thor': {
             'obj_id': [74],
@@ -313,6 +353,7 @@ units = {
             'mineral_cost': 300,
             'gas_cost': 200,
             'supply': 6,
+            'movement_speed': 2.62,
         },
         'ThorAP': {
             'obj_id': [74],
@@ -321,6 +362,7 @@ units = {
             'mineral_cost': 300,
             'gas_cost': 200,
             'supply': 6,
+            'movement_speed': 2.62,
         },
         'VikingFighter': {
             'obj_id': [56],
@@ -329,6 +371,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 75,
             'supply': 2,
+            'movement_speed': 3.85,
         },
         'VikingAssault': {
             'obj_id': [56],
@@ -337,6 +380,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 75,
             'supply': 2,
+            'movement_speed': 3.15,
         },
         'Medivac': {
             'obj_id': [76],
@@ -346,6 +390,7 @@ units = {
             'gas_cost': 100,
             'supply': 2,
             'energy': 50,
+            'movement_speed': 3.5,
         },
         'Liberator': {
             'obj_id': [437, 449],
@@ -354,6 +399,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 150,
             'supply': 3,
+            'movement_speed': 4.72,
         },
         'LiberatorAG': {
             'obj_id': [437, 449],
@@ -362,6 +408,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 150,
             'supply': 3,
+            'movement_speed': 0,
         },
         'Raven': {
             'obj_id': [78],
@@ -371,6 +418,7 @@ units = {
             'gas_cost': 200,
             'supply': 2,
             'energy': 50,
+            'movement_speed': 4.13,
         },
         'AutoTurret': {
             'obj_id': [53],
@@ -379,6 +427,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 0,
         },
         'Banshee': {
             'obj_id': [78],
@@ -388,6 +437,7 @@ units = {
             'gas_cost': 100,
             'supply': 3,
             'energy': 50,
+            'movement_speed': 5.25,
         },
         'Battlecruiser': {
             'obj_id': [79],
@@ -396,6 +446,7 @@ units = {
             'mineral_cost': 400,
             'gas_cost': 300,
             'supply': 6,
+            'movement_speed': 2.62,
         },
     },
     'Zerg': {
@@ -406,6 +457,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 0,
         },
         'Egg': {
             'obj_id': [125],
@@ -414,6 +466,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 0,
         },
         'Drone': {
             'obj_id': [126],
@@ -422,6 +475,7 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 0,
             'supply': 1,
+            'movement_speed': 3.94,
         },
         'Overlord': {
             'obj_id': [128],
@@ -430,6 +484,8 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 0,
             'supply': 0,
+            # TODO: Speed upgrade
+            'movement_speed': 2.62,
         },
         'Queen': {
             'obj_id': [148],
@@ -439,6 +495,8 @@ units = {
             'gas_cost': 0,
             'supply': 2,
             'energy': 25,
+            # TODO: Creep speed
+            'movement_speed': 1.31,
         },
         'Zergling': {
             'obj_id': [127],
@@ -447,6 +505,8 @@ units = {
             'mineral_cost': 25,
             'gas_cost': 0,
             'supply': 0.5,
+            # TODO: Creep speed
+            'movement_speed': 4.13,
         },
         'Baneling': {
             'obj_id': [29],
@@ -455,6 +515,8 @@ units = {
             'mineral_cost': 25,
             'gas_cost': 25,
             'supply': 0.5,
+            # TODO: Creep speed
+            'movement_speed': 3.5,
         },
         'Roach': {
             'obj_id': [132],
@@ -463,6 +525,8 @@ units = {
             'mineral_cost': 75,
             'gas_cost': 25,
             'supply': 2,
+            # TODO: Creep speed + speed upgrade
+            'movement_speed': 3.15,
         },
         'Ravager': {
             'obj_id': [178],
@@ -471,6 +535,8 @@ units = {
             'mineral_cost': 25,
             'gas_cost': 75,
             'supply': 3,
+            # TODO: Creep speed
+            'movement_speed': 3.85,
         },
         'TransportOverlordCocoon': {
             'obj_id': [181],
@@ -479,6 +545,7 @@ units = {
             'mineral_cost': 25,
             'gas_cost': 25,
             'supply': 0,
+            'movement_speed': 0,
         },
         'OverlordCocoon': {
             'obj_id': [150],
@@ -487,6 +554,7 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 50,
             'supply': 0,
+            'movement_speed': 0,
         },
         'Overseer': {
             'obj_id': [151],
@@ -496,6 +564,8 @@ units = {
             'gas_cost': 50,
             'supply': 0,
             'energy': 50,
+            # TODO: Speed upgrade
+            'movement_speed': 2.62,
         },
         'OverseerSiegeMode': {
             'obj_id': [151],
@@ -505,6 +575,7 @@ units = {
             'gas_cost': 50,
             'supply': 0,
             'energy': 50,
+            'movement_speed': 0,
         },
         'OverlordTransport': {
             'obj_id': [177],
@@ -513,6 +584,8 @@ units = {
             'mineral_cost': 25,
             'gas_cost': 25,
             'supply': 0,
+            # TODO: Speed upgrade
+            'movement_speed': 2.62,
         },
         # Add Changeling
         'Hydralisk': {
@@ -522,6 +595,8 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 50,
             'supply': 2,
+            # TODO: Creep speed + upgrade speed
+            'movement_speed': 3.15,
         },
         'LurkerMP': {
             'obj_id': [173],
@@ -530,6 +605,8 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 100,
             'supply': 3,
+            # TODO: Creep speed + upgrade speed
+            'movement_speed': 4.13,
         },
         'LurkerMPEgg': {
             'obj_id': [175],
@@ -538,6 +615,7 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 100,
             'supply': 3,
+            'movement_speed': 0,
         },
         'LurkerMPBurrowed': {
             'obj_id': [173],
@@ -546,6 +624,7 @@ units = {
             'mineral_cost': 50,
             'gas_cost': 100,
             'supply': 3,
+            'movement_speed': 0,
         },
         'Mutalisk': {
             'obj_id': [130],
@@ -554,6 +633,7 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 100,
             'supply': 2,
+            'movement_speed': 5.6,
         },
         'Corruptor': {
             'obj_id': [134],
@@ -562,6 +642,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 100,
             'supply': 2,
+            'movement_speed': 4.73,
         },
         'SwarmHostMP': {
             'obj_id': [441],
@@ -570,6 +651,8 @@ units = {
             'mineral_cost': 100,
             'gas_cost': 75,
             'supply': 3,
+            # TODO: Creep speed
+            'movement_speed': 3.15,
         },
         'LocustMP': {
             'obj_id': [678],
@@ -578,6 +661,8 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            # TODO: Creep speed
+            'movement_speed': 2.62,
         },
         'LocustMPFlying': {
             'obj_id': [907],
@@ -586,6 +671,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 2.62,
         },
         'LocustMPPrecursor': {
             'obj_id': [678],
@@ -594,6 +680,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 0,
         },
         'Infestor': {
             'obj_id': [133],
@@ -603,6 +690,8 @@ units = {
             'gas_cost': 150,
             'supply': 2,
             'energy': 50,
+            # TODO: Creep speed + burrowed speed
+            'movement_speed': 3.15,
         },
         'InfestedTerransEgg': {
             'obj_id': [187],
@@ -611,6 +700,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 0,
         },
         'InfestorTerran': {
             'obj_id': [27],
@@ -619,6 +709,8 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            # TODO: Creep speed
+            'movement_speed': 1.31,
         },
         'Viper': {
             'obj_id': [442],
@@ -628,6 +720,7 @@ units = {
             'gas_cost': 200,
             'supply': 3,
             'energy': 50,
+            'movement_speed': 4.13,
         },
         'Ultralisk': {
             'obj_id': [131],
@@ -636,6 +729,8 @@ units = {
             'mineral_cost': 300,
             'gas_cost': 200,
             'supply': 6,
+            # TODO: Creep speed + speed upgrade
+            'movement_speed': 4.13,
         },
         'BroodLord': {
             'obj_id': [136],
@@ -644,6 +739,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 4,
+            'movement_speed': 1.97,
         },
         'BroodlingEscort': {
             'obj_id': None,
@@ -652,6 +748,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 1.97,
         },
         'Broodling': {
             'obj_id': [404],
@@ -660,6 +757,7 @@ units = {
             'mineral_cost': 0,
             'gas_cost': 0,
             'supply': 0,
+            'movement_speed': 5.37,
         },
         'RavagerCocoon': {
             'obj_id': [180],
@@ -668,6 +766,7 @@ units = {
             'mineral_cost': 25,
             'gas_cost': 75,
             'supply': 3,
+            'movement_speed': 0,
         },
         'BanelingCocoon': {
             'obj_id': [28],
@@ -676,6 +775,7 @@ units = {
             'mineral_cost': 25,
             'gas_cost': 25,
             'supply': 0.5,
+            'movement_speed': 0,
         },
         'BroodLordCocoon': {
             'obj_id': [135],
@@ -684,6 +784,7 @@ units = {
             'mineral_cost': 150,
             'gas_cost': 150,
             'supply': 3,
+            'movement_speed': 0,
         },
     }
 }
