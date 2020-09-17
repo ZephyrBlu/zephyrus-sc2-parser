@@ -6,10 +6,10 @@ class Player:
         self.player_id = player_id
 
         if type(name) is bytes:
-            self.name = name.decode('utf-8')
+            self.name = name.decode('utf-8')[self._clan_tag_index(name.decode('utf-8')):]
         else:
-            self.name = name
-        if type(name) is bytes:
+            self.name = name[self._clan_tag_index(name):]
+        if type(race) is bytes:
             self.race = race.decode('utf-8')
         else:
             self.race = race
@@ -77,6 +77,9 @@ class Player:
 
     #     self.supply = total_supply
     #     self.supply_cap = total_supply_provided
+
+    def _clan_tag_index(self, name):
+        return 0 if name.find('>') == -1 else name.find('>') + 1
 
     def to_json(self):
         return {

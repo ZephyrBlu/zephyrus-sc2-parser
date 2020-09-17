@@ -1,4 +1,3 @@
-import math
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 
 
@@ -6,27 +5,11 @@ class UnitPositionsEvent(BaseEvent):
     def __init__(self, *args):
         super().__init__(*args)
 
-    def _get_target_object(self):
-        event = self.event
-
-        if 'None' in event['m_data'] or 'TargetUnit' not in event['m_data']:
-            return None
-
-        unit_game_id = event['m_data']['TargetUnit']['m_tag']
-
-        for obj_id, obj in self.player.objects.items():
-            if obj.tag == event['m_data']['TargetUnit']['m_snapshotUnitLink']:
-                break
-
-        if unit_game_id in self.player.objects:
-            return self.player.objects[unit_game_id]
-        return None
-
-    def _get_unit(self, unit_index):
+    def _find_unit(self, unit_index):
         for p in self.game.players.values():
             for u in p.objects.values():
-                # return unit if it hasn't died, or died in the last 240 gameloops
-                if (u.status != 'died' or (self.gameloop - u.death_time) <= 240) and u.tag == unit_index:
+                # return unit if it hasn't died, or died in the last 240 gameloops (~10sec)
+                if u.tag == unit_index and (u.status != 'died' or (self.gameloop - u.death_time) <= 240):
                     return u, p
         return None, None
 
@@ -40,6 +23,11 @@ class UnitPositionsEvent(BaseEvent):
         }
 
         army_position = {
+            1: None,
+            2: None,
+        }
+
+        position_proportion = {
             1: None,
             2: None,
         }
@@ -76,16 +64,6 @@ class UnitPositionsEvent(BaseEvent):
             },
         }
 
-        for p in game.players.values():
-            if not p.army_positions:
-                continue
-
-            for obj in p.objects.values():
-                if 'building' not in obj.type and 'died' in obj.status and obj.death_time >= (gameloop - 240):
-                    engagement[p.player_id].append(obj)
-                    engagement_resources[p.player_id]['died'] += obj.mineral_cost
-                    engagement_resources[p.player_id]['died'] += obj.gas_cost
-
         unit_index = event['m_firstUnitIndex']
         for i in range(0, len(event['m_items']), 3):
             unit_index += event['m_items'][i + 0]
@@ -93,7 +71,7 @@ class UnitPositionsEvent(BaseEvent):
             unit_y = event['m_items'][i + 2] * 4
             # unit identified by unitIndex at the current event['_gameloop'] time is at approximate position (x, y)
 
-            current_unit, unit_owner = self._get_unit(unit_index)
+            current_unit, unit_owner = self._find_unit(unit_index)
             if current_unit and unit_owner:
                 current_unit.position = {
                     'x': unit_x,
@@ -107,9 +85,12 @@ class UnitPositionsEvent(BaseEvent):
 
         for player_id, units in engagement.items():
             min_avg_unit_distance = None
+
+            if len(units) == 1:
+                army_position[player_id] = units[0].position
+                continue
+
             for unit in units:
-                engagement_resources[player_id] += unit.mineral_cost
-                engagement_resources[player_id] += unit.gas_cost
                 unit_distances = []
                 for compare_unit in units:
                     if unit != compare_unit:
@@ -123,8 +104,26 @@ class UnitPositionsEvent(BaseEvent):
             if min_avg_unit_distance:
                 army_position[player_id] = min_avg_unit_distance[1].position
 
+        for p in game.players.values():
+            if not p.army_positions:
+                continue
+
+            for obj in p.objects.values():
+                # filter out buildings and units that didn't die within the last 240 gameloops
+                if 'building' not in obj.type and 'died' in obj.status and obj.death_time >= (gameloop - 240):
+                    # if obj within 20 tiles of center of army
+                    if army_position[p.player_id] and obj.calc_distance(army_position[p.player_id]) <= 10:
+                        print(army_position[p.player_id], obj.position, obj.calc_distance(army_position[p.player_id]))
+                        engagement[p.player_id].append(obj)
+                        engagement_resources[p.player_id]['died'] += obj.mineral_cost
+                        engagement_resources[p.player_id]['died'] += obj.gas_cost
+
+        # total_engagement_resources = {
+        #     1: engagement_resources[1]['live'] + engagement_resources[1]['died'],
+        #     2: engagement_resources[2]['live'] + engagement_resources[2]['died'],
+        # }
         for p_id, current_army_position in army_position.items():
-            if not current_army_position:
+            if not current_army_position: # or total_engagement_resources[p_id] < 2000:
                 continue
 
             for player in game.players.values():
@@ -150,13 +149,16 @@ class UnitPositionsEvent(BaseEvent):
             # then add 1 to bring domain to 0 to 2, then half to bring domain to 0 to 1
             army_position_proportion = (((player_distance / total_distance) - (opp_distance / total_distance)) + 1) / 2
             game.players[player_id].army_positions.append((army_position_proportion, army_position[player_id], gameloop))
+            position_proportion[player_id] = army_position_proportion
         game.engagements.append({
             1: {
                 'units': engagement[1],
                 'army_value': engagement_resources[1],
+                'army_position': (position_proportion[1], army_position[1], gameloop)
             },
             2: {
                 'units': engagement[2],
                 'army_value': engagement_resources[2],
+                'army_position': (position_proportion[2], army_position[2], gameloop)
             },
         })
