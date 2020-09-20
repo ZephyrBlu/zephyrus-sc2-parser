@@ -33,6 +33,9 @@ class GameObj:
     def __eq__(self, other):
         return self.game_id == other.game_id
 
+    def __hash__(self):
+        return hash(self.game_id)
+
     def __repr__(self):
         return f'({self.name}, {self.tag})'
 
@@ -70,10 +73,12 @@ class GameObj:
         return self.position
 
     def calc_distance(self, other_position):
-        # position contains x, y, z in integer form of floats
+        # position may contain x, y, z in integer form of floats
+        # maps are never 4096 tiles wide or long, so this checks for what type of position
+        divisor = 1 if (other_position['x'] / 4096) < 1 else 4096
         other_position = {
-            'x': other_position['x'] / 4096,
-            'y': other_position['y'] / 4096,
+            'x': other_position['x'] / divisor,
+            'y': other_position['y'] / divisor,
         }
 
         # simple pythagoras theorem calculation
