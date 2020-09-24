@@ -104,6 +104,7 @@ for map_name, non_eng_name_tuple in MAP_NAMES.items():
     for non_eng_map_name in non_eng_name_tuple:
         non_english_maps[non_eng_map_name.encode('utf-8')] = map_name
 
+
 def initial_summary_stats(game, metadata, detailed_info, local=False):
     summary_stats = {
         'mmr': {1: 0, 2: 0},
@@ -115,6 +116,7 @@ def initial_summary_stats(game, metadata, detailed_info, local=False):
             'minerals': {1: 0, 2: 0},
             'gas': {1: 0, 2: 0}
         },
+        'max_collection_rate': {1: 0, 2: 0},
         'apm': {1: 0, 2: 0},
         'spm': {1: 0, 2: 0},
         'resources_lost': {
@@ -351,15 +353,22 @@ def parse_replay(filename, *, local=False):
     players_export = {}
     for p_id, player in players.items():
         summary_stats = player.calc_pac(summary_stats, game_length)
-        summary_stats['spm'][player.player_id] = player.calc_spm(current_game.game_length)
+        summary_stats['spm'][p_id] = player.calc_spm(current_game.game_length)
+
+        max_collection_rate = 0
+        for i in range(0, len(player.collection_rate['minerals'])):
+            current_collection_rate = player.collection_rate['minerals'][i] + player.collection_rate['gas'][i]
+            if current_collection_rate > max_collection_rate:
+                max_collection_rate = current_collection_rate
+        summary_stats['max_collection_rate'][p_id] = max_collection_rate
 
         opp_id = 1 if p_id == 2 else 2
 
         if player.race == 'Zerg':
-            if 'inject_efficiency' in current_game.timeline[-1][player.player_id]['race']:
-                summary_stats['race'][player.player_id]['inject_efficiency'] = current_game.timeline[-1][player.player_id]['race']['inject_efficiency']
-            summary_stats['race'][player.player_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
-            summary_stats['race'][player.player_id]['creep'] = current_game.timeline[-1][player.player_id]['race']['creep']
+            if 'inject_efficiency' in current_game.timeline[-1][p_id]['race']:
+                summary_stats['race'][p_id]['inject_efficiency'] = current_game.timeline[-1][p_id]['race']['inject_efficiency']
+            summary_stats['race'][p_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
+            summary_stats['race'][p_id]['creep'] = current_game.timeline[-1][p_id]['race']['creep']
 
         elif player.race == 'Protoss':
             opp_player = players[opp_id]
@@ -392,10 +401,10 @@ def parse_replay(filename, *, local=False):
                     )
 
             if splash_efficiency:
-                summary_stats['race'][player.player_id]['splash_efficiency'] = splash_efficiency
+                summary_stats['race'][p_id]['splash_efficiency'] = splash_efficiency
 
-        if 'energy' in current_game.timeline[-1][player.player_id]['race']:
-            energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']
+        if 'energy' in current_game.timeline[-1][p_id]['race']:
+            energy_stats = current_game.timeline[-1][p_id]['race']['energy']
             energy_efficiency = {}
             energy_idle_time = {}
 
@@ -406,20 +415,20 @@ def parse_replay(filename, *, local=False):
                     energy_efficiency[obj_name].append(obj_data[1])
                     energy_idle_time[obj_name].append(obj_data[2])
 
-            summary_stats['race'][player.player_id]['energy'] = {
+            summary_stats['race'][p_id]['energy'] = {
                 'efficiency': energy_efficiency,
                 'idle_time': energy_idle_time,
             }
 
-        if 'warpgate_efficiency' in current_game.timeline[-1][player.player_id]['race']:
-            warpgate_efficiency = current_game.timeline[-1][player.player_id]['race']['warpgate_efficiency']
-            summary_stats['race'][player.player_id]['warpgate'] = {
+        if 'warpgate_efficiency' in current_game.timeline[-1][p_id]['race']:
+            warpgate_efficiency = current_game.timeline[-1][p_id]['race']['warpgate_efficiency']
+            summary_stats['race'][p_id]['warpgate'] = {
                 'efficiency': warpgate_efficiency[0],
                 'idle_time': warpgate_efficiency[1],
             }
 
-        players_export[player.player_id] = player
-        summary_stats['workers_killed'][opp_id] = summary_stats['workers_lost'][player.player_id]
+        players_export[p_id] = player
+        summary_stats['workers_killed'][opp_id] = summary_stats['workers_lost'][p_id]
 
     metadata_export = {
         'time_played_at': current_game.played_at,

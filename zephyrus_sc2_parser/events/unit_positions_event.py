@@ -25,6 +25,11 @@ class UnitPositionsEvent(BaseEvent):
         game = self.game
         event = self.event
         gameloop = self.gameloop
+        inital_units = {
+            1: [],
+            2: [],
+        }
+
         engagement = {
             1: [],
             2: [],
@@ -87,7 +92,7 @@ class UnitPositionsEvent(BaseEvent):
                 }
                 current_unit.prev_positions.append((gameloop, current_unit.position))
                 current_unit.target_position = None
-                engagement[unit_owner.player_id].append(current_unit)
+                inital_units[unit_owner.player_id].append(current_unit)
 
         for p in game.players.values():
             for obj in p.objects.values():
@@ -102,9 +107,9 @@ class UnitPositionsEvent(BaseEvent):
                     and 'supply' not in obj.type
                     and 'worker' not in obj.type
                 ):
-                    engagement[p.player_id].append(obj)
+                    inital_units[p.player_id].append(obj)
 
-        for player_id, units in engagement.items():
+        for player_id, units in inital_units.items():
             all_unit_distances = {}
 
             if len(units) == 1:
@@ -143,6 +148,7 @@ class UnitPositionsEvent(BaseEvent):
 
                 # add engagement info for army units inside 10 tile radius of army center
                 for army_unit, unit_distance in all_unit_distances[max_unit_count[0]]:
+                    engagement[player_id].append(army_unit)
                     if army_unit.status not in engagement_resources[player_id]:
                         engagement_resources[player_id][army_unit.status] = 0
                     print(army_unit.name, army_unit.status, army_unit.position)
@@ -171,6 +177,7 @@ class UnitPositionsEvent(BaseEvent):
                 if min_structure_distance:
                     distance_to_command_structure[p_id][player.player_id] = min_structure_distance[0]
 
+        army_position_proportion = None
         for player_id, structure_distances in distance_to_command_structure.items():
             opp_id = 1 if player_id == 2 else 2
             player_distance = structure_distances[player_id]
@@ -180,21 +187,36 @@ class UnitPositionsEvent(BaseEvent):
                 continue
 
             total_distance = player_distance + opp_distance
+
+            # to prevent proxy structures from interfering
+            if total_distance < 50:
+                continue
+
             # calculate proportion of distance to each base, limiting value to domain of -1 to 1
             # then add 1 to bring domain to 0 to 2, then half to bring domain to 0 to 1
             army_position_proportion = (((player_distance / total_distance) - (opp_distance / total_distance)) + 1) / 2
             print(game.players[player_id].name, army_position_proportion, f'Player: {player_distance}', f'Opponent: {opp_distance}')
             game.players[player_id].army_positions.append((army_position_proportion, player_distance, army_position[player_id], total_engagement_resources[player_id], gameloop))
             position_proportion[player_id] = army_position_proportion
-        game.engagements.append({
-            1: {
-                'units': engagement[1],
-                'army_value': engagement_resources[1],
-                'army_position': (position_proportion[1], army_position[1], gameloop)
-            },
-            2: {
-                'units': engagement[2],
-                'army_value': engagement_resources[2],
-                'army_position': (position_proportion[2], army_position[2], gameloop)
-            },
-        })
+
+        if army_position_proportion:
+            p1_total_collection_rate = game.players[1].collection_rate['minerals'][-1] + game.players[1].collection_rate['gas'][-1]
+            p2_total_collection_rate = game.players[2].collection_rate['minerals'][-1] + game.players[2].collection_rate['gas'][-1]
+
+            game.engagements.append({
+                'gameloop': gameloop,
+                1: {
+                    'units': engagement[1],
+                    'total_collection_rate': p1_total_collection_rate,
+                    'army_value': engagement_resources[1],
+                    'army_position': army_position[1],
+                    'relative_position': position_proportion[1],
+                },
+                2: {
+                    'units': engagement[2],
+                    'total_collection_rate': p2_total_collection_rate,
+                    'army_value': engagement_resources[2],
+                    'army_position': army_position[2],
+                    'relative_position': position_proportion[2],
+                },
+            })
