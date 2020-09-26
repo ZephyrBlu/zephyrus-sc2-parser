@@ -116,7 +116,6 @@ class UnitPositionsEvent(BaseEvent):
                 army_position[player_id] = units[0].position
                 continue
 
-            print(game.players[player_id].name, round(gameloop / 22.4 / 60, 2))
             for unit in units:
                 unit_distances = []
                 for compare_unit in units:
@@ -142,7 +141,6 @@ class UnitPositionsEvent(BaseEvent):
                         )
                     ):
                         max_unit_count = (unit, len(unit_distances), avg_unit_distance)
-            print('\n')
             if max_unit_count[0]:
                 army_position[player_id] = max_unit_count[0].position
 
@@ -151,13 +149,11 @@ class UnitPositionsEvent(BaseEvent):
                     engagement[player_id].append(army_unit)
                     if army_unit.status not in engagement_resources[player_id]:
                         engagement_resources[player_id][army_unit.status] = 0
-                    print(army_unit.name, army_unit.status, army_unit.position)
                     engagement_resources[player_id][army_unit.status] += army_unit.mineral_cost
                     engagement_resources[player_id][army_unit.status] += army_unit.gas_cost
                 # add engagement info for center army unit
                 engagement_resources[player_id][max_unit_count[0].status] += max_unit_count[0].mineral_cost
                 engagement_resources[player_id][max_unit_count[0].status] += max_unit_count[0].gas_cost
-        print('\n')
 
         total_engagement_resources = {
             1: engagement_resources[1]['live'] + engagement_resources[1]['died'],
@@ -177,7 +173,6 @@ class UnitPositionsEvent(BaseEvent):
                 if min_structure_distance:
                     distance_to_command_structure[p_id][player.player_id] = min_structure_distance[0]
 
-        army_position_proportion = None
         for player_id, structure_distances in distance_to_command_structure.items():
             opp_id = 1 if player_id == 2 else 2
             player_distance = structure_distances[player_id]
@@ -195,28 +190,26 @@ class UnitPositionsEvent(BaseEvent):
             # calculate proportion of distance to each base, limiting value to domain of -1 to 1
             # then add 1 to bring domain to 0 to 2, then half to bring domain to 0 to 1
             army_position_proportion = (((player_distance / total_distance) - (opp_distance / total_distance)) + 1) / 2
-            print(game.players[player_id].name, army_position_proportion, f'Player: {player_distance}', f'Opponent: {opp_distance}')
             game.players[player_id].army_positions.append((army_position_proportion, player_distance, army_position[player_id], total_engagement_resources[player_id], gameloop))
             position_proportion[player_id] = army_position_proportion
 
-        if army_position_proportion:
-            p1_total_collection_rate = game.players[1].collection_rate['minerals'][-1] + game.players[1].collection_rate['gas'][-1]
-            p2_total_collection_rate = game.players[2].collection_rate['minerals'][-1] + game.players[2].collection_rate['gas'][-1]
+        p1_total_collection_rate = game.players[1].collection_rate['minerals'][-1] + game.players[1].collection_rate['gas'][-1]
+        p2_total_collection_rate = game.players[2].collection_rate['minerals'][-1] + game.players[2].collection_rate['gas'][-1]
 
-            game.engagements.append({
-                'gameloop': gameloop,
-                1: {
-                    'units': engagement[1],
-                    'total_collection_rate': p1_total_collection_rate,
-                    'army_value': engagement_resources[1],
-                    'army_position': army_position[1],
-                    'relative_position': position_proportion[1],
-                },
-                2: {
-                    'units': engagement[2],
-                    'total_collection_rate': p2_total_collection_rate,
-                    'army_value': engagement_resources[2],
-                    'army_position': army_position[2],
-                    'relative_position': position_proportion[2],
-                },
-            })
+        game.engagements.append({
+            'gameloop': gameloop,
+            1: {
+                'units': engagement[1],
+                'total_collection_rate': p1_total_collection_rate,
+                'army_value': engagement_resources[1],
+                'army_position': army_position[1],
+                'relative_position': position_proportion[1],
+            },
+            2: {
+                'units': engagement[2],
+                'total_collection_rate': p2_total_collection_rate,
+                'army_value': engagement_resources[2],
+                'army_position': army_position[2],
+                'relative_position': position_proportion[2],
+            },
+        })
