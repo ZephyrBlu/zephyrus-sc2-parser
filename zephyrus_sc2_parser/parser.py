@@ -104,6 +104,7 @@ for map_name, non_eng_name_tuple in MAP_NAMES.items():
     for non_eng_map_name in non_eng_name_tuple:
         non_english_maps[non_eng_map_name.encode('utf-8')] = map_name
 
+
 def initial_summary_stats(game, metadata, detailed_info, local=False):
     summary_stats = {
         'mmr': {1: 0, 2: 0},
@@ -358,39 +359,6 @@ def parse_replay(filename, *, local=False):
                 summary_stats['race'][player.player_id]['inject_efficiency'] = current_game.timeline[-1][player.player_id]['race']['inject_efficiency']
             summary_stats['race'][player.player_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
             summary_stats['race'][player.player_id]['creep'] = current_game.timeline[-1][player.player_id]['race']['creep']
-
-        elif player.race == 'Protoss':
-            opp_player = players[opp_id]
-
-            protoss_splash = {
-                'HighTemplar': (0, 0),
-                'Disruptor': (0, 0),
-                'Colossus': (0, 0),
-            }
-
-            units = current_game.gamedata['units']
-
-            for obj in opp_player.objects.values():
-                if 'unit' in obj.type and obj.killed_by and obj.killed_by.name in protoss_splash:
-                    protoss_splash[obj.killed_by.name] = (
-                        protoss_splash[obj.killed_by.name][0] + units[opp_player.race][obj.name]['mineral_cost'],
-                        protoss_splash[obj.killed_by.name][1] + units[opp_player.race][obj.name]['gas_cost'],
-                    )
-
-            splash_efficiency = {}
-            for splash_unit, resources_killed in protoss_splash.items():
-                # if not default
-                if resources_killed != (0, 0):
-                    unit_mineral_cost = units[player.race][splash_unit]['mineral_cost']
-                    unit_gas_cost = units[player.race][splash_unit]['gas_cost']
-
-                    splash_efficiency[splash_unit] = (
-                        round(resources_killed[0] / unit_mineral_cost, 2),
-                        round(resources_killed[1] / unit_gas_cost, 2),
-                    )
-
-            if splash_efficiency:
-                summary_stats['race'][player.player_id]['splash_efficiency'] = splash_efficiency
 
         if 'energy' in current_game.timeline[-1][player.player_id]['race']:
             energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']
