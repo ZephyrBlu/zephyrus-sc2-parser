@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class BaseEvent:
     def __init__(self, game, event):
         self.game = game

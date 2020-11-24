@@ -5,6 +5,7 @@ from zephyrus_sc2_parser.game.game_obj import GameObj
 
 logger = logging.getLogger(__name__)
 
+
 class ObjectEvent(BaseEvent):
     def __init__(self, protocol, summary_stats, *args):
         super().__init__(*args)
@@ -20,60 +21,67 @@ class ObjectEvent(BaseEvent):
         unit_tag_recycle = self.event['m_unitTagRecycle']
         game_id = self.protocol.unit_tag(unit_tag_index, unit_tag_recycle)
 
+        # obj_name = None
+        if 'm_unitTypeName' in event:
+            obj_name = event['m_unitTypeName'].decode('utf-8')
+            logger.debug(f'Event object name: {obj_name}, ({game_id})')
+
         if self.player is False:
+            logger.debug('Event does not contain player information. Checking players for event object')
             for p in self.game.players.values():
                 if game_id in p.objects:
+                    logger.debug('Found event object in player. Setting player and returning event object')
                     self.player = p
                     return self.player.objects[game_id]
 
         player = self.player
 
-        if player:
-            if game_id in player.objects:
-                logger.debug('Found existing object')
-                return player.objects[game_id]
+        if not player:
+            return None
 
-            obj_name = event['m_unitTypeName'].decode('utf-8')
-            if obj_name in units[player.race]:
-                obj = units[player.race][obj_name]
-            elif obj_name in buildings[player.race]:
-                obj = buildings[player.race][obj_name]
-            else:
-                return None
+        if game_id in player.objects:
+            logger.debug('Found event object in player. Returning event object')
+            return player.objects[game_id]
 
-            logger.debug('Creating new object')
+        if obj_name in units[player.race]:
+            obj = units[player.race][obj_name]
+        elif obj_name in buildings[player.race]:
+            obj = buildings[player.race][obj_name]
+        else:
+            return None
 
-            new_game_obj = GameObj(
-                obj_name,
-                obj['obj_id'],
-                game_id,
-                unit_tag_index,
-                obj['priority'],
-                obj['mineral_cost'],
-                obj['gas_cost']
-            )
+        logger.debug('Creating new object')
+        new_game_obj = GameObj(
+            obj_name,
+            obj['obj_id'],
+            game_id,
+            unit_tag_index,
+            obj['priority'],
+            obj['mineral_cost'],
+            obj['gas_cost']
+        )
 
-            if 'energy' in obj:
-                new_game_obj.energy = obj['energy']
+        if 'energy' in obj:
+            new_game_obj.energy = obj['energy']
 
-            if 'cooldown' in obj:
-                new_game_obj.cooldown = obj['cooldown']
+        if 'cooldown' in obj:
+            new_game_obj.cooldown = obj['cooldown']
 
-            for value in obj['type']:
-                new_game_obj.obj_type.append(value)
+        for value in obj['type']:
+            new_game_obj.obj_type.append(value)
 
-                if value == 'unit':
-                    new_game_obj.supply = obj['supply']
-                elif value == 'building':
-                    new_game_obj.queue = []
-                elif value == 'supply':
-                    if obj_name == 'Overlord' or 'Overseer':
-                        new_game_obj.supply_provided = 8
-                    else:
-                        new_game_obj.supply_provided = obj['supply']
+            if value == 'unit':
+                new_game_obj.supply = obj['supply']
+            elif value == 'building':
+                new_game_obj.queue = []
+            elif value == 'supply':
+                if obj_name == 'Overlord' or 'Overseer':
+                    new_game_obj.supply_provided = 8
+                else:
+                    new_game_obj.supply_provided = obj['supply']
 
-            player.objects[game_id] = new_game_obj
-            return new_game_obj
+        player.objects[game_id] = new_game_obj
+        return new_game_obj
 
     def _update_obj_group_info(self, obj):
         logger.debug(f'Updating control group references in object {obj}')
@@ -115,19 +123,27 @@ class ObjectEvent(BaseEvent):
         units = self.game.gamedata['units']
         buildings = self.game.gamedata['buildings']
 
+        # _get_or_create_game_object can alter self.player, so must be executed first
+        obj = self._get_or_create_game_object()
+
         event = self.event
         player = self.player
         gameloop = self.gameloop
 
         logger.debug(f'Parsing {self.event_type} at {gameloop}')
 
-        obj = self._get_or_create_game_object()
-        if not obj or not player:
-            logger.warning('Missing object or player in event')
-            return None
+        if not player:
+            logger.warning('Missing player in event')
+        else:
+            logger.debug(f'Player: {player.name} ({player.player_id})')
 
-        logger.debug(f'Player: {player.name} ({player.player_id})')
-        logger.debug(f'Object: {obj}')
+        if not obj:
+            logger.warning('Missing object in event')
+        else:
+            logger.debug(f'Object: {obj}')
+
+        if not obj or not player:
+            return None
 
         summary_stats = self.summary_stats
         protocol = self.protocol

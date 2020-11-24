@@ -4,6 +4,7 @@ from zephyrus_sc2_parser.events.base_event import BaseEvent
 
 logger = logging.getLogger(__name__)
 
+
 class SelectionEvent(BaseEvent):
     def __init__(self, *args):
         super().__init__(*args)

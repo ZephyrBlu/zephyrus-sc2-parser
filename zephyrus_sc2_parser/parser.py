@@ -232,7 +232,7 @@ def parse_replay(filename, *, local=False, creep=True):
             continue
 
         result = current_event.parse_event()
-        logger.debug(f'Parsed {event["_event"]} event at {gameloop}')
+        logger.debug(f'Finished parsing event')
         if result:
             summary_stats = result
 

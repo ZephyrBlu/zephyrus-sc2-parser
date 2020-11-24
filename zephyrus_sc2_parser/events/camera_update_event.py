@@ -4,6 +4,7 @@ from zephyrus_sc2_parser.game.perception_action_cycle import PerceptionActionCyc
 
 logger = logging.getLogger(__name__)
 
+
 class CameraUpdateEvent(BaseEvent):
     def __init__(self, *args):
         super().__init__(*args)

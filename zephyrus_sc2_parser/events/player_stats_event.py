@@ -3,6 +3,7 @@ from zephyrus_sc2_parser.events.base_event import BaseEvent
 
 logger = logging.getLogger(__name__)
 
+
 class PlayerStatsEvent(BaseEvent):
     def __init__(self, summary_stats, *args):
         super().__init__(*args)
