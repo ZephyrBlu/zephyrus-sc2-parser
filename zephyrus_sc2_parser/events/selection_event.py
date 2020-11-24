@@ -42,6 +42,7 @@ class SelectionEvent(BaseEvent):
         player = self.player
         event = self.event
 
+        # new selection
         if selection_type == 'new':
             if ctrl_group_num:
                 player.control_groups[ctrl_group_num] = []
@@ -57,6 +58,7 @@ class SelectionEvent(BaseEvent):
                     selection.append(player.objects[obj_game_id])
             selection.sort(key=lambda x: x.tag)
 
+        # subselection. i.e a subset of the existing selection
         elif selection_type == 'sub':
             if ctrl_group_num:
                 selection = player.control_groups[ctrl_group_num]
@@ -108,24 +110,28 @@ class SelectionEvent(BaseEvent):
                     del selection[i]
 
     def _create_bitmask(self, mask_x, mask_y, length):
+        # remove 0b prefix from string
         bitmask = bin(mask_y)[2:]
 
+        # ceil = number of bytes
         ceil = math.ceil(len(bitmask)/8)
+        # if we have more than 8 bits, we need to pad the string
+        # to the correct number of bytes for the next operations
         if len(bitmask) % 8 != 0:
             bitmask = bitmask.rjust(ceil * 8, '0')
 
+        # slice the bitmask into bytes, reverse the byte string and record it in order
         bitmask_sects = []
         for i in range(0, ceil + 1):
             section = bitmask[8 * i:(8 * i) + 8]
             bitmask_sects.append(section[::-1])
-
         final_bitmask = ''.join(bitmask_sects)
 
+        # adjust the created bitmask to the correct number of bits
         if len(final_bitmask) > length:
             final_bitmask = final_bitmask[:length]
         else:
             final_bitmask = final_bitmask.ljust(length, '0')
-
         return final_bitmask
 
     def _handle_mask(self, ctrl_group_num, *, selection_type):

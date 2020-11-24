@@ -43,24 +43,28 @@ class ControlGroupEvent(BaseEvent):
         control_group.sort(key=lambda x: x.tag)
 
     def _create_bitmask(self, mask_x, mask_y, length):
+        # remove 0b prefix from string
         bitmask = bin(mask_y)[2:]
 
+        # ceil = number of bytes
         ceil = math.ceil(len(bitmask)/8)
+        # if we have more than 8 bits, we need to pad the string
+        # to the correct number of bytes for the next operations
         if len(bitmask) % 8 != 0:
             bitmask = bitmask.rjust(ceil * 8, '0')
 
+        # slice the bitmask into bytes, reverse the byte string and record it in order
         bitmask_sects = []
         for i in range(0, ceil + 1):
             section = bitmask[8 * i:(8 * i) + 8]
             bitmask_sects.append(section[::-1])
-
         final_bitmask = ''.join(bitmask_sects)
 
+        # adjust the created bitmask to the correct number of bits
         if len(final_bitmask) > length:
             final_bitmask = final_bitmask[:length]
         else:
             final_bitmask = final_bitmask.ljust(length, '0')
-
         return final_bitmask
 
     def _remove_from_group(self, ctrl_group_num):
@@ -148,16 +152,17 @@ class ControlGroupEvent(BaseEvent):
             self._copy_from_selection(control_group, player.current_selection)
             self._set_obj_group_info(ctrl_group_num)
 
-        if event['m_controlGroupUpdate'] == 1:
+        elif event['m_controlGroupUpdate'] == 1:
             if ctrl_group_num not in player.control_groups:
                 player.control_groups[ctrl_group_num] = []
+
             if 'Mask' in event['m_mask']:
                 self._remove_from_group(ctrl_group_num)
             else:
                 self._add_to_group(ctrl_group_num)
             self._set_obj_group_info(ctrl_group_num)
 
-        if event['m_controlGroupUpdate'] == 2:
+        elif event['m_controlGroupUpdate'] == 2:
             player.current_selection = []
 
             if ctrl_group_num in player.control_groups:
@@ -166,12 +171,12 @@ class ControlGroupEvent(BaseEvent):
                 control_group = []
             self._copy_from_selection(player.current_selection, control_group)
 
-        if event['m_controlGroupUpdate'] == 3:
+        elif event['m_controlGroupUpdate'] == 3:
             if ctrl_group_num in player.control_groups:
                 self._remove_obj_group_info(ctrl_group_num)
                 del player.control_groups[ctrl_group_num]
 
-        if event['m_controlGroupUpdate'] == 4:
+        elif event['m_controlGroupUpdate'] == 4:
             player.control_groups[ctrl_group_num] = []
             control_group = player.control_groups[ctrl_group_num]
             self._copy_from_selection(control_group, player.current_selection)
