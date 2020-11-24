@@ -3,9 +3,9 @@ class PlayerState:
         self.game = game
         self.player = player
         self.gameloop = gameloop
-        self.summary = self.create_object_summary()
+        self.summary = self._create_object_summary()
 
-    def create_object_summary(self):
+    def _create_object_summary(self):
         if not self.player.collection_rate['minerals']:
             collection_rate = {
                 'minerals': 0,

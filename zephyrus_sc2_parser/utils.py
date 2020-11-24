@@ -7,9 +7,18 @@ import struct
 from pathlib import Path
 from io import BytesIO
 from importlib import import_module
-from zephyrus_sc2_parser.events import *
+from zephyrus_sc2_parser.events import (
+    ObjectEvent,
+    AbilityEvent,
+    SelectionEvent,
+    ControlGroupEvent,
+    UpgradeEvent,
+    CameraUpdateEvent,
+    PlayerStatsEvent,
+)
 from zephyrus_sc2_parser.game.player import Player
 from zephyrus_sc2_parser.gamedata.map_info import maps
+from zephyrus_sc2_parser.exceptions import MissingMmrError, PlayerCountError
 import pytz
 import logging
 
@@ -34,13 +43,85 @@ non_english_races = {}
 for non_eng_race, eng_race in NON_ENGLISH_RACES.items():
     non_english_races[non_eng_race.encode('utf8')] = eng_race
 
-def convert_time(windows_time):
+
+def _convert_time(windows_time):
     unix_epoch_time = math.floor(windows_time/10000000)-11644473600
     replay_datetime = datetime.datetime.fromtimestamp(unix_epoch_time).replace(tzinfo=pytz.utc)
     return replay_datetime
 
 
-def create_players(player_info, events):
+def _import_gamedata(protocol):
+    protocol_name = protocol.__name__[8:]
+    unit_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.unit_data')
+    building_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.building_data')
+    ability_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.ability_data')
+    upgrade_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.upgrade_data')
+
+    return {
+        'units': unit_data.units,
+        'buildings': building_data.buildings,
+        'abilities': ability_data.abilities,
+        'upgrades': upgrade_data.upgrades,
+    }
+
+
+def _generate_initial_summary_stats(game, metadata, detailed_info, local=False):
+    summary_stats = {
+        'mmr': {1: 0, 2: 0},
+        'avg_resource_collection_rate': {
+            'minerals': {1: 0, 2: 0},
+            'gas': {1: 0, 2: 0}
+        },
+        'avg_unspent_resources': {
+            'minerals': {1: 0, 2: 0},
+            'gas': {1: 0, 2: 0}
+        },
+        'apm': {1: 0, 2: 0},
+        'spm': {1: 0, 2: 0},
+        'resources_lost': {
+            'minerals': {1: 0, 2: 0},
+            'gas': {1: 0, 2: 0}
+        },
+        'resources_collected': {
+            'minerals': {1: 0, 2: 0},
+            'gas': {1: 0, 2: 0},
+        },
+        'workers_produced': {1: 0, 2: 0},
+        'workers_killed': {1: 0, 2: 0},
+        'workers_lost': {1: 0, 2: 0},
+        'supply_block': {1: 0, 2: 0},
+        'sq': {1: 0, 2: 0},
+        'avg_pac_per_min': {1: 0, 2: 0},
+        'avg_pac_action_latency': {1: 0, 2: 0},
+        'avg_pac_actions': {1: 0, 2: 0},
+        'avg_pac_gap': {1: 0, 2: 0},
+        'race': {1: {}, 2: {}},
+    }
+
+    mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
+    if 'm_scaledRating' not in mmr_data[0] or 'm_scaledRating' not in mmr_data[1]:
+        logging.debug('One or more players has no MMR')
+        if not local:
+            raise MissingMmrError('One or more players has no MMR. If you want to parse replays without MMR, add "local=True" as a keyword argument')
+
+    # setting winner of the game
+    for p in metadata['Players']:
+        if p['Result'] == 'Win':
+            game.winner = p['PlayerID']
+
+    # setting basic summary stats
+    for player in metadata['Players']:
+        player_id = player['PlayerID']
+        summary_stats['apm'][player_id] = player['APM']
+
+        if 'm_scaledRating' in mmr_data[player_id - 1]:
+            summary_stats['mmr'][player_id] = mmr_data[player_id - 1]['m_scaledRating']
+        else:
+            summary_stats['mmr'][player_id] = None
+    return summary_stats
+
+
+def _create_players(player_info, events):
     # get player name and race
     # workingSetSlotId correlates to playerIDs
     players = []
@@ -82,12 +163,12 @@ def create_players(player_info, events):
     # logic for translating user_id's into playerID's
 
     # if only one player then playerID is always 0
-    if len(players) == 1:
-        logging.info('Only one player in the game')
+    if len(players) != 2:
+        logging.warning('Not 2 players in replay')
         # player_obj = min(players, key=lambda x: x.player_id)
         # player_obj.player_id = events[setup_index]['m_playerId']
         # player_obj.user_id = events[setup_index]['m_userId']
-        return None
+        raise PlayerCountError(f'There are {len(players)} in the replay. Only 2 player replays are supported')
 
     # if both user_id's larger than 2 then lowest user_id first, the largest
     elif min(players) > 2:
@@ -129,23 +210,7 @@ def create_players(player_info, events):
         2: players[1],
     }
 
-
-def import_gamedata(protocol):
-    protocol_name = protocol.__name__[8:]
-    unit_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.unit_data')
-    building_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.building_data')
-    ability_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.ability_data')
-    upgrade_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.upgrade_data')
-
-    return {
-        'units': unit_data.units,
-        'buildings': building_data.buildings,
-        'abilities': ability_data.abilities,
-        'upgrades': upgrade_data.upgrades,
-    }
-
-
-def get_map_info(player_info, game_map):
+def _get_map_info(player_info, game_map):
     if game_map not in maps:
         map_bytes = player_info['m_cacheHandles'][-1]
         server = map_bytes[4:8].decode('utf8').strip('\x00 ').lower()
@@ -158,10 +223,10 @@ def get_map_info(player_info, game_map):
             if map_response.status_code == 200:
                 map_file = BytesIO(map_response.content)
                 break
-            logging.error(f'Could not fetch {game_map} map file. Retrying...')
+            logging.warning(f'Could not fetch {game_map} map file. Retrying')
 
         if not map_file:
-            logging.critical(f'Failed to fetch {game_map} map file')
+            logging.error(f'Failed to fetch {game_map} map file')
             return None
 
         map_archive = mpyq.MPQArchive(map_file)
@@ -200,7 +265,7 @@ def get_map_info(player_info, game_map):
     return game_map_info
 
 
-def create_event(game, event, protocol, summary_stats):
+def _create_event(game, event, protocol, summary_stats):
     object_events = [
         'NNet.Replay.Tracker.SUnitInitEvent',
         'NNet.Replay.Tracker.SUnitDoneEvent',
