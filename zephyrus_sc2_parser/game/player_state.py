@@ -60,7 +60,7 @@ class PlayerState:
             },
             'total_army_value': 0,
             'total_resources_lost': 0,
-            'total_resouces_collected': self.player.resources_collected['minerals'] + self.player.resources_collected['gas'],
+            'total_resources_collected': self.player.resources_collected['minerals'] + self.player.resources_collected['gas'],
             'race': {},
         }
 
