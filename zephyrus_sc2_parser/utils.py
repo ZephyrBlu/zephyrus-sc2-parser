@@ -212,7 +212,10 @@ def _create_players(player_info, events):
     }
 
 
-def _get_map_info(player_info, game_map):
+def _get_map_info(player_info, game_map, creep_flag=True):
+    if not creep_flag:
+        return {}
+
     if game_map not in maps:
         map_bytes = player_info['m_cacheHandles'][-1]
         server = map_bytes[4:8].decode('utf8').strip('\x00 ').lower()

@@ -192,7 +192,7 @@ def parse_replay(filename, *, local=False, creep=True):
         game_map = player_info['m_title'].decode('utf-8')
 
     played_at = _convert_time(player_info['m_timeUTC'])
-    map_info = _get_map_info(player_info, game_map)
+    map_info = _get_map_info(player_info, game_map, creep)
     logger.info('Fetched map data')
 
     current_game = Game(

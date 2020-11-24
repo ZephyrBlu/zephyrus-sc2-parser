@@ -105,7 +105,7 @@ class Player:
         return prev_minute_screens
 
     def calc_creep(self, map_info):
-        if self.race != 'Zerg':
+        if self.race != 'Zerg' or not map_info:
             return None, None
 
         if not self._creep_tiles:
