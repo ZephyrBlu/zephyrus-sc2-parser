@@ -100,7 +100,7 @@ def _generate_initial_summary_stats(game, metadata, detailed_info, local=False):
 
     mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
     if 'm_scaledRating' not in mmr_data[0] or 'm_scaledRating' not in mmr_data[1]:
-        logging.debug('One or more players has no MMR')
+        logging.warning('One or more players has no MMR')
         if not local:
             raise MissingMmrError('One or more players has no MMR. If you want to parse replays without MMR, add "local=True" as a keyword argument')
 
@@ -164,7 +164,7 @@ def _create_players(player_info, events):
 
     # if only one player then playerID is always 0
     if len(players) != 2:
-        logging.warning('Not 2 players in replay')
+        logging.warning('Replay does not contain exactly 2 players')
         # player_obj = min(players, key=lambda x: x.player_id)
         # player_obj.player_id = events[setup_index]['m_playerId']
         # player_obj.user_id = events[setup_index]['m_userId']
@@ -210,6 +210,7 @@ def _create_players(player_info, events):
         2: players[1],
     }
 
+
 def _get_map_info(player_info, game_map):
     if game_map not in maps:
         map_bytes = player_info['m_cacheHandles'][-1]
@@ -227,7 +228,7 @@ def _get_map_info(player_info, game_map):
 
         if not map_file:
             logging.error(f'Failed to fetch {game_map} map file')
-            return None
+            return {}
 
         map_archive = mpyq.MPQArchive(map_file)
         map_data = BytesIO(map_archive.read_file('MapInfo'))
@@ -281,26 +282,34 @@ def _create_event(game, event, protocol, summary_stats):
 
     if event['_event'] in object_events:
         current_event = ObjectEvent(protocol, summary_stats, game, event)
+        logging.debug(f'Created new ObjectEvent at {event["_gameloop"]}')
 
     elif event['_event'] in ability_events:
         current_event = AbilityEvent(summary_stats, game, event)
+        logging.debug(f'Created new AbilityEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Game.SSelectionDeltaEvent':
         current_event = SelectionEvent(game, event)
+        logging.debug(f'Created new SelectionEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Game.SControlGroupUpdateEvent':
         current_event = ControlGroupEvent(game, event)
+        logging.debug(f'Created new ControlGroupEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Replay.Tracker.SUpgradeEvent':
         current_event = UpgradeEvent(game, event)
+        logging.debug(f'Created new UpgradeEventa at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Game.SCameraUpdateEvent':
         current_event = CameraUpdateEvent(game, event)
+        logging.debug(f'Created new CameraUpdateEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Replay.Tracker.SPlayerStatsEvent':
         current_event = PlayerStatsEvent(summary_stats, game, event)
+        logging.debug(f'Created new PlayerStatsEvent at {event["_gameloop"]}')
 
     else:
         current_event = None
+        logging.debug(f'Event of type {event["_event"]} is not supported')
 
     return current_event
