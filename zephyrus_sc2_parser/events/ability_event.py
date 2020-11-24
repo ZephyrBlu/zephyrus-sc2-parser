@@ -1,5 +1,7 @@
+import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 
+logger = logging.getLogger(__name__)
 
 class AbilityEvent(BaseEvent):
     def __init__(self, summary_stats, *args):
@@ -10,6 +12,7 @@ class AbilityEvent(BaseEvent):
         event = self.event
 
         if 'None' in event['m_data'] or 'TargetUnit' not in event['m_data']:
+            logger.debug('No target object')
             return None
 
         unit_game_id = event['m_data']['TargetUnit']['m_tag']
@@ -19,15 +22,27 @@ class AbilityEvent(BaseEvent):
                 break
 
         if unit_game_id in self.player.objects:
+            logger.debug('Found target object')
             return self.player.objects[unit_game_id]
+
+        logger.debug('Target object is not in player objects')
         return None
 
     def parse_event(self):
-        player = self.player
         event = self.event
+        player = self.player
         gameloop = self.gameloop
         summary_stats = self.summary_stats
         abilities = self.game.gamedata['abilities']
+
+        logger.debug(f'Parsing {self.event_type} at {gameloop}')
+
+        if not player:
+            logger.debug('No player associated with this event')
+            return
+
+        logger.debug(f'Player: {player.name} ({player.player_id})')
+        logger.debug(f'Active ability: {player.active_ability}')
 
         command_abilities = {
             'ChronoBoostEnergyCost': 'Nexus',
@@ -37,10 +52,7 @@ class AbilityEvent(BaseEvent):
             'ScannerSweep': 'OrbitalCommand',
         }
 
-        if not player:
-            return
-
-        if self.type == 'NNet.Game.SCmdEvent':
+        if self.event_type == 'NNet.Game.SCmdEvent':
             if event['m_abil'] and event['m_abil']['m_abilLink'] and event['m_abil']['m_abilLink'] in abilities and type(event['m_abil']['m_abilCmdIndex']) is int:
                 obj = self._get_target_object()
                 queued = False
@@ -65,6 +77,7 @@ class AbilityEvent(BaseEvent):
             else:
                 ability = None
             player.active_ability = ability
+            logger.debug(f'New active ability: {player.active_ability}')
 
             if player.active_ability:
                 ability_name = player.active_ability[0]['ability_name']
@@ -77,6 +90,7 @@ class AbilityEvent(BaseEvent):
 
                 # the building the target is closest to is where the ability is used from
                 elif ability_name in command_abilities.keys():
+                    logger.debug('Command ability detected')
                     ability_buildings = []
 
                     for obj in player.objects.values():
@@ -94,6 +108,7 @@ class AbilityEvent(BaseEvent):
             if player.active_ability:
                 ability_name = player.active_ability[0]['ability_name']
                 if ability_name in command_abilities.keys():
+                    logger.debug('Command ability detected')
                     ability_buildings = []
 
                     for obj in player.objects.values():

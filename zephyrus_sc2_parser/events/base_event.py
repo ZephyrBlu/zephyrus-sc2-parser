@@ -1,8 +1,12 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 class BaseEvent:
     def __init__(self, game, event):
         self.game = game
         self.event = event
-        self.type = event['_event']
+        self.event_type = event['_event']
         self.player = self._identify_player(game, event)
         self.gameloop = event['_gameloop']
 
@@ -16,6 +20,7 @@ class BaseEvent:
             return False
 
         if game is None:
+            logger.warning('Game in event is None')
             return None
 
         for p_id, player in game.players.items():

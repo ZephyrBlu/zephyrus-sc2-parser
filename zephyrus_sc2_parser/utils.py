@@ -22,6 +22,7 @@ from zephyrus_sc2_parser.exceptions import MissingMmrError, PlayerCountError
 import pytz
 import logging
 
+logger = logging.getLogger(__name__)
 
 NON_ENGLISH_RACES = {
     '저그': 'Zerg',
@@ -100,7 +101,7 @@ def _generate_initial_summary_stats(game, metadata, detailed_info, local=False):
 
     mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
     if 'm_scaledRating' not in mmr_data[0] or 'm_scaledRating' not in mmr_data[1]:
-        logging.warning('One or more players has no MMR')
+        logger.warning('One or more players has no MMR')
         if not local:
             raise MissingMmrError('One or more players has no MMR. If you want to parse replays without MMR, add "local=True" as a keyword argument')
 
@@ -164,7 +165,7 @@ def _create_players(player_info, events):
 
     # if only one player then playerID is always 0
     if len(players) != 2:
-        logging.warning('Replay does not contain exactly 2 players')
+        logger.warning('Replay does not contain exactly 2 players')
         # player_obj = min(players, key=lambda x: x.player_id)
         # player_obj.player_id = events[setup_index]['m_playerId']
         # player_obj.user_id = events[setup_index]['m_userId']
@@ -224,10 +225,10 @@ def _get_map_info(player_info, game_map):
             if map_response.status_code == 200:
                 map_file = BytesIO(map_response.content)
                 break
-            logging.warning(f'Could not fetch {game_map} map file. Retrying')
+            logger.warning(f'Could not fetch {game_map} map file. Retrying')
 
         if not map_file:
-            logging.error(f'Failed to fetch {game_map} map file')
+            logger.error(f'Failed to fetch {game_map} map file')
             return {}
 
         map_archive = mpyq.MPQArchive(map_file)
@@ -255,7 +256,7 @@ def _get_map_info(player_info, game_map):
             with open(map_info_path, 'w', encoding='utf-8') as map_info:
                 map_info.write(f'maps = {maps}')
         except OSError:
-            logging.warning('Could not write map details to file')
+            logger.warning('Could not write map details to file')
 
     game_map_info = {
         'name': game_map,
@@ -282,34 +283,34 @@ def _create_event(game, event, protocol, summary_stats):
 
     if event['_event'] in object_events:
         current_event = ObjectEvent(protocol, summary_stats, game, event)
-        logging.debug(f'Created new ObjectEvent at {event["_gameloop"]}')
+        logger.debug(f'Created new ObjectEvent at {event["_gameloop"]}')
 
     elif event['_event'] in ability_events:
         current_event = AbilityEvent(summary_stats, game, event)
-        logging.debug(f'Created new AbilityEvent at {event["_gameloop"]}')
+        logger.debug(f'Created new AbilityEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Game.SSelectionDeltaEvent':
         current_event = SelectionEvent(game, event)
-        logging.debug(f'Created new SelectionEvent at {event["_gameloop"]}')
+        logger.debug(f'Created new SelectionEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Game.SControlGroupUpdateEvent':
         current_event = ControlGroupEvent(game, event)
-        logging.debug(f'Created new ControlGroupEvent at {event["_gameloop"]}')
+        logger.debug(f'Created new ControlGroupEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Replay.Tracker.SUpgradeEvent':
         current_event = UpgradeEvent(game, event)
-        logging.debug(f'Created new UpgradeEventa at {event["_gameloop"]}')
+        logger.debug(f'Created new UpgradeEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Game.SCameraUpdateEvent':
         current_event = CameraUpdateEvent(game, event)
-        logging.debug(f'Created new CameraUpdateEvent at {event["_gameloop"]}')
+        logger.debug(f'Created new CameraUpdateEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Replay.Tracker.SPlayerStatsEvent':
         current_event = PlayerStatsEvent(summary_stats, game, event)
-        logging.debug(f'Created new PlayerStatsEvent at {event["_gameloop"]}')
+        logger.debug(f'Created new PlayerStatsEvent at {event["_gameloop"]}')
 
     else:
         current_event = None
-        logging.debug(f'Event of type {event["_event"]} is not supported')
+        logger.debug(f'Event of type {event["_event"]} is not supported')
 
     return current_event

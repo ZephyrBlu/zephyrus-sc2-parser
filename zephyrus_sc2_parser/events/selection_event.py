@@ -1,12 +1,16 @@
-from zephyrus_sc2_parser.events.base_event import BaseEvent
 import math
+import logging
+from zephyrus_sc2_parser.events.base_event import BaseEvent
 
+logger = logging.getLogger(__name__)
 
 class SelectionEvent(BaseEvent):
     def __init__(self, *args):
         super().__init__(*args)
 
     def _add_to_selection(self, ctrl_group_num, new_obj_ids):
+        logger.debug('Adding new objects to current selection or control group')
+        logger.debug(f'Control group: {ctrl_group_num}')
         if ctrl_group_num:
             selection = self.player.control_groups[ctrl_group_num]
         else:
@@ -14,12 +18,13 @@ class SelectionEvent(BaseEvent):
 
         for obj_game_id in new_obj_ids:
             if obj_game_id not in self.player.objects:
+                logger.warning(f'{obj_game_id} not in player objects. Returning')
                 return
 
         for obj_game_id in new_obj_ids:
             obj = self.player.objects[obj_game_id]
             selection.append(obj)
-
+        logger.debug('Added all new objects')
         selection.sort(key=lambda x: x.tag)
 
     def _is_morph(self):
@@ -42,12 +47,18 @@ class SelectionEvent(BaseEvent):
         player = self.player
         event = self.event
 
+        logger.debug(f'Handling ZeroIndices mask on control group {ctrl_group_num} with {selection_type} selection')
+        logger.debug(f'Control group length: {len(ctrl_group_num) if type(ctrl_group_num) is int else None}')
+        logger.debug(f'Current selection length: {len(player.current_selection)}')
+
         # new selection
         if selection_type == 'new':
             if ctrl_group_num:
+                logger.debug(f'Clearing control group {ctrl_group_num}')
                 player.control_groups[ctrl_group_num] = []
                 selection = player.control_groups[ctrl_group_num]
             else:
+                logger.debug('Clearing current selection')
                 player.current_selection = []
                 selection = player.current_selection
 
@@ -66,9 +77,11 @@ class SelectionEvent(BaseEvent):
                 selection = player.current_selection
 
             selection_indices = event['m_delta']['m_removeMask']['ZeroIndices']
+            logger.debug(f'Selection indices: {selection_indices}')
 
             for i in range(len(selection) - 1, -1, -1):
                 if i not in selection_indices:
+                    logger.debug(f'Removing object {selection[i]} at position {i}')
                     del selection[i]
 
     def _handle_one_indices(self, ctrl_group_num, *, selection_type):
@@ -83,6 +96,11 @@ class SelectionEvent(BaseEvent):
         player = self.player
         event = self.event
         selection_indices = event['m_delta']['m_removeMask']['OneIndices']
+
+        logger.debug(f'Handling OneIndices mask on control group {ctrl_group_num} with {selection_type} selection')
+        logger.debug(f'Control group length: {len(ctrl_group_num) if type(ctrl_group_num) is int else None}')
+        logger.debug(f'Current selection length: {len(player.current_selection)}')
+        logger.debug(f'Selection indices {selection_indices}')
 
         if ctrl_group_num:
             selection = player.control_groups[ctrl_group_num]
@@ -99,6 +117,7 @@ class SelectionEvent(BaseEvent):
                 if i in selection_indices:
                     if is_morph:
                         selection[i].morph_time = self.gameloop
+                    logger.debug(f'Removing object {selection[i]} at position {i}')
                     del selection[i]
             self._add_to_selection(ctrl_group_num, new_game_ids)
 
@@ -107,9 +126,11 @@ class SelectionEvent(BaseEvent):
             # don't affect future removals
             for i in range(len(selection) - 1, -1, -1):
                 if i in selection_indices:
+                    logger.debug(f'Removing object {selection[i]} at position {i}')
                     del selection[i]
 
     def _create_bitmask(self, mask_x, mask_y, length):
+        logger.debug('Creating bitmask')
         # remove 0b prefix from string
         bitmask = bin(mask_y)[2:]
 
@@ -132,6 +153,7 @@ class SelectionEvent(BaseEvent):
             final_bitmask = final_bitmask[:length]
         else:
             final_bitmask = final_bitmask.ljust(length, '0')
+        logger.debug(f'Final bitmask: {final_bitmask}')
         return final_bitmask
 
     def _handle_mask(self, ctrl_group_num, *, selection_type):
@@ -145,19 +167,23 @@ class SelectionEvent(BaseEvent):
         mask_x = event['m_delta']['m_removeMask']['Mask'][0]
         mask_y = event['m_delta']['m_removeMask']['Mask'][1]
 
+        logger.debug(f'Handling Mask on control group {ctrl_group_num} with {selection_type} selection')
+        logger.debug(f'Control group length: {len(ctrl_group_num) if type(ctrl_group_num) is int else None}')
+        logger.debug(f'Current selection length: {len(player.current_selection)}')
+        logger.debug(f'Mask: {mask_x}, {mask_y}')
+
         if ctrl_group_num:
             selection = player.control_groups[ctrl_group_num]
         else:
             selection = player.current_selection
 
         length = len(selection)
-
         bitmask = self._create_bitmask(mask_x, mask_y, length)
-
         for i in range(length - 1, -1, -1):
             if bitmask[i] == '1':
                 if selection_type == 'new' and self._is_morph():
                     selection[i].morph_time = self.gameloop
+                logger.debug(f'Removing object {selection[i]} at position {i}')
                 del selection[i]
 
         if selection_type == 'new':
@@ -167,6 +193,8 @@ class SelectionEvent(BaseEvent):
         """
         new: Add the new units/buildings to the current selection.
         """
+        logger.debug(f'Handling None on control group {ctrl_group_num} with {selection_type} selection')
+
         if selection_type == 'new':
             selection_game_ids = self.event['m_delta']['m_addUnitTags']
             self._add_to_selection(ctrl_group_num, selection_game_ids)
@@ -210,6 +238,8 @@ class SelectionEvent(BaseEvent):
         box a new selection of 24 Zerglings, including the original 18.
         """
         event = self.event
+
+        logger.debug(f'Handling new selection on control group {ctrl_group_num}')
 
         if 'ZeroIndices' in event['m_delta']['m_removeMask']:
             self._handle_zero_indices(ctrl_group_num, selection_type='new')
@@ -261,6 +291,8 @@ class SelectionEvent(BaseEvent):
         """
         event = self.event
 
+        logger.debug(f'Handling sub selection on control group {ctrl_group_num}')
+
         if 'ZeroIndices' in event['m_delta']['m_removeMask']:
             self._handle_zero_indices(ctrl_group_num, selection_type='sub')
 
@@ -271,58 +303,67 @@ class SelectionEvent(BaseEvent):
             self._handle_mask(ctrl_group_num, selection_type='sub')
 
     def parse_event(self):
-        player = self.player
         event = self.event
+        player = self.player
+        gameloop = self.gameloop
         ctrl_group_num = None
 
-        if player:
-            # if not default player selection
-            if event['m_controlGroupId'] != 10:
-                # ctrl_group_num = event['m_controlGroupId']
-                # current_selection = self.player.control_groups[ctrl_group_num]
+        logger.debug(f'Parsing {self.event_type} at {gameloop}')
+        logger.debug(f'm_controlGroupId: {event["m_controlGroupId"]}')
 
-                # print(f'Control Group {ctrl_group_num},', round(event['_gameloop']/22.4/60.0, 1), 'min')
-                # selection = {}
-                # for obj in current_selection:
-                #     if obj.name in selection:
-                #         selection[obj.name] += 1
-                #     else:
-                #         selection[obj.name] = 1
+        if not player:
+            logger.debug('No player associated with this event')
+            return
 
-                # for name, count in selection.items():
-                #     print(name, count)
-                # print(event)
-                # print()
+        logger.debug(f'Player: {player.name} ({player.player_id})')
+
+        # if not default player selection
+        if event['m_controlGroupId'] != 10:
+            # ctrl_group_num = event['m_controlGroupId']
+            # current_selection = self.player.control_groups[ctrl_group_num]
+
+            # print(f'Control Group {ctrl_group_num},', round(event['_gameloop']/22.4/60.0, 1), 'min')
+            # selection = {}
+            # for obj in current_selection:
+            #     if obj.name in selection:
+            #         selection[obj.name] += 1
+            #     else:
+            #         selection[obj.name] = 1
+
+            # for name, count in selection.items():
+            #     print(name, count)
+            # print(event)
+            # print()
+            return
+
+        selection_game_ids = self.event['m_delta']['m_addUnitTags']
+        for obj_game_id in selection_game_ids:
+            if obj_game_id not in self.player.objects:
                 return
 
-            selection_game_ids = self.event['m_delta']['m_addUnitTags']
-            for obj_game_id in selection_game_ids:
-                if obj_game_id not in self.player.objects:
+        if event['m_delta']['m_addSubgroups']:
+            for unit in event['m_delta']['m_addSubgroups']:
+                if unit['m_unitLink'] == 125:
                     return
+            self._handle_new_selection(ctrl_group_num)
+        else:
+            self._handle_subselection(ctrl_group_num)
 
-            if event['m_delta']['m_addSubgroups']:
-                for unit in event['m_delta']['m_addSubgroups']:
-                    if unit['m_unitLink'] == 125:
-                        return
-                self._handle_new_selection(ctrl_group_num)
-            else:
-                self._handle_subselection(ctrl_group_num)
+        # if player.player_id == 1:
+        #     if ctrl_group_num:
+        #         current_selection = player.control_groups[ctrl_group_num]
+        #     else:
+        #         current_selection = player.current_selection
+        #     print(player.name)
+        #     print(f'Control Group {ctrl_group_num},', round(event['_gameloop']/22.4/60.0, 1), 'min')
+        #     selection = {}
+        #     for obj in current_selection:
+        #         if obj.name in selection:
+        #             selection[obj.name] += 1
+        #         else:
+        #             selection[obj.name] = 1
 
-            # if player.player_id == 1:
-            #     if ctrl_group_num:
-            #         current_selection = player.control_groups[ctrl_group_num]
-            #     else:
-            #         current_selection = player.current_selection
-            #     print(player.name)
-            #     print(f'Control Group {ctrl_group_num},', round(event['_gameloop']/22.4/60.0, 1), 'min')
-            #     selection = {}
-            #     for obj in current_selection:
-            #         if obj.name in selection:
-            #             selection[obj.name] += 1
-            #         else:
-            #             selection[obj.name] = 1
-
-            #     for name, count in selection.items():
-            #         print(name, count)
-            #     print(event)
-            #     print()
+        #     for name, count in selection.items():
+        #         print(name, count)
+        #     print(event)
+        #     print()

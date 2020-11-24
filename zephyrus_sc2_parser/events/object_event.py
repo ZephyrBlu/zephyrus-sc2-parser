@@ -1,7 +1,9 @@
+import copy
+import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 from zephyrus_sc2_parser.game.game_obj import GameObj
-import copy
 
+logger = logging.getLogger(__name__)
 
 class ObjectEvent(BaseEvent):
     def __init__(self, protocol, summary_stats, *args):
@@ -28,6 +30,7 @@ class ObjectEvent(BaseEvent):
 
         if player:
             if game_id in player.objects:
+                logger.debug('Found existing object')
                 return player.objects[game_id]
 
             obj_name = event['m_unitTypeName'].decode('utf-8')
@@ -37,6 +40,8 @@ class ObjectEvent(BaseEvent):
                 obj = buildings[player.race][obj_name]
             else:
                 return None
+
+            logger.debug('Creating new object')
 
             new_game_obj = GameObj(
                 obj_name,
@@ -55,7 +60,7 @@ class ObjectEvent(BaseEvent):
                 new_game_obj.cooldown = obj['cooldown']
 
             for value in obj['type']:
-                new_game_obj.type.append(value)
+                new_game_obj.obj_type.append(value)
 
                 if value == 'unit':
                     new_game_obj.supply = obj['supply']
@@ -71,51 +76,74 @@ class ObjectEvent(BaseEvent):
             return new_game_obj
 
     def _update_obj_group_info(self, obj):
+        logger.debug(f'Updating control group references in object {obj}')
         for group_num, index in obj.control_groups.items():
-            if group_num in self.player.control_groups:
-                ctrl_group = self.player.control_groups[group_num]
+            logger.debug(f'Object at position {index} in control group {group_num}')
+            if group_num not in self.player.control_groups:
+                logger.warning(f'Object contains reference to control group {group_num}, but no such group exists for player {player.name} ({player.player_id})')
+                return
 
-                # print(obj)
-                # print(group_num, index)
-                # print(ctrl_group)
-                # print(self.event)
-                # remove = ctrl_group[index]
-                # print(f'{obj.name} being updated')
-                # print(f'{remove} deleted @: {index}')
-                if len(ctrl_group) - 1 >= index:
-                    del ctrl_group[index]
+            ctrl_group = self.player.control_groups[group_num]
 
-                ctrl_group.append(obj)
-                ctrl_group.sort(key=lambda x: x.tag)
+            logger.debug(f'Control group length: {len(ctrl_group)}')
 
-                for index, obj in enumerate(ctrl_group):
-                    obj.control_groups[group_num] = index
-                # print(self.event)
-                # print()
+            # print(obj)
+            # print(group_num, index)
+            # print(ctrl_group)
+            # print(self.event)
+            # remove = ctrl_group[index]
+            # print(f'{obj.name} being updated')
+            # print(f'{remove} deleted @: {index}')
+            if len(ctrl_group) - 1 >= index:
+                logger.debug(f'Removed object {ctrl_group[index]} from control group {group_num}')
+                del ctrl_group[index]
+            else:
+                logger.warning(f'Object position ({index}) is greater outside bounds of control group ({len(ctrl_group)})')
+
+            ctrl_group.append(obj)
+            ctrl_group.sort(key=lambda x: x.tag)
+            logger.debug(f'Added object {obj} to control group {group_num}')
+
+            # re-order control group after adding new object
+            for index, obj in enumerate(ctrl_group):
+                obj.control_groups[group_num] = index
+            logger.debug('Updated control group references in objects')
+            # print(self.event)
+            # print()
 
     def parse_event(self):
         units = self.game.gamedata['units']
         buildings = self.game.gamedata['buildings']
 
-        obj = self._get_or_create_game_object()
-        player = self.player
         event = self.event
-        summary_stats = self.summary_stats
-        protocol = self.protocol
+        player = self.player
         gameloop = self.gameloop
 
+        logger.debug(f'Parsing {self.event_type} at {gameloop}')
+
+        obj = self._get_or_create_game_object()
         if not obj or not player:
+            logger.warning('Missing object or player in event')
             return None
 
-        if self.type == 'NNet.Replay.Tracker.SUnitInitEvent':
+        logger.debug(f'Player: {player.name} ({player.player_id})')
+        logger.debug(f'Object: {obj}')
+
+        summary_stats = self.summary_stats
+        protocol = self.protocol
+
+        if self.event_type == 'NNet.Replay.Tracker.SUnitInitEvent':
             obj.status = 'in_progress'
             obj.init_time = gameloop
             obj.position = {
                 'x': event['m_x'],
                 'y': event['m_y'],
             }
+            logger.debug(f'Updated object status to: {obj.status}')
+            logger.debug(f'Updated object init_time to: {obj.init_time}')
+            logger.debug(f'Updated object position to: {obj.position}')
 
-            if player.warpgate_cooldowns and 'unit' in obj.type:
+            if player.warpgate_cooldowns and 'unit' in obj.obj_type:
                 first_cooldown = player.warpgate_cooldowns[0]
                 time_past_cooldown = gameloop - (first_cooldown[0] + first_cooldown[1])
 
@@ -127,7 +155,7 @@ class ObjectEvent(BaseEvent):
                     )
 
             # only warped in units generate this event
-            if 'unit' in obj.type and obj.name != 'Archon' and obj.name != 'OracleStasisTrap':
+            if 'unit' in obj.obj_type and obj.name != 'Archon' and obj.name != 'OracleStasisTrap':
                 player.warpgate_cooldowns.append((gameloop, obj.cooldown))
                 player.warpgate_cooldowns.sort(key=lambda x: x[0] + x[1])
 
@@ -139,15 +167,20 @@ class ObjectEvent(BaseEvent):
                 while len(player.warpgate_cooldowns) > warpgate_count:
                     player.warpgate_cooldowns.pop()
 
-        elif self.type == 'NNet.Replay.Tracker.SUnitDoneEvent':
+        elif self.event_type == 'NNet.Replay.Tracker.SUnitDoneEvent':
+            obj.birth_time = gameloop
+            obj.status = 'live'
+            logger.debug(f'Updated object birth_time to: {obj.birth_time}')
+            logger.debug(f'Updated object status to: {obj.status}')
+
+        elif self.event_type == 'NNet.Replay.Tracker.SUnitBornEvent':
             obj.birth_time = gameloop
             obj.status = 'live'
 
-        elif self.type == 'NNet.Replay.Tracker.SUnitBornEvent':
-            obj.birth_time = gameloop
-            obj.status = 'live'
+            logger.debug(f'Updated object birth_time to: {obj.birth_time}')
+            logger.debug(f'Updated object status to: {obj.status}')
 
-            if 'worker' in obj.type:
+            if 'worker' in obj.obj_type:
                 summary_stats['workers_produced'][player.player_id] += 1
 
             if not obj.position:
@@ -155,10 +188,14 @@ class ObjectEvent(BaseEvent):
                     'x': event['m_x'],
                     'y': event['m_y'],
                 }
+                logger.debug(f'Updated object position to: {obj.position}')
 
-        elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
+        elif self.event_type == 'NNet.Replay.Tracker.SUnitDiedEvent':
             obj.status = 'died'
             obj.death_time = gameloop
+
+            logger.debug(f'Updated object status to: {obj.status}')
+            logger.debug(f'Updated object death_time to: {obj.death_time}')
 
             if obj.name == 'WarpGate' and player.warpgate_cooldowns:
                 player.warpgate_cooldowns.pop()
@@ -171,9 +208,11 @@ class ObjectEvent(BaseEvent):
                 for p in self.game.players.values():
                     if obj_killer_id in p.objects:
                         obj.killed_by = p.objects[obj_killer_id]
+                        logger.debug(f'Object killed by {obj.killed_by}')
 
-        elif self.type == 'NNet.Replay.Tracker.SUnitTypeChangeEvent':
+        elif self.event_type == 'NNet.Replay.Tracker.SUnitTypeChangeEvent':
             new_obj_name = event['m_unitTypeName'].decode('utf-8')
+            logger.debug(f'New object name: {new_obj_name}')
             if new_obj_name in units[player.race]:
                 new_obj_info = units[player.race][new_obj_name]
             elif new_obj_name in buildings[player.race]:
@@ -201,6 +240,8 @@ class ObjectEvent(BaseEvent):
                 obj.energy = new_obj_info['energy']
 
             # organised in alphabetically sorted order
+            # add Archons to morph units
+            # stop HTs morhping into Archons being counted as dead HTs
             morph_units = [
                 ['BanelingCocoon', 'Zergling'],
                 ['Baneling', 'BanelingCocoon'],

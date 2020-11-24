@@ -1,5 +1,7 @@
+import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 
+logger = logging.getLogger(__name__)
 
 class PlayerStatsEvent(BaseEvent):
     def __init__(self, summary_stats, *args):
@@ -7,13 +9,18 @@ class PlayerStatsEvent(BaseEvent):
         self.summary_stats = summary_stats
 
     def parse_event(self):
+        event = self.event
         player = self.player
         gameloop = self.event['_gameloop']
-        event = self.event
         summary_stats = self.summary_stats
 
+        logger.debug(f'Parsing {self.event_type} at {gameloop}')
+
         if not player:
+            logger.debug('No player associated with this event')
             return
+
+        logger.debug(f'Player: {player.name} ({player.player_id})')
 
         self.player.supply = event['m_stats']['m_scoreValueFoodUsed'] // 4096
         self.player.supply_cap = event['m_stats']['m_scoreValueFoodMade'] // 4096

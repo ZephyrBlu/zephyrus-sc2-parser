@@ -90,7 +90,7 @@ class PlayerState:
                 current_idle_larva += 1
 
             worker = False
-            for obj_type in obj.type:
+            for obj_type in obj.obj_type:
                 if obj_type == 'worker':
                     worker = True
                 elif obj_type != 'supply':
@@ -155,7 +155,7 @@ class PlayerState:
                 if 'worker' not in object_summary['unit'][obj.name]['type']:
                     object_summary['unit'][obj.name]['type'].append('worker')
 
-            elif 'unit' in obj.type:
+            elif 'unit' in obj.obj_type:
                 if obj.status == 'live':
                     object_summary['army_value']['minerals'] += obj.mineral_cost
                     object_summary['army_value']['gas'] += obj.gas_cost

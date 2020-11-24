@@ -16,6 +16,8 @@ from zephyrus_sc2_parser.utils import (
 )
 from zephyrus_sc2_parser.exceptions import ReplayDecodeError
 
+logger = logging.getLogger(__name__)
+
 # # experimental engagement simulator
 # is_engagement_simulator_installed = False
 # try:
@@ -146,16 +148,16 @@ def _setup(filename):
         # ImportError = unsupported protocol
         # KeyError = unreadable file info
         except ValueError as e:
-            logging.warning(f'Unreadable file header: {e}')
+            logger.warning(f'Unreadable file header: {e}')
         except ImportError as e:
-            logging.warning(f'Unsupported protocol: {e}')
+            logger.warning(f'Unsupported protocol: {e}')
         except KeyError as e:
-            logging.warning(f'Unreadable file info: {e}')
+            logger.warning(f'Unreadable file info: {e}')
     if error:
-        logging.critical('Replay could not be decoded')
+        logger.critical('Replay could not be decoded')
         raise ReplayDecodeError('Replay could not be decoded')
 
-    logging.info('Parsed raw replay file')
+    logger.info('Parsed raw replay file')
 
     # all info is returned as generators
     #
@@ -173,7 +175,7 @@ def _setup(filename):
 
     for event in events:
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
-            logging.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
+            logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
             game_length = event['_gameloop']
             break
     return events, player_info, detailed_info, metadata, game_length, protocol
@@ -181,9 +183,8 @@ def _setup(filename):
 
 def parse_replay(filename, *, local=False, creep=True):
     events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
-    logging.info('Parsed raw replay file')
     players = _create_players(player_info, events)
-    logging.info('Created players')
+    logger.info('Created players')
 
     if player_info['m_title'] in non_english_maps:
         game_map = non_english_maps[player_info['m_title']]
@@ -192,7 +193,7 @@ def parse_replay(filename, *, local=False, creep=True):
 
     played_at = _convert_time(player_info['m_timeUTC'])
     map_info = _get_map_info(player_info, game_map)
-    logging.info('Fetched map data')
+    logger.info('Fetched map data')
 
     current_game = Game(
         players,
@@ -204,7 +205,7 @@ def parse_replay(filename, *, local=False, creep=True):
         _import_gamedata(protocol),
     )
     summary_stats = _generate_initial_summary_stats(current_game, metadata, detailed_info, local)
-    logging.info('Completed pre-parsing setup')
+    logger.info('Completed pre-parsing setup')
 
     action_events = [
         'NNet.Game.SControlGroupUpdateEvent',
@@ -213,15 +214,15 @@ def parse_replay(filename, *, local=False, creep=True):
         'NNet.Game.SCommandManagerStateEvent',
     ]
 
-    logging.info('Iterating through game events')
+    logger.info('Iterating through game events')
 
     current_tick = 0
     for event in events:
         gameloop = event['_gameloop']
 
         if gameloop > game_length:
-            logging.info('Reached end of the game')
-            logging.debug(f'Current gameloop: {gameloop}, game length: {game_length}')
+            logger.info('Reached end of the game')
+            logger.debug(f'Current gameloop: {gameloop}, game length: {game_length}')
             break
 
         # create event object from JSON data
@@ -231,7 +232,7 @@ def parse_replay(filename, *, local=False, creep=True):
             continue
 
         result = current_event.parse_event()
-        logging.debug(f'Parsed {event["_event"]} event at {gameloop}')
+        logger.debug(f'Parsed {event["_event"]} event at {gameloop}')
         if result:
             summary_stats = result
 
@@ -255,14 +256,14 @@ def parse_replay(filename, *, local=False, creep=True):
             player1_state.summary['workers_killed'] = player2_state.summary['workers_lost']
             player2_state.summary['workers_killed'] = player1_state.summary['workers_lost']
 
-            logging.debug(f'Created new game state at {gameloop}')
+            logger.debug(f'Created new game state at {gameloop}')
 
             current_game.state.append((player1_state, player2_state))
             current_game.timeline.append({
                 1: player1_state.summary,
                 2: player2_state.summary
             })
-            logging.debug(f'Recorded new timeline state at {gameloop}')
+            logger.debug(f'Recorded new timeline state at {gameloop}')
 
             player_units = {1: [], 2: []}
             for p_id, p in players.items():
@@ -302,7 +303,7 @@ def parse_replay(filename, *, local=False, creep=True):
     #                 'gameloop': gameloop,
     #             })
 
-    logging.info('Generating game stats')
+    logger.info('Generating game stats')
     players_export = {}
     for player in players.values():
         summary_stats = player.calc_pac(summary_stats, game_length)
@@ -342,6 +343,6 @@ def parse_replay(filename, *, local=False, creep=True):
         'winner': current_game.winner
     }
 
-    logging.info('Parsing completed')
+    logger.info('Parsing completed')
 
     return players_export, current_game.timeline, [], summary_stats, metadata_export

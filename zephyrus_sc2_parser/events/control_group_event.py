@@ -1,35 +1,47 @@
-from zephyrus_sc2_parser.events.base_event import BaseEvent
 import math
+import logging
+from zephyrus_sc2_parser.events.base_event import BaseEvent
 
+logger = logging.getLogger(__name__)
 
 class ControlGroupEvent(BaseEvent):
     def __init__(self, *args):
         super().__init__(*args)
 
     def _set_obj_group_info(self, ctrl_group_num):
+        logger.debug(f'Binding control group {ctrl_group_num} to objects')
         ctrl_group = self.player.control_groups[ctrl_group_num]
 
         for index, obj in enumerate(ctrl_group):
             obj.control_groups[ctrl_group_num] = index
+            logger.debug(f'Binding control group {ctrl_group_num} to {obj} at position {index}')
 
     def _remove_obj_group_info(self, ctrl_group_num):
+        logger.debug(f'Removing control group {ctrl_group_num} from objects')
         ctrl_group = self.player.control_groups[ctrl_group_num]
 
         for index, obj in enumerate(ctrl_group):
             for group_num, group_info in obj.control_groups.items():
                 if ctrl_group_num == group_num and index == group_info:
                     del obj.control_groups[group_num]
+                    logger.debug(f'Removed control group {ctrl_group_num} from {obj} at position {index}')
                     break
 
-    def _copy_from_selection(self, target, selection):
+    def _copy_from_selection(self, selection, target):
+        logger.debug('Copying from selection to target')
+        logger.debug(f'Length before copying: selection {len(selection)}, target {len(target)}')
         for obj in selection:
             if obj not in target:
                 target.append(obj)
+        logger.debug(f'Length after copying: selection {len(selection)}, target {len(target)}')
 
     def _add_to_group(self, ctrl_group_num):
+        logger.debug(f'Adding current selection to control group {ctrl_group_num}')
         new_obj_list = self.player.current_selection
         control_group = self.player.control_groups[ctrl_group_num]
+        logger.debug(f'Control group length before adding current selection: {len(control_group)}')
 
+        # change control groups/selections to sets instead of lists?
         for new_obj in new_obj_list:
             duplicate = False
             for old_obj in control_group:
@@ -39,10 +51,11 @@ class ControlGroupEvent(BaseEvent):
 
             if not duplicate:
                 control_group.append(new_obj)
-
         control_group.sort(key=lambda x: x.tag)
+        logger.debug(f'Control group length after adding current selection: {len(control_group)}')
 
     def _create_bitmask(self, mask_x, mask_y, length):
+        logger.debug('Creating bitmask')
         # remove 0b prefix from string
         bitmask = bin(mask_y)[2:]
 
@@ -65,6 +78,7 @@ class ControlGroupEvent(BaseEvent):
             final_bitmask = final_bitmask[:length]
         else:
             final_bitmask = final_bitmask.ljust(length, '0')
+        logger.debug(f'Final bitmask: {final_bitmask}')
         return final_bitmask
 
     def _remove_from_group(self, ctrl_group_num):
@@ -75,15 +89,22 @@ class ControlGroupEvent(BaseEvent):
         """
         player = self.player
         event = self.event
+        # rename x, y. confusing
         mask_x = event['m_mask']['Mask'][0]
         mask_y = event['m_mask']['Mask'][1]
         length = len(player.control_groups[ctrl_group_num])
 
+        logger.debug(f'Removing mask selection from control group {ctrl_group_num}')
+        logger.debug(f'Mask: {mask_x}, {mask_y}')
+
         bitmask = self._create_bitmask(mask_x, mask_y, length)
+
+        logger.debug(f'Control group length before removal: {len(player.control_groups[ctrl_group_num])}')
 
         for i in range(length - 1, -1, -1):
             if bitmask[i] == '1':
                 del player.control_groups[ctrl_group_num][i]
+        logger.debug(f'Control group length after removal: {len(player.control_groups[ctrl_group_num])}')
 
     def parse_event(self):
         """
@@ -134,6 +155,10 @@ class ControlGroupEvent(BaseEvent):
         event = self.event
         ctrl_group_num = event['m_controlGroupIndex']
 
+        logger.debug(f'Parsing {self.event_type} at {self.gameloop}')
+        logger.debug(f'Player: {player.name} ({player.player_id})')
+        logger.debug(f'Control Group: {ctrl_group_num}')
+
         # if player.player_id == 1:
         #     print(player.name)
         #     selection = {}
@@ -147,12 +172,14 @@ class ControlGroupEvent(BaseEvent):
         #         print(name, count)
 
         if event['m_controlGroupUpdate'] == 0:
+            logger.debug('m_controlGroupUpdate = 0 (Binding current selection to control group)')
             player.control_groups[ctrl_group_num] = []
             control_group = player.control_groups[ctrl_group_num]
-            self._copy_from_selection(control_group, player.current_selection)
+            self._copy_from_selection(player.current_selection, control_group)
             self._set_obj_group_info(ctrl_group_num)
 
         elif event['m_controlGroupUpdate'] == 1:
+            logger.debug('m_controlGroupUpdate = 1 (Adding current selection to control group)')
             if ctrl_group_num not in player.control_groups:
                 player.control_groups[ctrl_group_num] = []
 
@@ -163,23 +190,26 @@ class ControlGroupEvent(BaseEvent):
             self._set_obj_group_info(ctrl_group_num)
 
         elif event['m_controlGroupUpdate'] == 2:
+            logger.debug('m_controlGroupUpdate = 2 (Selecting control group)')
             player.current_selection = []
 
             if ctrl_group_num in player.control_groups:
                 control_group = player.control_groups[ctrl_group_num]
             else:
                 control_group = []
-            self._copy_from_selection(player.current_selection, control_group)
+            self._copy_from_selection(control_group, player.current_selection)
 
         elif event['m_controlGroupUpdate'] == 3:
+            logger.debug('m_controlGroupUpdate = 3 (Removing control group)')
             if ctrl_group_num in player.control_groups:
                 self._remove_obj_group_info(ctrl_group_num)
                 del player.control_groups[ctrl_group_num]
 
         elif event['m_controlGroupUpdate'] == 4:
+            logger.debug('m_controlGroupUpdate = 4 (Overwriting control group)')
             player.control_groups[ctrl_group_num] = []
             control_group = player.control_groups[ctrl_group_num]
-            self._copy_from_selection(control_group, player.current_selection)
+            self._copy_from_selection(player.current_selection, control_group)
             self._set_obj_group_info(ctrl_group_num)
 
         # if player.player_id == 1:
