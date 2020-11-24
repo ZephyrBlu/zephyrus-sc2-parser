@@ -41,7 +41,8 @@ class PlayerState:
             'upgrade': [],
             'current_selection': {},
             'workers_active': 0,
-            'workers_killed': 0,
+            'workers_produced': 0,
+            'workers_lost': 0,
             'supply': self.player.supply,
             'supply_cap': self.player.supply_cap,
             'supply_block': round(self.player.supply_block / 22.4, 1),
@@ -148,7 +149,8 @@ class PlayerState:
                 if obj.status == 'live':
                     object_summary['workers_active'] += 1
                 elif obj.status == 'died':
-                    object_summary['workers_killed'] += 1
+                    object_summary['workers_lost'] += 1
+                object_summary['workers_produced'] += 1
 
                 if 'worker' not in object_summary['unit'][obj.name]['type']:
                     object_summary['unit'][obj.name]['type'].append('worker')
