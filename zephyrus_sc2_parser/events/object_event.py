@@ -123,14 +123,14 @@ class ObjectEvent(BaseEvent):
         units = self.game.gamedata['units']
         buildings = self.game.gamedata['buildings']
 
+        logger.debug(f'Parsing {self.event_type} at {self.gameloop}')
+
         # _get_or_create_game_object can alter self.player, so must be executed first
         obj = self._get_or_create_game_object()
 
         event = self.event
         player = self.player
         gameloop = self.gameloop
-
-        logger.debug(f'Parsing {self.event_type} at {gameloop}')
 
         if not player:
             logger.warning('Missing player in event')
