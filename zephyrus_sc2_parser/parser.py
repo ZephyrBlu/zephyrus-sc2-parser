@@ -377,13 +377,6 @@ def parse_replay(filename, *, local=False):
                 'idle_time': energy_idle_time,
             }
 
-        if 'warpgate_efficiency' in current_game.timeline[-1][player.player_id]['race']:
-            warpgate_efficiency = current_game.timeline[-1][player.player_id]['race']['warpgate_efficiency']
-            summary_stats['race'][player.player_id]['warpgate'] = {
-                'efficiency': warpgate_efficiency[0],
-                'idle_time': warpgate_efficiency[1],
-            }
-
         players_export[player.player_id] = player
         summary_stats['workers_killed'][opp_id] = summary_stats['workers_lost'][player.player_id]
 
