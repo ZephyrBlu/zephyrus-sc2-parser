@@ -6,9 +6,9 @@ class Player:
         self.player_id = player_id
 
         if type(name) is bytes:
-            self.name = name.decode('utf-8')
+            self.name = name.decode('utf-8').split('>')[-1]
         else:
-            self.name = name
+            self.name = name.split('>')[-1]
         if type(name) is bytes:
             self.race = race.decode('utf-8')
         else:
