@@ -78,13 +78,14 @@ class PlayerState:
             object_summary['upgrade'].append(upg)
 
         if self.player.race == 'Zerg':
-            map_creep_coverage, tumor_count = self.player.calc_creep(self.game.map)
+            map_creep_coverage, tumors_active, tumors_died = self.player.calc_creep(self.game.map)
 
             # if the creep flag is disabled calc_creep will return None, None
-            if map_creep_coverage and tumor_count:
+            if map_creep_coverage and tumors_active and tumors_died:
                 object_summary['race']['creep'] = {
                     'coverage': map_creep_coverage,
-                    'tumors': tumor_count,
+                    'tumors_active': tumors_active,
+                    'tumors_died': tumors_active,
                 }
 
         current_idle_larva = 0

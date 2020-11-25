@@ -112,6 +112,7 @@ class Player:
             self._creep_tiles = set()
 
         creep_tumor_count = 0
+        creep_tumors_died = 0
         for obj in self.objects.values():
             # odd tile objects position += 0.5. Rounded off in events
             if obj.name == 'Hatchery' or obj.name == 'Lair' or obj.name == 'Hive':
@@ -128,6 +129,8 @@ class Player:
             building_position = (obj.position['x'] + 0.5, obj.position['y'] + 0.5)
 
             if obj.status == 'died':
+                creep_tumors_died += 1
+
                 def remove_tiles(tile_range, current_position):
                     # always add midpoint in row
                     try:
@@ -239,7 +242,7 @@ class Player:
         map_tiles = map_info['width'] * map_info['height']
         creep_coverage = round(len(self._creep_tiles) / map_tiles, 3)
 
-        return (creep_coverage, len(self._creep_tiles)), creep_tumor_count
+        return (creep_coverage, len(self._creep_tiles)), creep_tumor_count, creep_tumors_died
 
     def calc_pac(self, summary_stats, game_length):
         game_length_minutes = game_length / 22.4 / 60
