@@ -158,7 +158,9 @@ class ControlGroupEvent(BaseEvent):
 
         logger.debug(f'Parsing {self.event_type} at {self.gameloop}')
         logger.debug(f'Player: {player.name} ({player.player_id})')
-        logger.debug(f'Control group: {ctrl_group_num}')
+        logger.debug(f'Control group num: {ctrl_group_num}')
+        logger.debug(f'Control group (Before): {player.control_groups[ctrl_group_num]}')
+        logger.debug(f'Current selection (Before): {player.current_selection}')
 
         # if player.player_id == 1:
         #     print(player.name)
@@ -212,6 +214,9 @@ class ControlGroupEvent(BaseEvent):
             control_group = player.control_groups[ctrl_group_num]
             self._copy_from_selection(player.current_selection, control_group)
             self._set_obj_group_info(ctrl_group_num)
+
+        logger.debug(f'Control group (After): {player.control_groups[ctrl_group_num]}')
+        logger.debug(f'Current selection (After): {player.current_selection}')
 
         # if player.player_id == 1:
         #     print(f'Control Group {ctrl_group_num},', round(event['_gameloop']/22.4/60.0, 1), 'min')

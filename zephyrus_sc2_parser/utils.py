@@ -314,6 +314,6 @@ def _create_event(game, event, protocol, summary_stats):
 
     else:
         current_event = None
-        logger.debug(f'Event of type {event["_event"]} is not supported')
+        logger.warning(f'Event of type {event["_event"]} is not supported')
 
     return current_event

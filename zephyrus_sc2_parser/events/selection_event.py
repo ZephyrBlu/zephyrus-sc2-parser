@@ -11,7 +11,6 @@ class SelectionEvent(BaseEvent):
 
     def _add_to_selection(self, ctrl_group_num, new_obj_ids):
         logger.debug('Adding new objects to current selection or control group')
-        logger.debug(f'Control group: {ctrl_group_num}')
         if ctrl_group_num:
             selection = self.player.control_groups[ctrl_group_num]
         else:
@@ -49,8 +48,6 @@ class SelectionEvent(BaseEvent):
         event = self.event
 
         logger.debug(f'Handling ZeroIndices mask on control group {ctrl_group_num} with {selection_type} selection')
-        logger.debug(f'Control group length: {len(ctrl_group_num) if type(ctrl_group_num) is int else None}')
-        logger.debug(f'Current selection length: {len(player.current_selection)}')
 
         # new selection
         if selection_type == 'new':
@@ -99,8 +96,6 @@ class SelectionEvent(BaseEvent):
         selection_indices = event['m_delta']['m_removeMask']['OneIndices']
 
         logger.debug(f'Handling OneIndices mask on control group {ctrl_group_num} with {selection_type} selection')
-        logger.debug(f'Control group length: {len(ctrl_group_num) if type(ctrl_group_num) is int else None}')
-        logger.debug(f'Current selection length: {len(player.current_selection)}')
         logger.debug(f'Selection indices {selection_indices}')
 
         if ctrl_group_num:
@@ -169,8 +164,6 @@ class SelectionEvent(BaseEvent):
         mask_y = event['m_delta']['m_removeMask']['Mask'][1]
 
         logger.debug(f'Handling Mask on control group {ctrl_group_num} with {selection_type} selection')
-        logger.debug(f'Control group length: {len(ctrl_group_num) if type(ctrl_group_num) is int else None}')
-        logger.debug(f'Current selection length: {len(player.current_selection)}')
         logger.debug(f'Mask: {mask_x}, {mask_y}')
 
         if ctrl_group_num:
@@ -307,9 +300,12 @@ class SelectionEvent(BaseEvent):
         event = self.event
         player = self.player
         gameloop = self.gameloop
+
+        # this event only concerns the player's current selection
         ctrl_group_num = None
 
         logger.debug(f'Parsing {self.event_type} at {gameloop}')
+        logger.debug(f'Control group num: {ctrl_group_num}')
         logger.debug(f'm_controlGroupId: {event["m_controlGroupId"]}')
 
         if not player:
@@ -318,7 +314,7 @@ class SelectionEvent(BaseEvent):
 
         logger.debug(f'Player: {player.name} ({player.player_id})')
 
-        # if not default player selection
+        # if not current selection control group, exit early
         if event['m_controlGroupId'] != 10:
             # ctrl_group_num = event['m_controlGroupId']
             # current_selection = self.player.control_groups[ctrl_group_num]
@@ -340,15 +336,24 @@ class SelectionEvent(BaseEvent):
         selection_game_ids = self.event['m_delta']['m_addUnitTags']
         for obj_game_id in selection_game_ids:
             if obj_game_id not in self.player.objects:
+                logging.debug(f'Object with game id {obj_game_id} not found in player objects')
                 return
+
+        logger.debug(f'Control group (Before): {player.control_groups[ctrl_group_num]}')
+        logger.debug(f'Current selection (Before): {player.current_selection}')
 
         if event['m_delta']['m_addSubgroups']:
             for unit in event['m_delta']['m_addSubgroups']:
+                # Egg. The morph from Larva -> Egg is handled elsewhere
+                # don't need to respond to this event
                 if unit['m_unitLink'] == 125:
                     return
             self._handle_new_selection(ctrl_group_num)
         else:
             self._handle_subselection(ctrl_group_num)
+
+        logger.debug(f'Control group (After): {player.control_groups[ctrl_group_num]}')
+        logger.debug(f'Current selection (After): {player.current_selection}')
 
         # if player.player_id == 1:
         #     if ctrl_group_num:
