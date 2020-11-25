@@ -339,7 +339,6 @@ class SelectionEvent(BaseEvent):
                 logging.debug(f'Object with game id {obj_game_id} not found in player objects')
                 return
 
-        logger.debug(f'Control group (Before): {player.control_groups[ctrl_group_num]}')
         logger.debug(f'Current selection (Before): {player.current_selection}')
 
         if event['m_delta']['m_addSubgroups']:
@@ -352,7 +351,6 @@ class SelectionEvent(BaseEvent):
         else:
             self._handle_subselection(ctrl_group_num)
 
-        logger.debug(f'Control group (After): {player.control_groups[ctrl_group_num]}')
         logger.debug(f'Current selection (After): {player.current_selection}')
 
         # if player.player_id == 1:

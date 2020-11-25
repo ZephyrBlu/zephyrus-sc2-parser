@@ -30,17 +30,14 @@ class ControlGroupEvent(BaseEvent):
 
     def _copy_from_selection(self, selection, target):
         logger.debug('Copying from selection to target')
-        logger.debug(f'Length before copying: selection {len(selection)}, target {len(target)}')
         for obj in selection:
             if obj not in target:
                 target.append(obj)
-        logger.debug(f'Length after copying: selection {len(selection)}, target {len(target)}')
 
     def _add_to_group(self, ctrl_group_num):
         logger.debug(f'Adding current selection to control group {ctrl_group_num}')
         new_obj_list = self.player.current_selection
         control_group = self.player.control_groups[ctrl_group_num]
-        logger.debug(f'Control group length before adding current selection: {len(control_group)}')
 
         # change control groups/selections to sets instead of lists?
         for new_obj in new_obj_list:
@@ -53,7 +50,6 @@ class ControlGroupEvent(BaseEvent):
             if not duplicate:
                 control_group.append(new_obj)
         control_group.sort(key=lambda x: x.tag)
-        logger.debug(f'Control group length after adding current selection: {len(control_group)}')
 
     def _create_bitmask(self, mask_x, mask_y, length):
         logger.debug('Creating bitmask')
@@ -100,12 +96,9 @@ class ControlGroupEvent(BaseEvent):
 
         bitmask = self._create_bitmask(mask_x, mask_y, length)
 
-        logger.debug(f'Control group length before removal: {len(player.control_groups[ctrl_group_num])}')
-
         for i in range(length - 1, -1, -1):
             if bitmask[i] == '1':
                 del player.control_groups[ctrl_group_num][i]
-        logger.debug(f'Control group length after removal: {len(player.control_groups[ctrl_group_num])}')
 
     def parse_event(self):
         """
