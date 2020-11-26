@@ -105,7 +105,7 @@ class Player:
         return prev_minute_screens
 
     def calc_creep(self, map_info):
-        if self.race != 'Zerg' or not map_info:
+        if self.race != 'Zerg' or 'dimensions' not in map_info:
             return None, None, None
 
         if not self._creep_tiles:
@@ -239,7 +239,7 @@ class Player:
                     ),
                 )
 
-        map_tiles = map_info['width'] * map_info['height']
+        map_tiles = map_info['dimensions']['width'] * map_info['dimensions']['height']
         creep_coverage = round(len(self._creep_tiles) / map_tiles, 3)
 
         return (creep_coverage, len(self._creep_tiles)), creep_tumor_count, creep_tumors_died

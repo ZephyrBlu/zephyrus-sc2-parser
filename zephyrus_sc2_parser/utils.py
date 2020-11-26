@@ -213,10 +213,11 @@ def _create_players(player_info, events):
 
 
 def _get_map_info(player_info, game_map, creep_flag=True):
-    if not creep_flag:
-        return {}
+    game_map_info = {
+        'name': game_map,
+    }
 
-    if game_map not in maps:
+    if creep_flag and game_map not in maps:
         map_bytes = player_info['m_cacheHandles'][-1]
         server = map_bytes[4:8].decode('utf8').strip('\x00 ').lower()
         file_hash = binascii.b2a_hex(map_bytes[8:]).decode('utf8')
@@ -232,7 +233,6 @@ def _get_map_info(player_info, game_map, creep_flag=True):
 
         if not map_file:
             logger.error(f'Failed to fetch {game_map} map file')
-            return {}
 
         map_archive = mpyq.MPQArchive(map_file)
         map_data = BytesIO(map_archive.read_file('MapInfo'))
@@ -253,6 +253,12 @@ def _get_map_info(player_info, game_map, creep_flag=True):
                 'height': map_height,
             },
         })
+        game_map_info.update({
+            'dimensions': {
+                'width': map_width,
+                'height': map_height,
+            },
+        })
 
         try:
             map_info_path = Path(__file__).resolve().parent / 'gamedata' / 'map_info.py'
@@ -260,12 +266,6 @@ def _get_map_info(player_info, game_map, creep_flag=True):
                 map_info.write(f'maps = {maps}')
         except OSError:
             logger.warning('Could not write map details to file')
-
-    game_map_info = {
-        'name': game_map,
-        'width': maps[game_map]['width'],
-        'height': maps[game_map]['height'],
-    }
 
     return game_map_info
 

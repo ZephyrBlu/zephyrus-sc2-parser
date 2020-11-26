@@ -311,10 +311,13 @@ def parse_replay(filename, *, local=False, creep=True):
         opp_id = 1 if player.player_id == 2 else 2
 
         if player.race == 'Zerg':
+            if creep:
+                summary_stats['race'][player.player_id]['creep'] = current_game.timeline[-1][player.player_id]['race']['creep']
+
             if 'inject_efficiency' in current_game.timeline[-1][player.player_id]['race']:
                 summary_stats['race'][player.player_id]['inject_efficiency'] = current_game.timeline[-1][player.player_id]['race']['inject_efficiency']
+
             summary_stats['race'][player.player_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
-            summary_stats['race'][player.player_id]['creep'] = current_game.timeline[-1][player.player_id]['race']['creep']
 
         if 'energy' in current_game.timeline[-1][player.player_id]['race']:
             energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']
