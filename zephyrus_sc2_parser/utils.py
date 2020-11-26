@@ -217,7 +217,10 @@ def _get_map_info(player_info, game_map, creep_flag=True):
         'name': game_map,
     }
 
-    if creep_flag and game_map not in maps:
+    if not creep_flag:
+        return game_map_info
+
+    if game_map not in maps:
         map_bytes = player_info['m_cacheHandles'][-1]
         server = map_bytes[4:8].decode('utf8').strip('\x00 ').lower()
         file_hash = binascii.b2a_hex(map_bytes[8:]).decode('utf8')
@@ -233,6 +236,7 @@ def _get_map_info(player_info, game_map, creep_flag=True):
 
         if not map_file:
             logger.error(f'Failed to fetch {game_map} map file')
+            return game_map_info
 
         map_archive = mpyq.MPQArchive(map_file)
         map_data = BytesIO(map_archive.read_file('MapInfo'))
