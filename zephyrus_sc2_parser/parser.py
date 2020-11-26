@@ -14,7 +14,7 @@ from zephyrus_sc2_parser.utils import (
     _create_players,
     _convert_time
 )
-from zephyrus_sc2_parser.exceptions import ReplayDecodeError
+from zephyrus_sc2_parser.exceptions import ReplayDecodeError, GameLengthNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +164,6 @@ def _setup(filename):
     logger.info('Parsed raw replay file')
 
     # all info is returned as generators
-    #
     # to paint the full picture of the game
     # both game and tracker events are needed
     # so they are combined then sorted in chronological order
@@ -177,11 +176,16 @@ def _setup(filename):
     #         print(event)
     #         print('\n')
 
+    game_length = None
     for event in events:
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
             logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
             game_length = event['_gameloop']
             break
+
+    if not game_length:
+        raise GameLengthNotFoundError('Could not find the length of the game')
+
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 

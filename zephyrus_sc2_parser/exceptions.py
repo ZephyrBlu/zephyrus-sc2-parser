@@ -24,3 +24,9 @@ class PlayerCountError(Exception):
     Occurs when there are not exactly 2 players in the replay
     """
     pass
+
+
+class GameLengthNotFoundError(Exception):
+    """
+    """
+    pass
