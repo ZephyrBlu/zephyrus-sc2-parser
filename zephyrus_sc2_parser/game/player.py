@@ -70,7 +70,7 @@ class Player:
     #     total_supply_provided = 0
 
     #     for obj_id, obj in self.objects.items():
-    #         if obj.status == 'live' or ('Overlord' not in obj.name and obj.status == 'in_progress' and 'unit' in obj.obj_type):
+    #         if obj.status == 'live' or ('Overlord' not in obj.name and obj.status == 'in_progress' and 'unit' in obj.type):
     #             total_supply += obj.supply
     #             total_supply_provided += obj.supply_provided
 

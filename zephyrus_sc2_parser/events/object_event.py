@@ -68,7 +68,7 @@ class ObjectEvent(BaseEvent):
             new_game_obj.cooldown = obj['cooldown']
 
         for value in obj['type']:
-            new_game_obj.obj_type.append(value)
+            new_game_obj.type.append(value)
 
             if value == 'unit':
                 new_game_obj.supply = obj['supply']
@@ -123,7 +123,7 @@ class ObjectEvent(BaseEvent):
         units = self.game.gamedata['units']
         buildings = self.game.gamedata['buildings']
 
-        logger.debug(f'Parsing {self.event_type} at {self.gameloop}')
+        logger.debug(f'Parsing {self.type} at {self.gameloop}')
 
         # _get_or_create_game_object can alter self.player, so must be executed first
         obj = self._get_or_create_game_object()
@@ -148,7 +148,7 @@ class ObjectEvent(BaseEvent):
         summary_stats = self.summary_stats
         protocol = self.protocol
 
-        if self.event_type == 'NNet.Replay.Tracker.SUnitInitEvent':
+        if self.type == 'NNet.Replay.Tracker.SUnitInitEvent':
             obj.status = 'in_progress'
             obj.init_time = gameloop
             obj.position = {
@@ -159,7 +159,7 @@ class ObjectEvent(BaseEvent):
             logger.debug(f'Updated object init_time to: {obj.init_time}')
             logger.debug(f'Updated object position to: {obj.position}')
 
-            if player.warpgate_cooldowns and 'unit' in obj.obj_type:
+            if player.warpgate_cooldowns and 'unit' in obj.type:
                 first_cooldown = player.warpgate_cooldowns[0]
                 time_past_cooldown = gameloop - (first_cooldown[0] + first_cooldown[1])
 
@@ -171,7 +171,7 @@ class ObjectEvent(BaseEvent):
                     )
 
             # only warped in units generate this event
-            if 'unit' in obj.obj_type and obj.name != 'Archon' and obj.name != 'OracleStasisTrap':
+            if 'unit' in obj.type and obj.name != 'Archon' and obj.name != 'OracleStasisTrap':
                 player.warpgate_cooldowns.append((gameloop, obj.cooldown))
                 player.warpgate_cooldowns.sort(key=lambda x: x[0] + x[1])
 
@@ -183,20 +183,20 @@ class ObjectEvent(BaseEvent):
                 while len(player.warpgate_cooldowns) > warpgate_count:
                     player.warpgate_cooldowns.pop()
 
-        elif self.event_type == 'NNet.Replay.Tracker.SUnitDoneEvent':
+        elif self.type == 'NNet.Replay.Tracker.SUnitDoneEvent':
             obj.birth_time = gameloop
             obj.status = 'live'
             logger.debug(f'Updated object birth_time to: {obj.birth_time}')
             logger.debug(f'Updated object status to: {obj.status}')
 
-        elif self.event_type == 'NNet.Replay.Tracker.SUnitBornEvent':
+        elif self.type == 'NNet.Replay.Tracker.SUnitBornEvent':
             obj.birth_time = gameloop
             obj.status = 'live'
 
             logger.debug(f'Updated object birth_time to: {obj.birth_time}')
             logger.debug(f'Updated object status to: {obj.status}')
 
-            if 'worker' in obj.obj_type:
+            if 'worker' in obj.type:
                 summary_stats['workers_produced'][player.player_id] += 1
 
             if not obj.position:
@@ -206,7 +206,7 @@ class ObjectEvent(BaseEvent):
                 }
                 logger.debug(f'Updated object position to: {obj.position}')
 
-        elif self.event_type == 'NNet.Replay.Tracker.SUnitDiedEvent':
+        elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
             obj.status = 'died'
             obj.death_time = gameloop
 
@@ -226,7 +226,7 @@ class ObjectEvent(BaseEvent):
                         obj.killed_by = p.objects[obj_killer_id]
                         logger.debug(f'Object killed by {obj.killed_by}')
 
-        elif self.event_type == 'NNet.Replay.Tracker.SUnitTypeChangeEvent':
+        elif self.type == 'NNet.Replay.Tracker.SUnitTypeChangeEvent':
             new_obj_name = event['m_unitTypeName'].decode('utf-8')
             logger.debug(f'New object name: {new_obj_name}')
             if new_obj_name in units[player.race]:

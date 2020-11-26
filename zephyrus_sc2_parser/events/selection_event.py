@@ -304,7 +304,7 @@ class SelectionEvent(BaseEvent):
         # this event only concerns the player's current selection
         ctrl_group_num = None
 
-        logger.debug(f'Parsing {self.event_type} at {gameloop}')
+        logger.debug(f'Parsing {self.type} at {gameloop}')
         logger.debug(f'Control group num: {ctrl_group_num}')
         logger.debug(f'm_controlGroupId: {event["m_controlGroupId"]}')
 

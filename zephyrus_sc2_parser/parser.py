@@ -244,7 +244,7 @@ def parse_replay(filename, *, local=False, creep=True):
         if result:
             summary_stats = result
 
-        if current_event.event_type in action_events and current_event.player and current_event.player.current_pac:
+        if current_event.type in action_events and current_event.player and current_event.player.current_pac:
             current_event.player.current_pac.actions.append(gameloop)
 
         # every 5sec + at end of the game, record the game state

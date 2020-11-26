@@ -7,7 +7,7 @@ class BaseEvent:
     def __init__(self, game, event):
         self.game = game
         self.event = event
-        self.event_type = event['_event']
+        self.type = event['_event']
         self.player = self._identify_player(game, event)
         self.gameloop = event['_gameloop']
 

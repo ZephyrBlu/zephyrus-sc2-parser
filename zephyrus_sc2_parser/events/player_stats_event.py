@@ -16,7 +16,7 @@ class PlayerStatsEvent(BaseEvent):
         game = self.game
         summary_stats = self.summary_stats
 
-        logger.debug(f'Parsing {self.event_type} at {gameloop}')
+        logger.debug(f'Parsing {self.type} at {gameloop}')
 
         if not player:
             logger.debug('No player associated with this event')

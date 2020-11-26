@@ -36,7 +36,7 @@ class AbilityEvent(BaseEvent):
         summary_stats = self.summary_stats
         abilities = self.game.gamedata['abilities']
 
-        logger.debug(f'Parsing {self.event_type} at {gameloop}')
+        logger.debug(f'Parsing {self.type} at {gameloop}')
 
         if not player:
             logger.debug('No player associated with this event')
@@ -53,7 +53,7 @@ class AbilityEvent(BaseEvent):
             'ScannerSweep': 'OrbitalCommand',
         }
 
-        if self.event_type == 'NNet.Game.SCmdEvent':
+        if self.type == 'NNet.Game.SCmdEvent':
             if event['m_abil'] and event['m_abil']['m_abilLink'] and event['m_abil']['m_abilLink'] in abilities and type(event['m_abil']['m_abilCmdIndex']) is int:
                 obj = self._get_target_object()
                 queued = False

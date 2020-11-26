@@ -14,7 +14,7 @@ class CameraUpdateEvent(BaseEvent):
         player = self.player
         gameloop = self.gameloop
 
-        logger.debug(f'Parsing {self.event_type} at {gameloop}')
+        logger.debug(f'Parsing {self.type} at {gameloop}')
 
         if not self.event['m_target']:
             return

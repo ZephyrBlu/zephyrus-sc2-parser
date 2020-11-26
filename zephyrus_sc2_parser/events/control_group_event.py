@@ -149,7 +149,7 @@ class ControlGroupEvent(BaseEvent):
         event = self.event
         ctrl_group_num = event['m_controlGroupIndex']
 
-        logger.debug(f'Parsing {self.event_type} at {self.gameloop}')
+        logger.debug(f'Parsing {self.type} at {self.gameloop}')
         logger.debug(f'Player: {player.name} ({player.player_id})')
         logger.debug(f'Control group num: {ctrl_group_num}')
 

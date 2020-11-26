@@ -4,7 +4,7 @@ import math
 class GameObj:
     def __init__(self, name, obj_id, game_id, tag, priority, mineral_cost, gas_cost):
         self.name = name
-        self.obj_type = []
+        self.type = []
         self.obj_id = obj_id
         self.game_id = game_id
         self.tag = tag
@@ -71,7 +71,7 @@ class GameObj:
                 continue
 
             # only want to measure efficiency of command structures
-            if 'building' in self.obj_type:
+            if 'building' in self.type:
                 min_usable_energy_gameloop = energy_maxout(current_gameloop, current_energy, 50)
                 if ability_gameloop >= min_usable_energy_gameloop:
                     if min_usable_energy_gameloop <= current_gameloop:
@@ -86,7 +86,7 @@ class GameObj:
             current_gameloop = ability_gameloop
             current_energy -= ability['energy_cost']
 
-        if 'building' in self.obj_type:
+        if 'building' in self.type:
             min_usable_energy_gameloop = energy_maxout(current_gameloop, current_energy, 50)
             if min_usable_energy_gameloop <= gameloop:
                 if min_usable_energy_gameloop < current_gameloop:
