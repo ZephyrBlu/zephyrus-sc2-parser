@@ -106,7 +106,7 @@ class Player:
 
     def calc_creep(self, map_info):
         if self.race != 'Zerg' or not map_info:
-            return None, None
+            return None, None, None
 
         if not self._creep_tiles:
             self._creep_tiles = set()
@@ -122,6 +122,8 @@ class Player:
 
                 if obj.status == 'live':
                     creep_tumor_count += 1
+                elif obj.status == 'died':
+                    creep_tumors_died += 1
             else:
                 continue
 
@@ -129,8 +131,6 @@ class Player:
             building_position = (obj.position['x'] + 0.5, obj.position['y'] + 0.5)
 
             if obj.status == 'died':
-                creep_tumors_died += 1
-
                 def remove_tiles(tile_range, current_position):
                     # always add midpoint in row
                     try:
