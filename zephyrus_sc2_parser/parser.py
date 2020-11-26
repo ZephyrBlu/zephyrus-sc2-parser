@@ -137,6 +137,9 @@ def _setup(filename):
             metadata = json.loads(archive.read_file('replay.gamemetadata.json'))
 
             # translating data into dict format info
+            # look into using detailed_info['m_syncLobbyState']['m_userInitialData']
+            # instead of player_info for player names, clan tags, etc
+            # maybe metadata['IsNotAvailable'] is useful for something?
             game_events = protocol.decode_replay_game_events(game_info)
             player_info = protocol.decode_replay_details(details)
             tracker_events = protocol.decode_replay_tracker_events(contents)
@@ -317,7 +320,10 @@ def parse_replay(filename, *, local=False, creep=True):
             if 'inject_efficiency' in current_game.timeline[-1][player.player_id]['race']:
                 summary_stats['race'][player.player_id]['inject_efficiency'] = current_game.timeline[-1][player.player_id]['race']['inject_efficiency']
 
-            summary_stats['race'][player.player_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
+            if len(player.idle_larva) == 0:
+                summary_stats['race'][player.player_id]['avg_idle_larva'] = 0
+            else:
+                summary_stats['race'][player.player_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
 
         if 'energy' in current_game.timeline[-1][player.player_id]['race']:
             energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']

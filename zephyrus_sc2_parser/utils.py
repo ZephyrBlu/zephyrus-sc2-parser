@@ -257,12 +257,6 @@ def _get_map_info(player_info, game_map, creep_flag=True):
                 'height': map_height,
             },
         })
-        game_map_info.update({
-            'dimensions': {
-                'width': map_width,
-                'height': map_height,
-            },
-        })
 
         try:
             map_info_path = Path(__file__).resolve().parent / 'gamedata' / 'map_info.py'
@@ -271,6 +265,12 @@ def _get_map_info(player_info, game_map, creep_flag=True):
         except OSError:
             logger.warning('Could not write map details to file')
 
+    game_map_info.update({
+        'dimensions': {
+            'width': maps[game_map]['width'],
+            'height': maps[game_map]['height'],
+        },
+    })
     return game_map_info
 
 
