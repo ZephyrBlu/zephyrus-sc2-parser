@@ -140,6 +140,7 @@ def _setup(filename):
             # look into using detailed_info['m_syncLobbyState']['m_userInitialData']
             # instead of player_info for player names, clan tags, etc
             # maybe metadata['IsNotAvailable'] is useful for something?
+            # metadata['duration'] could be replacement for game length?
             game_events = protocol.decode_replay_game_events(game_info)
             player_info = protocol.decode_replay_details(details)
             tracker_events = protocol.decode_replay_tracker_events(contents)

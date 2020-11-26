@@ -12,7 +12,8 @@ class PlayerStatsEvent(BaseEvent):
     def parse_event(self):
         event = self.event
         player = self.player
-        gameloop = self.event['_gameloop']
+        gameloop = self.gameloop
+        game = self.game
         summary_stats = self.summary_stats
 
         logger.debug(f'Parsing {self.event_type} at {gameloop}')
@@ -23,14 +24,14 @@ class PlayerStatsEvent(BaseEvent):
 
         logger.debug(f'Player: {player.name} ({player.player_id})')
 
-        self.player.supply = event['m_stats']['m_scoreValueFoodUsed'] // 4096
-        self.player.supply_cap = event['m_stats']['m_scoreValueFoodMade'] // 4096
+        player.supply = event['m_stats']['m_scoreValueFoodUsed'] // 4096
+        player.supply_cap = event['m_stats']['m_scoreValueFoodMade'] // 4096
 
-        if gameloop != self.game.game_length:
-            if self.player.supply >= self.player.supply_cap:
-                self.player.supply_block += 112
+        if gameloop != game.game_length:
+            if player.supply >= player.supply_cap:
+                player.supply_block += 112
 
-        self.player.resources_collected['minerals'] = (
+        player.resources_collected['minerals'] = (
             event['m_stats']['m_scoreValueMineralsCurrent'] +
             event['m_stats']['m_scoreValueMineralsUsedInProgressArmy'] +
             event['m_stats']['m_scoreValueMineralsUsedInProgressEconomy'] +
@@ -43,7 +44,7 @@ class PlayerStatsEvent(BaseEvent):
             event['m_stats']['m_scoreValueMineralsLostTechnology']
         )
 
-        self.player.resources_collected['gas'] = (
+        player.resources_collected['gas'] = (
             event['m_stats']['m_scoreValueVespeneCurrent'] +
             event['m_stats']['m_scoreValueVespeneUsedInProgressArmy'] +
             event['m_stats']['m_scoreValueVespeneUsedInProgressEconomy'] +
@@ -56,8 +57,8 @@ class PlayerStatsEvent(BaseEvent):
             event['m_stats']['m_scoreValueVespeneLostTechnology']
         )
 
-        unspent_resources = self.player.unspent_resources
-        collection_rate = self.player.collection_rate
+        unspent_resources = player.unspent_resources
+        collection_rate = player.collection_rate
 
         if gameloop != 1:
             unspent_resources['minerals'].append(
@@ -74,7 +75,7 @@ class PlayerStatsEvent(BaseEvent):
                 event['m_stats']['m_scoreValueVespeneCollectionRate']
             )
 
-        if gameloop == self.game.game_length:
+        if gameloop == game.game_length:
             summary_stats['supply_block'][player.player_id] = round(self.player.supply_block / 22.4, 1)
 
             summary_stats['resources_lost']['minerals'][player.player_id] = event['m_stats']['m_scoreValueMineralsLostArmy']
@@ -83,27 +84,59 @@ class PlayerStatsEvent(BaseEvent):
             summary_stats['resources_collected']['minerals'][player.player_id] = self.player.resources_collected['minerals']
             summary_stats['resources_collected']['gas'][player.player_id] = self.player.resources_collected['gas']
 
+            # ----- unspent resources -----
+
             player_minerals = unspent_resources['minerals']
             player_gas = unspent_resources['gas']
-            summary_stats['avg_unspent_resources']['minerals'][player.player_id] = round(
-                sum(player_minerals)/len(player_minerals), 1
-            )
-            summary_stats['avg_unspent_resources']['gas'][player.player_id] = round(
-                sum(player_gas)/len(player_gas), 1
-            )
+
+            if len(player_minerals) == 0:
+                summary_stats['avg_unspent_resources']['minerals'][player.player_id] = 0
+            else:
+                summary_stats['avg_unspent_resources']['minerals'][player.player_id] = round(
+                    sum(player_minerals) / len(player_minerals), 1
+                )
+
+            if len(player_gas) == 0:
+                summary_stats['avg_unspent_resources']['gas'][player.player_id] = 0
+            else:
+                summary_stats['avg_unspent_resources']['gas'][player.player_id] = round(
+                    sum(player_gas) / len(player_gas), 1
+                )
+
+            # ----- collection rates -----
 
             player_minerals_collection = collection_rate['minerals']
             player_gas_collection = collection_rate['gas']
-            summary_stats['avg_resource_collection_rate']['minerals'][player.player_id] = round(
-                sum(player_minerals_collection)/len(player_minerals_collection), 1
+
+            if len(player_minerals_collection) == 0:
+                summary_stats['avg_resource_collection_rate']['minerals'][player.player_id] = 0
+            else:
+                summary_stats['avg_resource_collection_rate']['minerals'][player.player_id] = round(
+                    sum(player_minerals_collection) / len(player_minerals_collection), 1
+                )
+
+            if len(player_gas_collection) == 0:
+                summary_stats['avg_resource_collection_rate']['gas'][player.player_id] = 0
+            else:
+                summary_stats['avg_resource_collection_rate']['gas'][player.player_id] = round(
+                    sum(player_gas_collection) / len(player_gas_collection), 1
+                )
+
+            total_collection_rate = (
+                summary_stats['avg_resource_collection_rate']['minerals'][player.player_id]
+                + summary_stats['avg_resource_collection_rate']['gas'][player.player_id]
             )
-            summary_stats['avg_resource_collection_rate']['gas'][player.player_id] = round(
-                sum(player_gas_collection)/len(player_gas_collection), 1
+            total_avg_unspent = (
+                summary_stats['avg_unspent_resources']['minerals'][player.player_id]
+                + summary_stats['avg_unspent_resources']['gas'][player.player_id]
             )
 
-            total_collection_rate = summary_stats['avg_resource_collection_rate']['minerals'][player.player_id] + summary_stats['avg_resource_collection_rate']['gas'][player.player_id]
-            total_avg_unspent = summary_stats['avg_unspent_resources']['minerals'][player.player_id] + summary_stats['avg_unspent_resources']['gas'][player.player_id]
-            player_sq = player.calc_sq(unspent_resources=total_avg_unspent, collection_rate=total_collection_rate)
+            # ----- other stats -----
+
+            player_sq = player.calc_sq(
+                unspent_resources=total_avg_unspent,
+                collection_rate=total_collection_rate,
+            )
             summary_stats['sq'][player.player_id] = player_sq
 
             current_workers = event['m_stats']['m_scoreValueWorkersActiveCount']

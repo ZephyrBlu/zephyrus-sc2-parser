@@ -241,7 +241,6 @@ class Player:
 
         map_tiles = map_info['dimensions']['width'] * map_info['dimensions']['height']
         creep_coverage = round(len(self._creep_tiles) / map_tiles, 3)
-
         return (creep_coverage, len(self._creep_tiles)), creep_tumor_count, creep_tumors_died
 
     def calc_pac(self, summary_stats, game_length):

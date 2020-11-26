@@ -5,6 +5,7 @@ __pycache__/
 dist/
 build/
 army_replays/
+failed_replays/
 *.egg-info/
 *.coverage
 *.SC2Replay
@@ -12,3 +13,4 @@ army_replays/
 *.log
 ex.py
 test.py
+failed.py
