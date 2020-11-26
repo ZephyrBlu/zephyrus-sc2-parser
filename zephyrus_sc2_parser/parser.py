@@ -312,6 +312,14 @@ def parse_replay(filename, *, local=False, creep=True):
     for player in players.values():
         summary_stats = player.calc_pac(summary_stats, game_length)
         summary_stats['spm'][player.player_id] = player.calc_spm(current_game.game_length)
+
+        collection_rate_totals = list(map(
+            lambda x: x[0] + x[1],
+            zip(player.collection_rate['minerals'], player.collection_rate['gas']),
+        ))
+        if collection_rate_totals:
+            summary_stats['max_collection_rate'][player.player_id] = max(collection_rate_totals)
+
         opp_id = 1 if player.player_id == 2 else 2
 
         if player.race == 'Zerg':

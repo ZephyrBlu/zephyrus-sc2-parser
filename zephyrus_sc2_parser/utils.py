@@ -73,6 +73,7 @@ def _generate_initial_summary_stats(game, metadata, detailed_info, local=False):
             'minerals': {1: 0, 2: 0},
             'gas': {1: 0, 2: 0}
         },
+        'max_collection_rate': {1: 0, 2: 0},
         'avg_unspent_resources': {
             'minerals': {1: 0, 2: 0},
             'gas': {1: 0, 2: 0}
