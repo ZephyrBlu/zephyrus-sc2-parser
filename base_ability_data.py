@@ -104,6 +104,9 @@ abilities = {
     'AdeptPhaseShiftCancel': {},
     'AdeptShadePhaseShiftCancel': {},
     'DarkTemplarBlink': {},
+    'BatteryOvercharge': {
+        'energy_cost': 50,
+    },
     'VoidRaySwarmDamageBoostCancel': {},
     'DarkShrineResearch': {},
     'ObserverSiegeMorphtoObserver': {},
