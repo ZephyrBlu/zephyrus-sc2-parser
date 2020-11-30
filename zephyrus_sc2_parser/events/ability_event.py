@@ -5,9 +5,8 @@ logger = logging.getLogger(__name__)
 
 
 class AbilityEvent(BaseEvent):
-    def __init__(self, summary_stats, *args):
+    def __init__(self, *args):
         super().__init__(*args)
-        self.summary_stats = summary_stats
 
     def _get_target_object(self):
         event = self.event
@@ -33,7 +32,6 @@ class AbilityEvent(BaseEvent):
         event = self.event
         player = self.player
         gameloop = self.gameloop
-        summary_stats = self.summary_stats
         abilities = self.game.gamedata['abilities']
 
         logger.debug(f'Parsing {self.type} at {gameloop}')
@@ -124,5 +122,3 @@ class AbilityEvent(BaseEvent):
                     if ability_buildings and player.active_ability[2]:
                         ability_obj = min(ability_buildings, key=lambda x: x.calc_distance(player.active_ability[2]))
                         ability_obj.abilities_used.append((player.active_ability[0], player.active_ability[1], gameloop))
-
-        return summary_stats

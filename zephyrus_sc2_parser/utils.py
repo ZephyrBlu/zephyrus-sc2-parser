@@ -294,7 +294,7 @@ def _create_event(game, event, protocol, summary_stats):
         logger.debug(f'Created new ObjectEvent at {event["_gameloop"]}')
 
     elif event['_event'] in ability_events:
-        current_event = AbilityEvent(summary_stats, game, event)
+        current_event = AbilityEvent(game, event)
         logger.debug(f'Created new AbilityEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Game.SSelectionDeltaEvent':

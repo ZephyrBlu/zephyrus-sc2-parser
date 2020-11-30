@@ -171,11 +171,6 @@ def _setup(filename):
     events = heapq.merge(game_events, tracker_events, key=lambda x: x['_gameloop'])
     events = sorted(events, key=lambda x: x['_gameloop'])
 
-    # for event in events:
-    #     if event['_event'] == 'NNet.Replay.Tracker.SUpgradeEvent':  # == 'NNet.Replay.Tracker.SUnitPositionsEvent':
-    #         print(event)
-    #         print('\n')
-
     game_length = None
     for event in events:
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
@@ -183,6 +178,7 @@ def _setup(filename):
             game_length = event['_gameloop']
             break
 
+    # don't know why some replays don't have an end event, they just end abruptly
     if not game_length:
         raise GameLengthNotFoundError('Could not find the length of the game')
 
@@ -273,13 +269,13 @@ def parse_replay(filename, *, local=False, creep=True):
             })
             logger.debug(f'Recorded new timeline state at {gameloop}')
 
-            player_units = {1: [], 2: []}
-            for p_id, p in players.items():
-                for obj in p.objects.values():
-                    if obj.status == 'live':
-                        player_units[p_id].append(obj.name)
-
             # # experimental engagement simulation
+            # player_units = {1: [], 2: []}
+            # for p_id, p in players.items():
+            #     for obj in p.objects.values():
+            #         if obj.status == 'live':
+            #             player_units[p_id].append(obj.name)
+
             # current_game.engagements.append((
             #     player_units[1],
             #     player_units[2],
