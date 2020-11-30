@@ -81,6 +81,7 @@ class PlayerState:
             map_creep_coverage, tumors_active, tumors_died = self.player.calc_creep(self.game.map)
 
             # if the creep flag is disabled calc_creep will return None, None
+            # need to check for int as 0 is falsy
             if map_creep_coverage and type(tumors_active) == int and type(tumors_died) == int:
                 object_summary['race']['creep'] = {
                     'coverage': map_creep_coverage,

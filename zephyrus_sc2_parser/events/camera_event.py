@@ -5,7 +5,7 @@ from zephyrus_sc2_parser.game.perception_action_cycle import PerceptionActionCyc
 logger = logging.getLogger(__name__)
 
 
-class CameraUpdateEvent(BaseEvent):
+class CameraEvent(BaseEvent):
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -16,12 +16,9 @@ class CameraUpdateEvent(BaseEvent):
 
         logger.debug(f'Parsing {self.type} at {gameloop}')
 
-        if not self.event['m_target']:
+        if not player or not self.event['m_target']:
             return
         position = (event['m_target']['x'] / 256, event['m_target']['y'] / 256)
-
-        if not player:
-            return
 
         if not player.prev_screen_position:
             player.prev_screen_position = position
@@ -37,11 +34,11 @@ class CameraUpdateEvent(BaseEvent):
 
         if player.current_pac:
             current_pac = player.current_pac
-            # If current PAC is still within camera bounds, count action
+            # if current PAC is still within camera bounds, count action
             if current_pac.check_position(position):
                 current_pac.camera_moves.append((gameloop, position))
 
-            # If current PAC is out of camera bounds
+            # if current PAC is out of camera bounds
             # and meets min duration, save it
             elif current_pac.check_duration(gameloop):
                 current_pac.final_camera_position = position
@@ -52,7 +49,7 @@ class CameraUpdateEvent(BaseEvent):
                 player.current_pac = PerceptionActionCycle(position, gameloop)
                 player.current_pac.camera_moves.append((gameloop, position))
 
-            # If current PAC is out of camera bounds
+            # if current PAC is out of camera bounds
             # and does not meet min duration,
             # discard current PAC and create new one
             else:

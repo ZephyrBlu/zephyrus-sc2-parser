@@ -13,7 +13,7 @@ from zephyrus_sc2_parser.events import (
     SelectionEvent,
     ControlGroupEvent,
     UpgradeEvent,
-    CameraUpdateEvent,
+    CameraEvent,
     PlayerStatsEvent,
 )
 from zephyrus_sc2_parser.game.player import Player
@@ -319,8 +319,8 @@ def _create_event(game, event, protocol, summary_stats):
         logger.debug(f'Created new UpgradeEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Game.SCameraUpdateEvent':
-        current_event = CameraUpdateEvent(game, event)
-        logger.debug(f'Created new CameraUpdateEvent at {event["_gameloop"]}')
+        current_event = CameraEvent(game, event)
+        logger.debug(f'Created new CameraEvent at {event["_gameloop"]}')
 
     elif event['_event'] == 'NNet.Replay.Tracker.SPlayerStatsEvent':
         current_event = PlayerStatsEvent(summary_stats, game, event)
