@@ -185,9 +185,9 @@ def _setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename, *, local=False, creep=True):
+def parse_replay(filename, *, local=False, creep=True, _test=False):
     events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
-    players = _create_players(player_info, events)
+    players = _create_players(player_info, events, _test)
     logger.info('Created players')
 
     if player_info['m_title'] in non_english_maps:
@@ -224,49 +224,46 @@ def parse_replay(filename, *, local=False, creep=True):
     for event in events:
         gameloop = event['_gameloop']
 
-        if gameloop > game_length:
-            logger.info('Reached end of the game')
-            logger.debug(f'Current gameloop: {gameloop}, game length: {game_length}')
-            break
-
         # create event object from JSON data
         # if the event isn't supported, continue iterating
         current_event = _create_event(current_game, event, protocol, summary_stats)
-        if not current_event:
-            continue
+        if current_event:
+            result = current_event.parse_event()
+            logger.debug(f'Finished parsing event')
+            if result:
+                summary_stats = result
 
-        result = current_event.parse_event()
-        logger.debug(f'Finished parsing event')
-        if result:
-            summary_stats = result
-
-        if current_event.type in action_events and current_event.player and current_event.player.current_pac:
-            current_event.player.current_pac.actions.append(gameloop)
+            if (
+                current_event.type in action_events
+                and current_event.player
+                and current_event.player.current_pac
+            ):
+                current_event.player.current_pac.actions.append(gameloop)
 
         # every 5sec + at end of the game, record the game state
         if gameloop >= current_tick or gameloop == game_length:
-            player1_state = PlayerState(
-                current_game,
-                players[1],
-                gameloop,
-            )
+            current_player_states = []
+            for player in players.values():
+                player_state = PlayerState(
+                    current_game,
+                    player,
+                    gameloop,
+                )
+                current_player_states.append(player_state)
 
-            player2_state = PlayerState(
-                current_game,
-                players[2],
-                gameloop,
-            )
+            # if only 2 players, we can use workers_lost of the opposite players to get workers_killed
+            if len(current_player_states) == 2:
+                current_player_states[1].summary['workers_killed'] = current_player_states[2].summary['workers_lost']
+                current_player_states[2].summary['workers_killed'] = current_player_states[1].summary['workers_lost']
 
-            player1_state.summary['workers_killed'] = player2_state.summary['workers_lost']
-            player2_state.summary['workers_killed'] = player1_state.summary['workers_lost']
+            current_timeline_state = {}
+            for state in current_player_states:
+                current_timeline_state[state.player.player_id] = state.summary
 
             logger.debug(f'Created new game state at {gameloop}')
 
-            current_game.state.append((player1_state, player2_state))
-            current_game.timeline.append({
-                1: player1_state.summary,
-                2: player2_state.summary
-            })
+            current_game.state.append((*current_player_states))
+            current_game.timeline.append(current_timeline_state)
             logger.debug(f'Recorded new timeline state at {gameloop}')
 
             # # experimental engagement simulation
@@ -286,6 +283,12 @@ def parse_replay(filename, *, local=False, creep=True):
 
             # 112 = 5sec of game time
             current_tick += 112
+
+        # this condition is last to allow game/timeline state to be recorded at the end of the game
+        if gameloop == game_length:
+            logger.info('Reached end of the game')
+            logger.debug(f'Current gameloop: {gameloop}, game length: {game_length}')
+            break
 
     # # experimental engagement simulation
     # engagement_analysis = []
@@ -357,7 +360,7 @@ def parse_replay(filename, *, local=False, creep=True):
     metadata_export = {
         'time_played_at': current_game.played_at,
         'map': current_game.map['name'],
-        'game_length': math.floor(current_game.game_length/22.4),
+        'game_length': math.floor(current_game.game_length / 22.4),
         'winner': current_game.winner
     }
 

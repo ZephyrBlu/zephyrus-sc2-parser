@@ -186,6 +186,7 @@ class ObjectEvent(BaseEvent):
         elif self.type == 'NNet.Replay.Tracker.SUnitDoneEvent':
             obj.birth_time = gameloop
             obj.status = 'live'
+
             logger.debug(f'Updated object birth_time to: {obj.birth_time}')
             logger.debug(f'Updated object status to: {obj.status}')
 
@@ -256,8 +257,6 @@ class ObjectEvent(BaseEvent):
                 obj.energy = new_obj_info['energy']
 
             # organised in alphabetically sorted order
-            # add Archons to morph units
-            # stop HTs morhping into Archons being counted as dead HTs
             morph_units = [
                 ['BanelingCocoon', 'Zergling'],
                 ['Baneling', 'BanelingCocoon'],

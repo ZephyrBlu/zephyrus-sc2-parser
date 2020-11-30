@@ -123,7 +123,7 @@ def _generate_initial_summary_stats(game, metadata, detailed_info, local=False):
     return summary_stats
 
 
-def _create_players(player_info, events):
+def _create_players(player_info, events, test_flag):
     # get player name and race
     # workingSetSlotId correlates to playerIDs
     players = []
@@ -166,6 +166,15 @@ def _create_players(player_info, events):
 
     # if only one player then playerID is always 0
     if len(players) != 2:
+        if test_flag and len(players) == 1:
+            player_obj = players[0]
+            player_obj.player_id = events[setup_index]['m_playerId']
+            player_obj.user_id = events[setup_index]['m_userId']
+
+            return {
+                1: player_obj,
+            }
+
         logger.warning('Replay does not contain exactly 2 players')
         # player_obj = min(players, key=lambda x: x.player_id)
         # player_obj.player_id = events[setup_index]['m_playerId']
