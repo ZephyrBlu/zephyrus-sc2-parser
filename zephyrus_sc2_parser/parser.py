@@ -242,14 +242,14 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
 
         # every 5sec + at end of the game, record the game state
         if gameloop >= current_tick or gameloop == game_length:
-            current_player_states = []
+            current_player_states = {}
             for player in players.values():
                 player_state = PlayerState(
                     current_game,
                     player,
                     gameloop,
                 )
-                current_player_states.append(player_state)
+                current_player_states[player.player_id] = player_state
 
             # if only 2 players, we can use workers_lost of the opposite players to get workers_killed
             if len(current_player_states) == 2:
@@ -257,12 +257,12 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
                 current_player_states[2].summary['workers_killed'] = current_player_states[1].summary['workers_lost']
 
             current_timeline_state = {}
-            for state in current_player_states:
+            for state in current_player_states.values():
                 current_timeline_state[state.player.player_id] = state.summary
 
             logger.debug(f'Created new game state at {gameloop}')
 
-            current_game.state.append((*current_player_states))
+            current_game.state.append(tuple(current_player_states))
             current_game.timeline.append(current_timeline_state)
             logger.debug(f'Recorded new timeline state at {gameloop}')
 
