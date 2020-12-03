@@ -223,13 +223,33 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
         current_event = _create_event(current_game, event, protocol, summary_stats)
         if current_event:
             # parse_event extracts and processes event data to update Player/GameObj objects
-            # if summary_stats are modified they are returned from parse_event
-            # this only occurs for ObjectEvents and PlayerStatsEvents
+            # if summary_stats are modified they are returned from parse_event. This only occurs for ObjectEvents and PlayerStatsEvents
             result = current_event.parse_event()
             logger.debug(f'Finished parsing event')
 
             if result:
                 summary_stats = result
+
+            if current_event.player and current_event.player.current_selection:
+                player = current_event.player
+
+                # empty list of selections i.e. first selection
+                if not player.selections:
+                    player.selections.append({
+                        'selection': player.current_selection,
+                        'start': gameloop,
+                        'end': None,
+                    })
+
+                # if the player's current selection has changed
+                # update it and add the new selection
+                elif player.current_selection != player.selections[-1]:
+                    player.selections[-1]['end'] = gameloop
+                    player.selections.append({
+                        'selection': player.current_selection,
+                        'start': gameloop,
+                        'end': None,
+                    })
 
             if (
                 current_event.type in action_events
