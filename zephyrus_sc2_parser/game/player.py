@@ -1,4 +1,5 @@
 import math
+from zephyrus_sc2_parser.constants import obj_status
 
 
 class Player:
@@ -121,9 +122,9 @@ class Player:
             elif obj.name == 'CreepTumorBurrowed':
                 creep_radius = 10
 
-                if obj.status == 'live':
+                if obj.status == obj_status.LIVE:
                     creep_tumor_count += 1
-                elif obj.status == 'died':
+                elif obj.status == obj_status.DIED:
                     creep_tumors_died += 1
             else:
                 continue
@@ -131,7 +132,7 @@ class Player:
             # add 0.5 to get center of central tile
             building_position = (obj.position.x + 0.5, obj.position.y + 0.5)
 
-            if obj.status == 'died':
+            if obj.status == obj_status.DIED:
                 def remove_tiles(tile_range, current_position):
                     # always add midpoint in row
                     try:
@@ -194,7 +195,7 @@ class Player:
                     )
                 continue
 
-            elif obj.status != 'live':
+            elif obj.status != obj_status.LIVE:
                 continue
 
             def add_tiles(tile_range, current_position):

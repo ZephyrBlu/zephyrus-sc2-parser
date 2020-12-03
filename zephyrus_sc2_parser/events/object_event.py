@@ -3,6 +3,7 @@ import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 from zephyrus_sc2_parser.game import GameObj
 from zephyrus_sc2_parser.dataclasses import Position
+from zephyrus_sc2_parser.constants import obj_status, obj_type
 
 logger = logging.getLogger(__name__)
 
@@ -69,13 +70,14 @@ class ObjectEvent(BaseEvent):
             new_game_obj.cooldown = obj['cooldown']
 
         for value in obj['type']:
-            new_game_obj.type.append(value)
+            # convert to uppercase for comparisons
+            new_game_obj.type.append(value.upper())
 
-            if value == 'unit':
+            if value == obj_type.UNIT:
                 new_game_obj.supply = obj['supply']
-            elif value == 'building':
+            elif value == obj_type.BUILDING:
                 new_game_obj.queue = []
-            elif value == 'supply':
+            elif value == obj_type.SUPPLY:
                 if obj_name == 'Overlord' or 'Overseer':
                     new_game_obj.supply_provided = 8
                 else:
@@ -141,7 +143,7 @@ class ObjectEvent(BaseEvent):
         protocol = self.protocol
 
         if self.type == 'NNet.Replay.Tracker.SUnitInitEvent':
-            obj.status = 'in_progress'
+            obj.status = obj_status.IN_PROGRESS
             obj.init_time = gameloop
             obj.position = Position(
                 event['m_x'],
@@ -151,7 +153,7 @@ class ObjectEvent(BaseEvent):
             logger.debug(f'Updated object init_time to: {obj.init_time}')
             logger.debug(f'Updated object position to: {obj.position}')
 
-            if player.warpgate_cooldowns and 'unit' in obj.type:
+            if player.warpgate_cooldowns and obj_type.UNIT in obj.type:
                 first_cooldown = player.warpgate_cooldowns[0]
                 time_past_cooldown = gameloop - (first_cooldown[0] + first_cooldown[1])
 
@@ -163,7 +165,7 @@ class ObjectEvent(BaseEvent):
                     )
 
             # only warped in units generate this event
-            if 'unit' in obj.type and obj.name != 'Archon' and obj.name != 'OracleStasisTrap':
+            if obj_type.UNIT in obj.type and obj.name != 'Archon' and obj.name != 'OracleStasisTrap':
                 player.warpgate_cooldowns.append((gameloop, obj.cooldown))
                 player.warpgate_cooldowns.sort(key=lambda x: x[0] + x[1])
 
@@ -177,19 +179,19 @@ class ObjectEvent(BaseEvent):
 
         elif self.type == 'NNet.Replay.Tracker.SUnitDoneEvent':
             obj.birth_time = gameloop
-            obj.status = 'live'
+            obj.status = obj_status.LIVE
 
             logger.debug(f'Updated object birth_time to: {obj.birth_time}')
             logger.debug(f'Updated object status to: {obj.status}')
 
         elif self.type == 'NNet.Replay.Tracker.SUnitBornEvent':
             obj.birth_time = gameloop
-            obj.status = 'live'
+            obj.status = obj_status.LIVE
 
             logger.debug(f'Updated object birth_time to: {obj.birth_time}')
             logger.debug(f'Updated object status to: {obj.status}')
 
-            if 'worker' in obj.type:
+            if obj_type.WORKER in obj.type:
                 summary_stats['workers_produced'][player.player_id] += 1
 
             if not obj.position:
@@ -200,7 +202,7 @@ class ObjectEvent(BaseEvent):
                 logger.debug(f'Updated object position to: {obj.position}')
 
         elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
-            obj.status = 'died'
+            obj.status = obj_status.DIED
             obj.death_time = gameloop
 
             logger.debug(f'Updated object status to: {obj.status}')

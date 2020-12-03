@@ -1,3 +1,6 @@
+from zephyrus_sc2_parser.constants import obj_status, obj_type
+
+
 class PlayerState:
     def __init__(self, game, player, gameloop):
         self.game = game
@@ -95,17 +98,17 @@ class PlayerState:
             if obj.name == 'HighTemplar' and obj.morph_time:
                 continue
 
-            if obj.name == 'Larva' and obj.status == 'live':
+            if obj.name == 'Larva' and obj.status == obj_status.LIVE:
                 current_idle_larva += 1
 
             worker = False
-            for obj_type in obj.type:
-                if obj_type == 'worker':
+            for current_type in obj.type:
+                if current_type == obj_type.WORKER:
                     worker = True
-                elif obj_type != 'supply':
-                    if obj.name not in object_summary[obj_type]:
-                        object_summary[obj_type][obj.name] = {
-                            'type': [obj_type],
+                elif current_type != obj_type.SUPPLY:
+                    if obj.name not in object_summary[current_type.lower()]:
+                        object_summary[current_type.lower()][obj.name] = {
+                            'type': [current_type],
                             'live': 0,
                             'died': 0,
                             'in_progress': 0,
@@ -114,12 +117,13 @@ class PlayerState:
                             'mineral_cost': obj.mineral_cost,
                             'gas_cost': obj.gas_cost,
                         }
-                    object_summary[obj_type][obj.name][obj.status] += 1
+                    # convert to lowercase for serialization
+                    object_summary[current_type.lower()][obj.name][obj.status.lower()] += 1
 
                     command_structures = ['Hatchery', 'Lair', 'Hive', 'Nexus', 'OrbitalCommand']
 
                     # Nexus, Orbital and Hatchery calculations
-                    if obj_type == 'building' and (obj.name in command_structures):
+                    if current_type == obj_type.BUILDING and (obj.name in command_structures):
                         obj_energy = obj.calc_energy(self.gameloop)
                         if obj_energy and obj.status == 'live':
                             if 'energy' not in object_summary['race']:
@@ -155,21 +159,21 @@ class PlayerState:
                 self.player.idle_larva.append(current_idle_larva)
 
             if worker:
-                if obj.status == 'live':
+                if obj.status == obj_status.LIVE:
                     object_summary['workers_active'] += 1
-                elif obj.status == 'died':
+                elif obj.status == obj_status.DIED:
                     object_summary['workers_lost'] += 1
                 object_summary['workers_produced'] += 1
 
-                if 'worker' not in object_summary['unit'][obj.name]['type']:
-                    object_summary['unit'][obj.name]['type'].append('worker')
+                if obj_type.WORKER not in object_summary['unit'][obj.name]['type']:
+                    object_summary['unit'][obj.name]['type'].append(obj_type.WORKER)
 
-            elif 'unit' in obj.type:
-                if obj.status == 'live':
+            elif obj_type.UNIT in obj.type:
+                if obj.status == obj_status.LIVE:
                     object_summary['army_value']['minerals'] += obj.mineral_cost
                     object_summary['army_value']['gas'] += obj.gas_cost
                     object_summary['total_army_value'] += obj.mineral_cost + obj.gas_cost
-                elif obj.status == 'died':
+                elif obj.status == obj_status.DIED:
                     object_summary['resources_lost']['minerals'] += obj.mineral_cost
                     object_summary['resources_lost']['gas'] += obj.gas_cost
                     object_summary['total_resources_lost'] += obj.mineral_cost + obj.gas_cost
