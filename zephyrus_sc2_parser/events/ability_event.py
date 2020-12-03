@@ -32,7 +32,7 @@ class AbilityEvent(BaseEvent):
         event = self.event
         player = self.player
         gameloop = self.gameloop
-        abilities = self.game.gamedata['abilities']
+        abilities = self.game.gamedata.abilities
 
         logger.debug(f'Parsing {self.type} at {gameloop}')
 

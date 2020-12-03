@@ -4,6 +4,7 @@ import mpyq
 import binascii
 import requests
 import struct
+from collections import namedtuple
 from pathlib import Path
 from io import BytesIO
 from importlib import import_module
@@ -58,12 +59,14 @@ def _import_gamedata(protocol):
     ability_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.ability_data')
     upgrade_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.upgrade_data')
 
-    return {
-        'units': unit_data.units,
-        'buildings': building_data.buildings,
-        'abilities': ability_data.abilities,
-        'upgrades': upgrade_data.upgrades,
-    }
+    GameData = namedtuple('GameData', ['units', 'buildings', 'abilities', 'upgrades'])
+
+    return GameData(
+        unit_data.units,
+        building_data.buildings,
+        ability_data.abilities,
+        upgrade_data.upgrades,
+    )
 
 
 def _generate_initial_summary_stats(game, metadata, detailed_info, local=False):

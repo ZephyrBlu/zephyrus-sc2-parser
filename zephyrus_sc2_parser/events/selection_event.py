@@ -28,7 +28,7 @@ class SelectionEvent(BaseEvent):
         selection.sort(key=lambda x: x.tag)
 
     def _is_morph(self):
-        units = self.game.gamedata['units']
+        units = self.game.gamedata.units
 
         # checking for Archon being added
         for obj_type in self.event['m_delta']['m_addSubgroups']:

@@ -12,7 +12,7 @@ class UpgradeEvent(BaseEvent):
         event = self.event
         player = self.player
         gameloop = self.gameloop
-        upgrades = self.game.gamedata['upgrades']
+        upgrades = self.game.gamedata.upgrades
 
         logger.debug(f'Parsing {self.type} at {gameloop}')
         logger.debug(f'Player: {player.name} ({player.player_id})')

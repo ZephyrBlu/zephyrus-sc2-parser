@@ -13,8 +13,8 @@ class ObjectEvent(BaseEvent):
         self.summary_stats = summary_stats
 
     def _get_or_create_game_object(self):
-        units = self.game.gamedata['units']
-        buildings = self.game.gamedata['buildings']
+        units = self.game.gamedata.units
+        buildings = self.game.gamedata.buildings
 
         event = self.event
         unit_tag_index = self.event['m_unitTagIndex']
@@ -120,8 +120,8 @@ class ObjectEvent(BaseEvent):
             # print()
 
     def parse_event(self):
-        units = self.game.gamedata['units']
-        buildings = self.game.gamedata['buildings']
+        units = self.game.gamedata.units
+        buildings = self.game.gamedata.buildings
 
         logger.debug(f'Parsing {self.type} at {self.gameloop}')
 
