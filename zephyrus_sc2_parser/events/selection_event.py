@@ -67,7 +67,7 @@ class SelectionEvent(BaseEvent):
                     selection.append(player.objects[obj_game_id])
             selection.sort(key=lambda x: x.tag)
 
-        # subselection. i.e a subset of the existing selection
+        # sub selection. i.e a subset of the existing selection
         elif selection_type == 'sub':
             if ctrl_group_num:
                 selection = player.control_groups[ctrl_group_num]
@@ -218,11 +218,11 @@ class SelectionEvent(BaseEvent):
 
         -----
 
-        Mask: A Mask subselection occurs when more than 1 unit/building
+        Mask: A Mask sub selection occurs when more than 1 unit/building
         is selected from the original selection.
 
         Example: A player has 18 Zerglings originally selected, then they
-        box a subselection of 7 Zerglings.
+        box a sub selection of 7 Zerglings.
 
         -----
 
@@ -247,19 +247,19 @@ class SelectionEvent(BaseEvent):
         elif 'None' in event['m_delta']['m_removeMask']:
             self._handle_none(ctrl_group_num, selection_type='new')
 
-    def _handle_subselection(self, ctrl_group_num):
+    def _handle_sub_selection(self, ctrl_group_num):
         """
-        ZeroIndices: Occurs on a subselection when there is a
+        ZeroIndices: Occurs on a sub selection when there is a
         maximum of 1 unit/building selected for every 8 in the
         original selection and the units/buildings are adjacent.
 
         Example: A player has 18 Zerglings originally selected,
-        then they box a subselection of 2 Zerglings which are in
+        then they box a sub selection of 2 Zerglings which are in
         positions 4 and 5 of the original selection.
 
         -----
 
-        OneIndices: An alternative to Masks. A subselection OneIndices
+        OneIndices: An alternative to Masks. A sub selection OneIndices
         occurs when units need to be added to the selection as well as
         removed. This occurs when a Zerg unit is born from an Egg and
         when 2 units are morphed together to create a new unit.
@@ -277,7 +277,7 @@ class SelectionEvent(BaseEvent):
 
         -----
 
-        Mask: A Mask subselection occurs when extra units/buildings are
+        Mask: A Mask sub selection occurs when extra units/buildings are
         selected in addition to the original selection.
 
         Example: A player has 18 Zerglings originally selected, then they
@@ -315,22 +315,8 @@ class SelectionEvent(BaseEvent):
         logger.debug(f'Player: {player.name} ({player.player_id})')
 
         # if not current selection control group, exit early
+        # this is handled on an object level
         if event['m_controlGroupId'] != 10:
-            # ctrl_group_num = event['m_controlGroupId']
-            # current_selection = self.player.control_groups[ctrl_group_num]
-
-            # print(f'Control Group {ctrl_group_num},', round(event['_gameloop']/22.4/60.0, 1), 'min')
-            # selection = {}
-            # for obj in current_selection:
-            #     if obj.name in selection:
-            #         selection[obj.name] += 1
-            #     else:
-            #         selection[obj.name] = 1
-
-            # for name, count in selection.items():
-            #     print(name, count)
-            # print(event)
-            # print()
             return
 
         selection_game_ids = self.event['m_delta']['m_addUnitTags']
@@ -343,31 +329,12 @@ class SelectionEvent(BaseEvent):
 
         if event['m_delta']['m_addSubgroups']:
             for unit in event['m_delta']['m_addSubgroups']:
-                # Egg. The morph from Larva -> Egg is handled elsewhere
+                # Egg. The morph from Larva -> Egg is handled on an object level
                 # don't need to respond to this event
                 if unit['m_unitLink'] == 125:
                     return
             self._handle_new_selection(ctrl_group_num)
         else:
-            self._handle_subselection(ctrl_group_num)
+            self._handle_sub_selection(ctrl_group_num)
 
         logger.debug(f'Current selection (After): {player.current_selection}')
-
-        # if player.player_id == 1:
-        #     if ctrl_group_num:
-        #         current_selection = player.control_groups[ctrl_group_num]
-        #     else:
-        #         current_selection = player.current_selection
-        #     print(player.name)
-        #     print(f'Control Group {ctrl_group_num},', round(event['_gameloop']/22.4/60.0, 1), 'min')
-        #     selection = {}
-        #     for obj in current_selection:
-        #         if obj.name in selection:
-        #             selection[obj.name] += 1
-        #         else:
-        #             selection[obj.name] = 1
-
-        #     for name, count in selection.items():
-        #         print(name, count)
-        #     print(event)
-        #     print()

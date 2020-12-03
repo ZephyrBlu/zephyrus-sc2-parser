@@ -159,18 +159,6 @@ class ControlGroupEvent(BaseEvent):
             logger.debug(f'Control group (Before): Does not exist')
         logger.debug(f'Current selection (Before): {player.current_selection}')
 
-        # if player.player_id == 1:
-        #     print(player.name)
-        #     selection = {}
-        #     for obj in player.current_selection:
-        #         if obj.name in selection:
-        #             selection[obj.name] += 1
-        #         else:
-        #             selection[obj.name] = 1
-
-        #     for name, count in selection.items():
-        #         print(name, count)
-
         if event['m_controlGroupUpdate'] == 0:
             logger.debug('m_controlGroupUpdate = 0 (Binding current selection to control group)')
             player.control_groups[ctrl_group_num] = []
@@ -217,18 +205,3 @@ class ControlGroupEvent(BaseEvent):
         else:
             logger.debug(f'Control group (After): Does not exist')
         logger.debug(f'Current selection (After): {player.current_selection}')
-
-        # if player.player_id == 1:
-        #     print(f'Control Group {ctrl_group_num},', round(event['_gameloop']/22.4/60.0, 1), 'min')
-        #     selection = {}
-        #     for obj in player.current_selection:
-        #         if obj.name in selection:
-        #             selection[obj.name] += 1
-        #         else:
-        #             selection[obj.name] = 1
-
-        #     for name, count in selection.items():
-        #         print(name, count)
-        #     print(player.current_selection)
-        #     print(event)
-        #     print()

@@ -153,20 +153,26 @@ class Player:
                 # removing middle row tiles
                 remove_tiles(creep_radius, building_position)
 
-                for i in range(0, creep_radius//2):
+                for i in range(0, creep_radius // 2):
                     row_increment = i + 1
 
                     # ----- full-size rows -----
                     # add radius/2 full-size rows to improve area approximation
                     remove_tiles(
                         creep_radius,
-                        (building_position[0], building_position[1] + row_increment),
+                        (
+                            building_position[0],
+                            building_position[1] + row_increment,
+                        ),
                     )
 
                     # tile actions are mirrored in y-axis
                     remove_tiles(
                         creep_radius,
-                        (building_position[0], building_position[1] - row_increment),
+                        (
+                            building_position[0],
+                            building_position[1] - row_increment,
+                        ),
                     )
 
                     # ----- decreasing size rows -----
@@ -174,7 +180,7 @@ class Player:
                         creep_radius - row_increment,
                         (
                             building_position[0],
-                            building_position[1] + row_increment + creep_radius/2
+                            building_position[1] + row_increment + creep_radius / 2,
                         ),
                     )
 
@@ -183,7 +189,7 @@ class Player:
                         creep_radius - row_increment,
                         (
                             building_position[0],
-                            building_position[1] - row_increment - creep_radius/2
+                            building_position[1] - row_increment - creep_radius / 2,
                         ),
                     )
                 continue
@@ -206,20 +212,26 @@ class Player:
             # adding middle row tiles
             add_tiles(creep_radius, building_position)
 
-            for i in range(0, creep_radius//2):
+            for i in range(0, creep_radius // 2):
                 row_increment = i + 1
 
                 # ----- full-size rows -----
                 # add radius/2 full-size rows to improve area approximation
                 add_tiles(
                     creep_radius,
-                    (building_position[0], building_position[1] + row_increment),
+                    (
+                        building_position[0],
+                        building_position[1] + row_increment,
+                    ),
                 )
 
                 # tile actions are mirrored in y-axis
                 add_tiles(
                     creep_radius,
-                    (building_position[0], building_position[1] - row_increment),
+                    (
+                        building_position[0],
+                        building_position[1] - row_increment,
+                    ),
                 )
 
                 # ----- decreasing size rows -----
@@ -227,7 +239,7 @@ class Player:
                     creep_radius - row_increment,
                     (
                         building_position[0],
-                        building_position[1] + row_increment + creep_radius/2
+                        building_position[1] + row_increment + creep_radius / 2,
                     ),
                 )
 
@@ -236,7 +248,7 @@ class Player:
                     creep_radius - row_increment,
                     (
                         building_position[0],
-                        building_position[1] - row_increment - creep_radius/2
+                        building_position[1] - row_increment - creep_radius / 2,
                     ),
                 )
 
