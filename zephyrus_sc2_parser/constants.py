@@ -7,9 +7,6 @@ class ObjStatus:
     DIED: str = 'DIED'
     IN_PROGRESS: str = 'IN_PROGRESS'
 
-    def __eq__(self, other):
-        return self
-
 
 @dataclass(frozen=True)
 class ObjType:
