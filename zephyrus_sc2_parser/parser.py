@@ -18,14 +18,6 @@ from zephyrus_sc2_parser.exceptions import ReplayDecodeError, GameLengthNotFound
 
 logger = logging.getLogger(__name__)
 
-# # experimental engagement simulator
-# is_engagement_simulator_installed = False
-# try:
-#     from sc2_simulator import simulate_engagement
-#     is_engagement_simulator_installed = True
-# except ImportError:
-#     pass
-
 # intl map names
 # should probably figure out a way to automate this for each map pool
 MAP_NAMES = {
@@ -211,6 +203,8 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
     summary_stats = _generate_initial_summary_stats(current_game, metadata, detailed_info, local)
     logger.info('Completed pre-parsing setup')
 
+    # ----- core parsing logic -----
+
     action_events = [
         'NNet.Game.SControlGroupUpdateEvent',
         'NNet.Game.SSelectionDeltaEvent',
@@ -228,8 +222,12 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
         # if the event isn't supported, continue iterating
         current_event = _create_event(current_game, event, protocol, summary_stats)
         if current_event:
+            # parse_event extracts and processes event data to update Player/GameObj objects
+            # if summary_stats are modified they are returned from parse_event
+            # this only occurs for ObjectEvents and PlayerStatsEvents
             result = current_event.parse_event()
             logger.debug(f'Finished parsing event')
+
             if result:
                 summary_stats = result
 
@@ -266,21 +264,6 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
             current_game.timeline.append(current_timeline_state)
             logger.debug(f'Recorded new timeline state at {gameloop}')
 
-            # # experimental engagement simulation
-            # player_units = {1: [], 2: []}
-            # for p_id, p in players.items():
-            #     for obj in p.objects.values():
-            #         if obj.status == 'live':
-            #             player_units[p_id].append(obj.name)
-
-            # current_game.engagements.append((
-            #     player_units[1],
-            #     player_units[2],
-            #     players[1].upgrades,
-            #     players[2].upgrades,
-            #     gameloop,
-            # ))
-
             # 112 = 5sec of game time
             current_tick += 112
 
@@ -290,25 +273,7 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
             logger.debug(f'Current gameloop: {gameloop}, game length: {game_length}')
             break
 
-    # # experimental engagement simulation
-    # engagement_analysis = []
-    # if is_engagement_simulator_installed:
-    #     engagement_outcomes = simulate_engagement(current_game.engagements)
-    #     for winner, unit_health, gameloop in engagement_outcomes:
-    #         total_health = {1: (0, 0), 2: (0, 0)}
-    #         for unit in unit_health:
-    #             total_health[unit[0]] = (
-    #                 total_health[unit[0]][0] + unit[2],
-    #                 total_health[unit[0]][1] + unit[3],
-    #             )
-
-    #         if total_health[1][1] > 0 and total_health[2][1] > 0:
-    #             engagement_analysis.append({
-    #                 'winner': winner,
-    #                 'health': total_health[winner],
-    #                 'remaining_health':  round((total_health[winner][0] / total_health[winner][1]), 3),
-    #                 'gameloop': gameloop,
-    #             })
+    # ----- parsing finished, generating return data -----
 
     logger.info('Generating game stats')
     players_export = {}
