@@ -1,4 +1,5 @@
 import math
+from dataclasses import dataclass
 
 
 class GameObj:
@@ -36,16 +37,10 @@ class GameObj:
 
     def calc_distance(self, other_position):
         # position contains x, y, z in integer form of floats
-        other_position = {
-            'x': other_position['x'] / 4096,
-            'y': other_position['y'] / 4096,
-        }
-
         # simple pythagoras theorem calculation
-        x_diff = abs(self.position['x'] - other_position['x'])
-        y_diff = abs(self.position['y'] - other_position['y'])
-        distance = math.sqrt(x_diff**2 + y_diff**2)
-
+        x_diff = abs(self.position.x - other_position.x)
+        y_diff = abs(self.position.y - other_position.y)
+        distance = math.sqrt(x_diff ** 2 + y_diff ** 2)
         return distance
 
     def calc_energy(self, gameloop):
@@ -67,7 +62,7 @@ class GameObj:
         time_past_min_energy = 0
 
         for ability, ability_target, ability_gameloop in self.abilities_used:
-            if 'energy_cost' not in ability:
+            if not ability.energy_cost:
                 continue
 
             # only want to measure efficiency of command structures
@@ -84,7 +79,7 @@ class GameObj:
             else:
                 current_energy += energy_regen_rate * (ability_gameloop - current_gameloop)
             current_gameloop = ability_gameloop
-            current_energy -= ability['energy_cost']
+            current_energy -= ability.energy_cost
 
         if 'building' in self.type:
             min_usable_energy_gameloop = energy_maxout(current_gameloop, current_energy, 50)

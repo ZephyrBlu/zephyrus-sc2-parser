@@ -4,8 +4,8 @@ import math
 import heapq
 import logging
 from zephyrus_sc2_parser.s2protocol_fixed import versions
-from zephyrus_sc2_parser.game.game import Game
-from zephyrus_sc2_parser.game.player_state import PlayerState
+from zephyrus_sc2_parser.game import Game, PlayerState
+from zephyrus_sc2_parser.dataclasses import Replay
 from zephyrus_sc2_parser.utils import (
     _generate_initial_summary_stats,
     _import_gamedata,
@@ -351,4 +351,10 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
 
     logger.info('Parsing completed')
 
-    return players_export, current_game.timeline, [], summary_stats, metadata_export
+    return Replay(
+        players_export,
+        current_game.timeline,
+        [],
+        summary_stats,
+        metadata_export,
+    )

@@ -17,11 +17,11 @@ class PerceptionActionCycle:
         If the current position differs by more than 6
         units, a boolean (False) is returned and the current PAC ends.
         """
-        x_diff = abs(new_position[0] - self.initial_camera_position[0])
-        y_diff = abs(new_position[1] - self.initial_camera_position[1])
-        total_diff = (x_diff**2) + (y_diff**2)
+        x_diff = abs(new_position.x - self.initial_camera_position.x)
+        y_diff = abs(new_position.y - self.initial_camera_position.y)
+        total_diff = (x_diff ** 2) + (y_diff ** 2)
 
-        if total_diff > self.min_camera_move**2:
+        if total_diff > self.min_camera_move ** 2:
             return False
         return True
 

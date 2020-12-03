@@ -1,6 +1,7 @@
 import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
-from zephyrus_sc2_parser.game.perception_action_cycle import PerceptionActionCycle
+from zephyrus_sc2_parser.game import PerceptionActionCycle
+from zephyrus_sc2_parser.dataclasses import Position
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +19,16 @@ class CameraEvent(BaseEvent):
 
         if not player or not self.event['m_target']:
             return
-        position = (event['m_target']['x'] / 256, event['m_target']['y'] / 256)
+        position = Position(
+            event['m_target']['x'] / 256,
+            event['m_target']['y'] / 256,
+        )
 
         if not player.prev_screen_position:
             player.prev_screen_position = position
         else:
-            x_diff = player.prev_screen_position[0] - position[0]
-            y_diff = player.prev_screen_position[1] - position[1]
+            x_diff = player.prev_screen_position.x - position.x
+            y_diff = player.prev_screen_position.y - position.y
 
             # if x^2 + y^2 > 15^2 then add screen
             # 15 tiles is cut off

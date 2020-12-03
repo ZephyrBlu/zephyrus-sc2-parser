@@ -136,9 +136,9 @@ class PlayerState:
                             object_summary['race']['energy'][obj.name].append((obj_energy, *obj.energy_efficiency))
 
                             for ability, ability_target, ability_gameloop in obj.abilities_used:
-                                if ability['ability_name'] not in object_summary['race']['abilities_used']:
-                                    object_summary['race']['abilities_used'][ability['ability_name']] = 0
-                                object_summary['race']['abilities_used'][ability['ability_name']] += 1
+                                if ability.name not in object_summary['race']['abilities_used']:
+                                    object_summary['race']['abilities_used'][ability.name] = 0
+                                object_summary['race']['abilities_used'][ability.name] += 1
 
                                 if 'ability_targets' in object_summary['race'] and ability_target:
                                     if ability_target.name not in object_summary['race']['ability_targets']:

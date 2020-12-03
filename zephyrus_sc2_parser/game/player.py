@@ -129,7 +129,7 @@ class Player:
                 continue
 
             # add 0.5 to get center of central tile
-            building_position = (obj.position['x'] + 0.5, obj.position['y'] + 0.5)
+            building_position = (obj.position.x + 0.5, obj.position.y + 0.5)
 
             if obj.status == 'died':
                 def remove_tiles(tile_range, current_position):
@@ -252,7 +252,7 @@ class Player:
                     ),
                 )
 
-        map_tiles = map_info['dimensions']['width'] * map_info['dimensions']['height']
+        map_tiles = map_info['dimensions'].width * map_info['dimensions'].height
         creep_coverage = round(len(self._creep_tiles) / map_tiles, 3)
         return (creep_coverage, len(self._creep_tiles)), creep_tumor_count, creep_tumors_died
 

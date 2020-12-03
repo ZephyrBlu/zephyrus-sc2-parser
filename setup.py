@@ -17,7 +17,6 @@ setuptools.setup(
         'requests',
         'mpyq',
         'pytz',
-        # 'sc2_simulator',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -25,5 +24,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "Topic :: Games/Entertainment :: Real Time Strategy",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.8',
 )

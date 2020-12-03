@@ -4,7 +4,6 @@ import mpyq
 import binascii
 import requests
 import struct
-from collections import namedtuple
 from pathlib import Path
 from io import BytesIO
 from importlib import import_module
@@ -17,7 +16,8 @@ from zephyrus_sc2_parser.events import (
     CameraEvent,
     PlayerStatsEvent,
 )
-from zephyrus_sc2_parser.game.player import Player
+from zephyrus_sc2_parser.dataclasses import GameData, Map
+from zephyrus_sc2_parser.game import Player
 from zephyrus_sc2_parser.gamedata.map_info import maps
 from zephyrus_sc2_parser.exceptions import MissingMmrError, PlayerCountError
 import pytz
@@ -58,8 +58,6 @@ def _import_gamedata(protocol):
     building_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.building_data')
     ability_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.ability_data')
     upgrade_data = import_module(f'zephyrus_sc2_parser.gamedata.{protocol_name}.upgrade_data')
-
-    GameData = namedtuple('GameData', ['units', 'buildings', 'abilities', 'upgrades'])
 
     return GameData(
         unit_data.units,
@@ -279,10 +277,10 @@ def _get_map_info(player_info, game_map, creep_flag=True):
             logger.warning('Could not write map details to file')
 
     game_map_info.update({
-        'dimensions': {
-            'width': maps[game_map]['width'],
-            'height': maps[game_map]['height'],
-        },
+        'dimensions': Map(
+            maps[game_map]['width'],
+            maps[game_map]['height'],
+        ),
     })
     return game_map_info
 

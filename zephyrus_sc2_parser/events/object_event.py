@@ -1,7 +1,8 @@
 import copy
 import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
-from zephyrus_sc2_parser.game.game_obj import GameObj
+from zephyrus_sc2_parser.game import GameObj
+from zephyrus_sc2_parser.dataclasses import Position
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class ObjectEvent(BaseEvent):
         unit_tag_recycle = self.event['m_unitTagRecycle']
         game_id = self.protocol.unit_tag(unit_tag_index, unit_tag_recycle)
 
-        # obj_name = None
+        obj_name = None
         if 'm_unitTypeName' in event:
             obj_name = event['m_unitTypeName'].decode('utf-8')
             logger.debug(f'Event object name: {obj_name}, ({game_id})')
@@ -95,13 +96,6 @@ class ObjectEvent(BaseEvent):
 
             logger.debug(f'Control group length: {len(ctrl_group)}')
 
-            # print(obj)
-            # print(group_num, index)
-            # print(ctrl_group)
-            # print(self.event)
-            # remove = ctrl_group[index]
-            # print(f'{obj.name} being updated')
-            # print(f'{remove} deleted @: {index}')
             if len(ctrl_group) - 1 >= index:
                 logger.debug(f'Removed object {ctrl_group[index]} from control group {group_num}')
                 del ctrl_group[index]
@@ -116,8 +110,6 @@ class ObjectEvent(BaseEvent):
             for index, obj in enumerate(ctrl_group):
                 obj.control_groups[group_num] = index
             logger.debug('Updated control group references in objects')
-            # print(self.event)
-            # print()
 
     def parse_event(self):
         units = self.game.gamedata.units
@@ -151,10 +143,10 @@ class ObjectEvent(BaseEvent):
         if self.type == 'NNet.Replay.Tracker.SUnitInitEvent':
             obj.status = 'in_progress'
             obj.init_time = gameloop
-            obj.position = {
-                'x': event['m_x'],
-                'y': event['m_y'],
-            }
+            obj.position = Position(
+                event['m_x'],
+                event['m_y'],
+            )
             logger.debug(f'Updated object status to: {obj.status}')
             logger.debug(f'Updated object init_time to: {obj.init_time}')
             logger.debug(f'Updated object position to: {obj.position}')
@@ -201,10 +193,10 @@ class ObjectEvent(BaseEvent):
                 summary_stats['workers_produced'][player.player_id] += 1
 
             if not obj.position:
-                obj.position = {
-                    'x': event['m_x'],
-                    'y': event['m_y'],
-                }
+                obj.position = Position(
+                    event['m_x'],
+                    event['m_y'],
+                )
                 logger.debug(f'Updated object position to: {obj.position}')
 
         elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
