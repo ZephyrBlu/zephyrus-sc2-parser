@@ -109,9 +109,15 @@ class ObjectEvent(BaseEvent):
             logger.debug(f'Added object {obj} to control group {group_num}')
 
             # re-order control group after adding new object
+            logging.debug('Updating object control group references')
             for index, obj in enumerate(ctrl_group):
+                logging.debug(f'Object: {obj}')
+                if group_num not in obj.control_groups:
+                    logging.debug(f'Previous reference: Does not exist')
+                else:
+                    logging.debug(f'Previous reference: control group {group_num}, index {obj.control_groups[group_num]}')
                 obj.control_groups[group_num] = index
-            logger.debug('Updated control group references in objects')
+                logging.debug(f'Updated reference: control group {group_num}, index {obj.control_groups[group_num]}')
 
     def parse_event(self):
         units = self.game.gamedata.units

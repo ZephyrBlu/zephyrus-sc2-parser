@@ -10,22 +10,43 @@ class SelectionEvent(BaseEvent):
         super().__init__(*args)
 
     def _add_to_selection(self, ctrl_group_num, new_obj_ids):
+        player = self.player
+
         logger.debug('Adding new objects to current selection or control group')
         if ctrl_group_num:
-            selection = self.player.control_groups[ctrl_group_num]
+            selection = player.control_groups[ctrl_group_num]
         else:
-            selection = self.player.current_selection
+            selection = player.current_selection
 
         for obj_game_id in new_obj_ids:
-            if obj_game_id not in self.player.objects:
+            if obj_game_id not in player.objects:
                 logger.warning(f'{obj_game_id} not in player objects. Returning')
                 return
 
         for obj_game_id in new_obj_ids:
-            obj = self.player.objects[obj_game_id]
+            obj = player.objects[obj_game_id]
             selection.append(obj)
+            logger.debug(f'Added {obj} to control group {ctrl_group_num}')
         logger.debug('Added all new objects')
         selection.sort(key=lambda x: x.tag)
+
+        # update object control group references
+        if ctrl_group_num:
+            logging.debug('Updating object control group references')
+            for index, obj in enumerate(selection):
+                logging.debug(f'Object: {obj}')
+                if ctrl_group_num not in obj.control_groups:
+                    logging.debug(f'Previous reference: Does not exist')
+                else:
+                    logging.debug(f'Previous reference: control group {ctrl_group_num}, index {obj.control_groups[ctrl_group_num]}')
+                obj.control_groups[ctrl_group_num] = index
+                logging.debug(f'Updated reference: control group {ctrl_group_num}, index {obj.control_groups[ctrl_group_num]}')
+
+        # re-assign selection to update object
+        if ctrl_group_num:
+            player.control_groups[ctrl_group_num] = selection
+        else:
+            player.current_selection = selection
 
     def _is_morph(self):
         units = self.game.gamedata.units
@@ -82,6 +103,12 @@ class SelectionEvent(BaseEvent):
                     logger.debug(f'Removing object {selection[i]} at position {i}')
                     del selection[i]
 
+        # re-assign selection to update object
+        if ctrl_group_num:
+            player.control_groups[ctrl_group_num] = selection
+        else:
+            player.current_selection = selection
+
     def _handle_one_indices(self, ctrl_group_num, *, selection_type):
         """
         new: Remove the unit/building in the position given
@@ -115,6 +142,13 @@ class SelectionEvent(BaseEvent):
                         selection[i].morph_time = self.gameloop
                     logger.debug(f'Removing object {selection[i]} at position {i}')
                     del selection[i]
+
+            # re-assign selection to update object
+            if ctrl_group_num:
+                player.control_groups[ctrl_group_num] = selection
+            else:
+                player.current_selection = selection
+
             self._add_to_selection(ctrl_group_num, new_game_ids)
 
         elif selection_type == 'sub':
@@ -124,6 +158,12 @@ class SelectionEvent(BaseEvent):
                 if i in selection_indices:
                     logger.debug(f'Removing object {selection[i]} at position {i}')
                     del selection[i]
+
+            # re-assign selection to update object
+            if ctrl_group_num:
+                player.control_groups[ctrl_group_num] = selection
+            else:
+                player.current_selection = selection
 
     def _create_bitmask(self, mask_x, mask_y, length):
         logger.debug('Creating bitmask')
@@ -179,6 +219,12 @@ class SelectionEvent(BaseEvent):
                     selection[i].morph_time = self.gameloop
                 logger.debug(f'Removing object {selection[i]} at position {i}')
                 del selection[i]
+
+        # re-assign selection to update object
+        if ctrl_group_num:
+            player.control_groups[ctrl_group_num] = selection
+        else:
+            player.current_selection = selection
 
         if selection_type == 'new':
             self._add_to_selection(ctrl_group_num, event['m_delta']['m_addUnitTags'])
