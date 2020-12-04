@@ -85,30 +85,6 @@ class ObjectEvent(BaseEvent):
         player.objects[game_id] = new_game_obj
         return new_game_obj
 
-    def _update_obj_group_info(self, obj):
-        logger.debug(f'Updating control group references in object {obj}')
-
-        for group_num, index in obj.control_groups.items():
-            logger.debug(f'Object at position {index} in control group {group_num}')
-            if group_num not in self.player.control_groups:
-                logger.warning(f'Object contains reference to control group {group_num}, but no such group exists for player {player.name} ({player.player_id})')
-                return
-
-            ctrl_group = self.player.control_groups[group_num]
-
-            logger.debug(f'Control group length: {len(ctrl_group)}')
-
-            # re-order control group after adding new object
-            logging.debug('Updating object control group references')
-            for index, obj in enumerate(ctrl_group):
-                logging.debug(f'Object: {obj}')
-                if group_num not in obj.control_groups:
-                    logging.debug(f'Previous reference: Does not exist')
-                else:
-                    logging.debug(f'Previous reference: control group {group_num}, index {obj.control_groups[group_num]}')
-                obj.control_groups[group_num] = index
-                logging.debug(f'Updated reference: control group {group_num}, index {obj.control_groups[group_num]}')
-
     def parse_event(self):
         units = self.game.gamedata.units
         buildings = self.game.gamedata.buildings
@@ -260,8 +236,3 @@ class ObjectEvent(BaseEvent):
 
             if sorted([old_name, new_obj_name]) in morph_units:
                 obj.morph_time = gameloop
-
-            if 'Egg' in old_name or 'Cocoon' in old_name:
-                self._update_obj_group_info(obj)
-
-        # player.calc_supply()

@@ -27,20 +27,19 @@ class SelectionEvent(BaseEvent):
             obj = player.objects[obj_game_id]
             selection.append(obj)
             logger.debug(f'Added {obj} to control group {ctrl_group_num}')
-        logger.debug('Added all new objects')
         selection.sort(key=lambda x: x.tag)
 
         # update object control group references
         if ctrl_group_num:
-            logging.debug('Updating object control group references')
+            logger.debug('Updating object control group references')
             for index, obj in enumerate(selection):
-                logging.debug(f'Object: {obj}')
+                logger.debug(f'Object: {obj}')
                 if ctrl_group_num not in obj.control_groups:
-                    logging.debug(f'Previous reference: Does not exist')
+                    logger.debug(f'Previous reference: Does not exist')
                 else:
-                    logging.debug(f'Previous reference: control group {ctrl_group_num}, index {obj.control_groups[ctrl_group_num]}')
+                    logger.debug(f'Previous reference: control group {ctrl_group_num}, index {obj.control_groups[ctrl_group_num]}')
                 obj.control_groups[ctrl_group_num] = index
-                logging.debug(f'Updated reference: control group {ctrl_group_num}, index {obj.control_groups[ctrl_group_num]}')
+                logger.debug(f'Updated reference: control group {ctrl_group_num}, index {obj.control_groups[ctrl_group_num]}')
 
         # re-assign selection to update object
         if ctrl_group_num:
@@ -376,7 +375,7 @@ class SelectionEvent(BaseEvent):
         selection_game_ids = self.event['m_delta']['m_addUnitTags']
         for obj_game_id in selection_game_ids:
             if obj_game_id not in self.player.objects:
-                logging.debug(f'Object with game id {obj_game_id} not found in player objects')
+                logger.debug(f'Object with game id {obj_game_id} not found in player objects')
                 return
 
         logger.debug(f'Current selection (Before): {player.current_selection}')
