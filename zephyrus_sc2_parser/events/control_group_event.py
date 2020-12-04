@@ -196,8 +196,10 @@ class ControlGroupEvent(BaseEvent):
         elif event['m_controlGroupUpdate'] == 4:
             logger.debug('m_controlGroupUpdate = 4 (Overwriting control group)')
 
-            # remove references to control group from existing objects
-            self._remove_obj_group_info(ctrl_group_num)
+            # control group may not exist yet
+            if ctrl_group_num in player.control_groups:
+                # remove references to control group from existing objects
+                self._remove_obj_group_info(ctrl_group_num)
 
             # clear control group since we are overwriting
             player.control_groups[ctrl_group_num] = []
@@ -205,17 +207,32 @@ class ControlGroupEvent(BaseEvent):
 
             # remove references to other control groups from objects to be added
             # this is control group 'stealing'
+            # objects to be deleted are aggregated to ensure previous deletions do not affect future ones
             logger.debug(f'Removing references to other control groups from objects')
+            objects_to_delete = {}
             for obj in player.current_selection:
-                logger.debug(f'Object: {obj}')
                 # obj index needs to be correct so right obj is deleted
                 for group, index in obj.control_groups.items():
-                    logger.debug(f'Removing {player.control_groups[group][index]} from control group {group} at position {index}')
-                    del player.control_groups[group][index]
-
-                    # update object references to group since an object has been removed
-                    self._set_obj_group_info(group)
+                    if group not in objects_to_delete:
+                        objects_to_delete[group] = []
+                    # attach obj index to the current group num
+                    objects_to_delete[group].append(index)
+                # reset control group references
                 obj.control_groups = {}
+
+            # delete aggregated objects in each recorded control group
+            for group, indexes in objects_to_delete.items():
+                indexes.sort()
+                logger.debug(f'Removing {len(indexes)} objects at positions {indexes} from control group {group}: {player.control_groups[group]}')
+
+                # iterate through indexes from back to front
+                # this prevents previous deletions affecting future ones
+                for i in range(len(indexes) - 1, -1, -1):
+                    logger.debug(f'Removing {player.control_groups[group][indexes[i]]} from control group {group} at position {indexes[i]}')
+                    del player.control_groups[group][indexes[i]]
+
+                # update object references to group since one or more objects have been removed
+                self._set_obj_group_info(group)
 
             # add new objects to control group
             self._copy_from_selection(player.current_selection, control_group)
