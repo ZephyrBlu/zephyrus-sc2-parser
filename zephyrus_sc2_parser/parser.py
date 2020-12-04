@@ -165,6 +165,8 @@ def _setup(filename):
 
     game_length = None
     for event in events:
+        # print(event)
+        # print('\n')
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
             logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
             game_length = event['_gameloop']

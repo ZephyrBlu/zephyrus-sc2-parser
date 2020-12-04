@@ -1,4 +1,4 @@
-from zephyrus_sc2_parser.constants import obj_status, obj_type
+from zephyrus_sc2_parser.game import GameObj
 
 
 class PlayerState:
@@ -98,14 +98,14 @@ class PlayerState:
             if obj.name == 'HighTemplar' and obj.morph_time:
                 continue
 
-            if obj.name == 'Larva' and obj.status == obj_status.LIVE:
+            if obj.name == 'Larva' and obj.status == GameObj.LIVE:
                 current_idle_larva += 1
 
             worker = False
             for current_type in obj.type:
-                if current_type == obj_type.WORKER:
+                if current_type == GameObj.WORKER:
                     worker = True
-                elif current_type != obj_type.SUPPLY:
+                elif current_type != GameObj.SUPPLY:
                     if obj.name not in object_summary[current_type.lower()]:
                         object_summary[current_type.lower()][obj.name] = {
                             'type': [current_type],
@@ -123,7 +123,7 @@ class PlayerState:
                     command_structures = ['Hatchery', 'Lair', 'Hive', 'Nexus', 'OrbitalCommand']
 
                     # Nexus, Orbital and Hatchery calculations
-                    if current_type == obj_type.BUILDING and (obj.name in command_structures):
+                    if current_type == GameObj.BUILDING and (obj.name in command_structures):
                         obj_energy = obj.calc_energy(self.gameloop)
                         if obj_energy and obj.status == 'live':
                             if 'energy' not in object_summary['race']:
@@ -159,21 +159,21 @@ class PlayerState:
                 self.player.idle_larva.append(current_idle_larva)
 
             if worker:
-                if obj.status == obj_status.LIVE:
+                if obj.status == GameObj.LIVE:
                     object_summary['workers_active'] += 1
-                elif obj.status == obj_status.DIED:
+                elif obj.status == GameObj.DIED:
                     object_summary['workers_lost'] += 1
                 object_summary['workers_produced'] += 1
 
-                if obj_type.WORKER not in object_summary['unit'][obj.name]['type']:
-                    object_summary['unit'][obj.name]['type'].append(obj_type.WORKER)
+                if GameObj.WORKER not in object_summary['unit'][obj.name]['type']:
+                    object_summary['unit'][obj.name]['type'].append(GameObj.WORKER)
 
-            elif obj_type.UNIT in obj.type:
-                if obj.status == obj_status.LIVE:
+            elif GameObj.UNIT in obj.type:
+                if obj.status == GameObj.LIVE:
                     object_summary['army_value']['minerals'] += obj.mineral_cost
                     object_summary['army_value']['gas'] += obj.gas_cost
                     object_summary['total_army_value'] += obj.mineral_cost + obj.gas_cost
-                elif obj.status == obj_status.DIED:
+                elif obj.status == GameObj.DIED:
                     object_summary['resources_lost']['minerals'] += obj.mineral_cost
                     object_summary['resources_lost']['gas'] += obj.gas_cost
                     object_summary['total_resources_lost'] += obj.mineral_cost + obj.gas_cost

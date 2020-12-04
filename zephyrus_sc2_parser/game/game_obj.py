@@ -1,8 +1,18 @@
 import math
-from dataclasses import dataclass
 
 
 class GameObj:
+    # obj statuses
+    LIVE = 'LIVE'
+    DIED = 'DIED'
+    IN_PROGRESS = 'IN_PROGRESS'
+
+    # obj types
+    UNIT = 'UNIT'
+    BUILDING = 'BUILDING'
+    WORKER = 'WORKER'
+    SUPPLY = 'SUPPLY'
+
     def __init__(self, name, obj_id, game_id, tag, priority, mineral_cost, gas_cost):
         self.name = name
         self.type = []

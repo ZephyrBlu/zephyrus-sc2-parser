@@ -314,9 +314,17 @@ class SelectionEvent(BaseEvent):
 
         logger.debug(f'Player: {player.name} ({player.player_id})')
 
-        # if not current selection control group, exit early
-        # this is handled on an object level
+        # need to handle Egg hatching here
         if event['m_controlGroupId'] != 10:
+            ctrl_group_num = event['m_controlGroupId']
+            logger.debug(f'Control group (Before): {player.control_groups[ctrl_group_num]}')
+            logger.debug(f'Current selection (Before): {player.current_selection}')
+
+            # new selection handles adding units
+            self._handle_new_selection(ctrl_group_num)
+
+            logger.debug(f'Control group (After): {player.control_groups[ctrl_group_num]}')
+            logger.debug(f'Current selection (After): {player.current_selection}')
             return
 
         selection_game_ids = self.event['m_delta']['m_addUnitTags']

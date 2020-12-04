@@ -3,7 +3,6 @@ import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 from zephyrus_sc2_parser.game import GameObj
 from zephyrus_sc2_parser.dataclasses import Position
-from zephyrus_sc2_parser.constants import obj_status, obj_type
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +72,11 @@ class ObjectEvent(BaseEvent):
             # convert to uppercase for comparisons
             new_game_obj.type.append(value.upper())
 
-            if value == obj_type.UNIT:
+            if value == GameObj.UNIT:
                 new_game_obj.supply = obj['supply']
-            elif value == obj_type.BUILDING:
+            elif value == GameObj.BUILDING:
                 new_game_obj.queue = []
-            elif value == obj_type.SUPPLY:
+            elif value == GameObj.SUPPLY:
                 if obj_name == 'Overlord' or 'Overseer':
                     new_game_obj.supply_provided = 8
                 else:
@@ -88,6 +87,7 @@ class ObjectEvent(BaseEvent):
 
     def _update_obj_group_info(self, obj):
         logger.debug(f'Updating control group references in object {obj}')
+
         for group_num, index in obj.control_groups.items():
             logger.debug(f'Object at position {index} in control group {group_num}')
             if group_num not in self.player.control_groups:
@@ -102,7 +102,7 @@ class ObjectEvent(BaseEvent):
                 logger.debug(f'Removed object {ctrl_group[index]} from control group {group_num}')
                 del ctrl_group[index]
             else:
-                logger.warning(f'Object position ({index}) is greater outside bounds of control group ({len(ctrl_group)})')
+                logger.warning(f'Index ({index}) of object {obj} is outside bounds of control group {group_num} ({len(ctrl_group)}) {ctrl_group}, {self.gameloop}')
 
             ctrl_group.append(obj)
             ctrl_group.sort(key=lambda x: x.tag)
@@ -143,7 +143,7 @@ class ObjectEvent(BaseEvent):
         protocol = self.protocol
 
         if self.type == 'NNet.Replay.Tracker.SUnitInitEvent':
-            obj.status = obj_status.IN_PROGRESS
+            obj.status = GameObj.IN_PROGRESS
             obj.init_time = gameloop
             obj.position = Position(
                 event['m_x'],
@@ -153,7 +153,7 @@ class ObjectEvent(BaseEvent):
             logger.debug(f'Updated object init_time to: {obj.init_time}')
             logger.debug(f'Updated object position to: {obj.position}')
 
-            if player.warpgate_cooldowns and obj_type.UNIT in obj.type:
+            if player.warpgate_cooldowns and GameObj.UNIT in obj.type:
                 first_cooldown = player.warpgate_cooldowns[0]
                 time_past_cooldown = gameloop - (first_cooldown[0] + first_cooldown[1])
 
@@ -165,7 +165,7 @@ class ObjectEvent(BaseEvent):
                     )
 
             # only warped in units generate this event
-            if obj_type.UNIT in obj.type and obj.name != 'Archon' and obj.name != 'OracleStasisTrap':
+            if GameObj.UNIT in obj.type and obj.name != 'Archon' and obj.name != 'OracleStasisTrap':
                 player.warpgate_cooldowns.append((gameloop, obj.cooldown))
                 player.warpgate_cooldowns.sort(key=lambda x: x[0] + x[1])
 
@@ -179,19 +179,19 @@ class ObjectEvent(BaseEvent):
 
         elif self.type == 'NNet.Replay.Tracker.SUnitDoneEvent':
             obj.birth_time = gameloop
-            obj.status = obj_status.LIVE
+            obj.status = GameObj.LIVE
 
             logger.debug(f'Updated object birth_time to: {obj.birth_time}')
             logger.debug(f'Updated object status to: {obj.status}')
 
         elif self.type == 'NNet.Replay.Tracker.SUnitBornEvent':
             obj.birth_time = gameloop
-            obj.status = obj_status.LIVE
+            obj.status = GameObj.LIVE
 
             logger.debug(f'Updated object birth_time to: {obj.birth_time}')
             logger.debug(f'Updated object status to: {obj.status}')
 
-            if obj_type.WORKER in obj.type:
+            if GameObj.WORKER in obj.type:
                 summary_stats['workers_produced'][player.player_id] += 1
 
             if not obj.position:
@@ -202,7 +202,7 @@ class ObjectEvent(BaseEvent):
                 logger.debug(f'Updated object position to: {obj.position}')
 
         elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
-            obj.status = obj_status.DIED
+            obj.status = GameObj.DIED
             obj.death_time = gameloop
 
             logger.debug(f'Updated object status to: {obj.status}')
