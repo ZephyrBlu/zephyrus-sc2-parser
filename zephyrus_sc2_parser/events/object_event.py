@@ -98,16 +98,6 @@ class ObjectEvent(BaseEvent):
 
             logger.debug(f'Control group length: {len(ctrl_group)}')
 
-            if len(ctrl_group) - 1 >= index:
-                logger.debug(f'Removed object {ctrl_group[index]} from control group {group_num}')
-                del ctrl_group[index]
-            else:
-                logger.warning(f'Index ({index}) of object {obj} is outside bounds of control group {group_num} ({len(ctrl_group)}) {ctrl_group}, {self.gameloop}')
-
-            ctrl_group.append(obj)
-            ctrl_group.sort(key=lambda x: x.tag)
-            logger.debug(f'Added object {obj} to control group {group_num}')
-
             # re-order control group after adding new object
             logging.debug('Updating object control group references')
             for index, obj in enumerate(ctrl_group):
