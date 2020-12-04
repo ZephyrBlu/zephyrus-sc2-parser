@@ -195,9 +195,32 @@ class ControlGroupEvent(BaseEvent):
 
         elif event['m_controlGroupUpdate'] == 4:
             logger.debug('m_controlGroupUpdate = 4 (Overwriting control group)')
+
+            # remove references to control group from existing objects
+            self._remove_obj_group_info(ctrl_group_num)
+
+            # clear control group since we are overwriting
             player.control_groups[ctrl_group_num] = []
             control_group = player.control_groups[ctrl_group_num]
+
+            # remove references to other control groups from objects to be added
+            # this is control group 'stealing'
+            logger.debug(f'Removing references to other control groups from objects')
+            for obj in player.current_selection:
+                logger.debug(f'Object: {obj}')
+                # obj index needs to be correct so right obj is deleted
+                for group, index in obj.control_groups.items():
+                    logger.debug(f'Removing {player.control_groups[group][index]} from control group {group} at position {index}')
+                    del player.control_groups[group][index]
+
+                    # update object references to group since an object has been removed
+                    self._set_obj_group_info(group)
+                obj.control_groups = {}
+
+            # add new objects to control group
             self._copy_from_selection(player.current_selection, control_group)
+
+            # set references to control group for new objects
             self._set_obj_group_info(ctrl_group_num)
 
         if ctrl_group_num in player.control_groups:
