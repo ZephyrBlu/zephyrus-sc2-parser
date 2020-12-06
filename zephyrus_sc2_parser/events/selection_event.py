@@ -174,11 +174,13 @@ class SelectionEvent(BaseEvent):
         # if we have more than 8 bits, we need to pad the string
         # to the correct number of bytes for the next operations
         if len(bitmask) % 8 != 0:
-            bitmask = bitmask.rjust(ceil * 8, '0')
+            bitmask_bytes = bitmask[:(ceil * 8) - 8]
+            remaining_bits = bitmask[(ceil * 8) - 8:]
+            bitmask = bitmask_bytes + remaining_bits.rjust(8, '0')
 
         # slice the bitmask into bytes, reverse the byte string and record it in order
         bitmask_sects = []
-        for i in range(0, ceil + 1):
+        for i in range(0, ceil):
             section = bitmask[8 * i:(8 * i) + 8]
             bitmask_sects.append(section[::-1])
         final_bitmask = ''.join(bitmask_sects)

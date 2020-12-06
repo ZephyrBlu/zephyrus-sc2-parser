@@ -57,6 +57,7 @@ class ObjectEvent(BaseEvent):
             obj['obj_id'],
             game_id,
             unit_tag_index,
+            unit_tag_recycle,
             obj['priority'],
             obj['mineral_cost'],
             obj['gas_cost']
@@ -179,6 +180,19 @@ class ObjectEvent(BaseEvent):
 
             logger.debug(f'Updated object status to: {obj.status}')
             logger.debug(f'Updated object death_time to: {obj.death_time}')
+
+            # # control groups aren't automatically updated when an object dies
+            # # so we need to do it manually
+            # if obj.control_groups:
+            #     for ctrl_group, index in obj.control_groups.items():
+            #         # remove reference to control group
+            #         del player.control_groups[ctrl_group][index]
+
+            #         # from ControlGroupEvent, _set_obj_group_info
+            #         logger.debug(f'Binding control group {ctrl_group} to objects')
+            #         for index, obj in enumerate(player.control_groups[ctrl_group]):
+            #             obj.control_groups[ctrl_group] = index
+            #             logger.debug(f'Binding control group {ctrl_group} to {obj} at position {index}')
 
             if obj.name == 'WarpGate' and player.warpgate_cooldowns:
                 player.warpgate_cooldowns.pop()

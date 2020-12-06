@@ -61,11 +61,13 @@ class ControlGroupEvent(BaseEvent):
         # if we have more than 8 bits, we need to pad the string
         # to the correct number of bytes for the next operations
         if len(bitmask) % 8 != 0:
-            bitmask = bitmask.rjust(ceil * 8, '0')
+            bitmask_bytes = bitmask[:(ceil * 8) - 8]
+            remaining_bits = bitmask[(ceil * 8) - 8:]
+            bitmask = bitmask_bytes + remaining_bits.rjust(8, '0')
 
         # slice the bitmask into bytes, reverse the byte string and record it in order
         bitmask_sects = []
-        for i in range(0, ceil + 1):
+        for i in range(0, ceil):
             section = bitmask[8 * i:(8 * i) + 8]
             bitmask_sects.append(section[::-1])
         final_bitmask = ''.join(bitmask_sects)
@@ -171,10 +173,9 @@ class ControlGroupEvent(BaseEvent):
             if ctrl_group_num not in player.control_groups:
                 player.control_groups[ctrl_group_num] = []
 
+            self._add_to_group(ctrl_group_num)
             if 'Mask' in event['m_mask']:
                 self._remove_from_group(ctrl_group_num)
-            else:
-                self._add_to_group(ctrl_group_num)
             self._set_obj_group_info(ctrl_group_num)
 
         elif event['m_controlGroupUpdate'] == 2:
@@ -207,32 +208,9 @@ class ControlGroupEvent(BaseEvent):
 
             # remove references to other control groups from objects to be added
             # this is control group 'stealing'
-            # objects to be deleted are aggregated to ensure previous deletions do not affect future ones
             logger.debug(f'Removing references to other control groups from objects')
-            objects_to_delete = {}
             for obj in player.current_selection:
-                # obj index needs to be correct so right obj is deleted
-                for group, index in obj.control_groups.items():
-                    if group not in objects_to_delete:
-                        objects_to_delete[group] = []
-                    # attach obj index to the current group num
-                    objects_to_delete[group].append(index)
-                # reset control group references
                 obj.control_groups = {}
-
-            # delete aggregated objects in each recorded control group
-            for group, indexes in objects_to_delete.items():
-                indexes.sort()
-                logger.debug(f'Removing {len(indexes)} objects at positions {indexes} from control group {group}: {player.control_groups[group]}')
-
-                # iterate through indexes from back to front
-                # this prevents previous deletions affecting future ones
-                for i in range(len(indexes) - 1, -1, -1):
-                    logger.debug(f'Removing {player.control_groups[group][indexes[i]]} from control group {group} at position {indexes[i]}')
-                    del player.control_groups[group][indexes[i]]
-
-                # update object references to group since one or more objects have been removed
-                self._set_obj_group_info(group)
 
             # add new objects to control group
             self._copy_from_selection(player.current_selection, control_group)

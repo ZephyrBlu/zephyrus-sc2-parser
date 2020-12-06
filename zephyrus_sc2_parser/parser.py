@@ -165,8 +165,6 @@ def _setup(filename):
 
     game_length = None
     for event in events:
-        # print(event)
-        # print('\n')
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
             logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
             game_length = event['_gameloop']
@@ -235,6 +233,8 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
             if current_event.player and current_event.player.current_selection:
                 player = current_event.player
 
+                # TODO: only alter selection if end time is not same gameloop as start time
+
                 # empty list of selections i.e. first selection
                 if not player.selections:
                     player.selections.append({
@@ -245,7 +245,11 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
 
                 # if the player's current selection has changed
                 # update it and add the new selection
-                elif player.current_selection != player.selections[-1]:
+                # will only update if there have been at least 5 gameloops since start of selection
+                elif (
+                    player.current_selection != player.selections[-1]
+                    and (gameloop - player.selections[-1]['start'] >= 5)
+                ):
                     player.selections[-1]['end'] = gameloop
                     player.selections.append({
                         'selection': player.current_selection,
