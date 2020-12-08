@@ -139,13 +139,24 @@ class ControlGroupEvent(BaseEvent):
 
         -----
 
-        4: Overwrite a control group.
+        4: Steal and bind the current selection to a control group.
 
         Example: A player selects a unit already bound
         to control group 1, then presses Alt+3 to
-        to rebind the unit to control group 3. In this case
-        control group 1 is overwritten with a new version
-        that does not include the unit that was removed.
+        to rebind the unit to control group 3. In this case,
+        the unit is removed from control group 1 and
+        control group 3 is overwritten with the new control group
+        that includes the unit that was removed.
+
+        -----
+
+        5: Steal and add the current selection to a control group.
+
+        Example: A player selects a unit already bound
+        to control group 1, then presses Shift+Alt+3 to
+        to rebind the unit to control group 3. In this case,
+        the unit is removed from control group 1 and added
+        to control group 3.
         """
         player = self.player
         event = self.event
@@ -174,6 +185,7 @@ class ControlGroupEvent(BaseEvent):
                 player.control_groups[ctrl_group_num] = []
 
             self._add_to_group(ctrl_group_num)
+            # limited to Eggs hatches/Larva swapping?
             if 'Mask' in event['m_mask']:
                 self._remove_from_group(ctrl_group_num)
             self._set_obj_group_info(ctrl_group_num)
@@ -195,7 +207,7 @@ class ControlGroupEvent(BaseEvent):
                 del player.control_groups[ctrl_group_num]
 
         elif event['m_controlGroupUpdate'] == 4:
-            logger.debug('m_controlGroupUpdate = 4 (Overwriting control group)')
+            logger.debug('m_controlGroupUpdate = 4 (Steal and bind current selection to control group)')
 
             # control group may not exist yet
             if ctrl_group_num in player.control_groups:
@@ -214,6 +226,25 @@ class ControlGroupEvent(BaseEvent):
 
             # add new objects to control group
             self._copy_from_selection(player.current_selection, control_group)
+
+            # set references to control group for new objects
+            self._set_obj_group_info(ctrl_group_num)
+
+        elif event['m_controlGroupUpdate'] == 5:
+            logger.debug('m_controlGroupUpdate = 5 (Steal and add current selection to control group)')
+
+            # remove references to other control groups from objects to be added
+            # this is control group 'stealing'
+            logger.debug(f'Removing references to other control groups from objects')
+            for obj in player.current_selection:
+                obj.control_groups = {}
+
+            # this control group event can be called on an non-existent group
+            if ctrl_group_num not in player.control_groups:
+                player.control_groups[ctrl_group_num] = []
+
+            # add new objects to control group
+            self._add_to_group(ctrl_group_num)
 
             # set references to control group for new objects
             self._set_obj_group_info(ctrl_group_num)
