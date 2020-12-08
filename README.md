@@ -53,12 +53,25 @@ The `creep` flag can be used to disable tracking Creep spread, as it requires a 
 
 ### Return Values
 
-The parser returns 5 values, a dictionary containing both player objects, a list of recorded game states, a list of recorded engagements, a dictionary of summary stats containing
-general information about both players and a dictionary of metadata about the game.
+The parser returns a [named tuple](https://docs.python.org/3/library/collections.html#collections.namedtuple) which can either be handled like a single object, or spread into distinct values.
 
-Currently the list of engagements is empty, but it will contain engagement data in the future.
+The data returned is:
+- Dictionary containing both player objects
+- List of recorded game states
+- List of recorded engagements
+- Dictionary of summary stats containing general information about both players
+- Dictionary of metadata about the game
 
-`players, timeline, engagements, summary_stats, metadata = parse_replay(filepath, local=False, creep=True)`
+Currently engagements is empty, but it will contain engagement data in the future.
+```
+# data can be accessed with dot notation
+# replay.players, replay.timeline, replay.engagements, replay.summary, replay.metadata
+replay = parse_replay(filepath, local=False, creep=True)
+
+OR
+
+players, timeline, engagements, summary_stats, metadata = parse_replay(filepath, local=False, creep=True)
+```
 
 Example of `players`:
 

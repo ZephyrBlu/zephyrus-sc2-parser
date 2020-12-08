@@ -177,9 +177,6 @@ def _create_players(player_info, events, test_flag):
             }
 
         logger.warning('Replay does not contain exactly 2 players')
-        # player_obj = min(players, key=lambda x: x.player_id)
-        # player_obj.player_id = events[setup_index]['m_playerId']
-        # player_obj.user_id = events[setup_index]['m_userId']
         raise PlayerCountError(f'There are {len(players)} in the replay. Only 2 player replays are supported')
 
     # if both user_id's larger than 2 then lowest user_id first, the largest

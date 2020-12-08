@@ -57,7 +57,7 @@ class ControlGroupEvent(BaseEvent):
         bitmask = bin(mask_y)[2:]
 
         # ceil = number of bytes
-        ceil = math.ceil(len(bitmask)/8)
+        ceil = math.ceil(len(bitmask) / 8)
         # if we have more than 8 bits, we need to pad the string
         # to the correct number of bytes for the next operations
         if len(bitmask) % 8 != 0:
