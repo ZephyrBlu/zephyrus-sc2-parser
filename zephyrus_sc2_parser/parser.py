@@ -244,28 +244,16 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
                 # if the time and player's current selection has changed
                 # update it and add the new selection
                 # 2 gameloops ~ 0.09s
-                elif gameloop - player.selections[-1]['start'] >= 2:
-                    prev_selection = []
-                    # since GameObj's are mutable, we can check the current state
-                    # of the obj even though the selection is in the past
-                    for obj in player.selections[-1]['selection']:
-                        # we don't want to record a new selection if objects have died
-                        # these selections should be player driven
-                        # so if an object died since the last selection, don't include in comparison
-                        if obj.status != GameObj.DIED:
-                            prev_selection.append(obj)
-
-                    # print(f'Gameloop: {gameloop}')
-                    # print(f'Prev: {player.selections[-1]["selection"]}')
-                    # print(f'Filtered: {prev_selection}')
-                    # print(f'Current: {player.current_selection}')
-                    if player.current_selection != prev_selection:
-                        player.selections[-1]['end'] = gameloop
-                        player.selections.append({
-                            'selection': player.current_selection,
-                            'start': gameloop,
-                            'end': None,
-                        })
+                elif (
+                    gameloop - player.selections[-1]['start'] >= 2
+                    and player.current_selection != player.selections[-1]['selection']
+                ):
+                    player.selections[-1]['end'] = gameloop
+                    player.selections.append({
+                        'selection': player.current_selection,
+                        'start': gameloop,
+                        'end': None,
+                    })
 
             if (
                 current_event.type in action_events
