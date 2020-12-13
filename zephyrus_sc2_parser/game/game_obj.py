@@ -43,6 +43,9 @@ class GameObj:
     def __eq__(self, other):
         return self.game_id == other.game_id
 
+    def __hash__(self):
+        return hash(self.game_id)
+
     def __repr__(self):
         return f'({self.name}, {self.tag})'
 
