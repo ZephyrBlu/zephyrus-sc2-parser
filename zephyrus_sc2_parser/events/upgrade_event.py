@@ -1,5 +1,6 @@
 import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
+from zephyrus_sc2_parser.dataclasses import Upgrade
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,6 @@ class UpgradeEvent(BaseEvent):
 
         if upgrade_name:
             logger.debug(f'Adding upgrade: {upgrade_name} to player')
-            player.upgrades.append(upgrade_name)
+            player.upgrades.append(Upgrade(upgrade_name, gameloop))
         else:
             logger.warning(f'Unknown upgrade: {event["m_upgradeTypeName"].decode("utf-8")}')

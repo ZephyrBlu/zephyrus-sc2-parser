@@ -40,6 +40,12 @@ class Position:
 
 
 @dataclass(frozen=True)
+class Upgrade:
+    name: str
+    completed_at: str
+
+
+@dataclass(frozen=True)
 class Ability:
     name: str
     energy_cost: Optional[int] = None

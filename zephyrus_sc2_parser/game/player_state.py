@@ -78,7 +78,7 @@ class PlayerState:
             )
 
         for upg in self.player.upgrades:
-            object_summary['upgrade'].append(upg)
+            object_summary['upgrade'].append(upg.name)
 
         if self.player.race == 'Zerg':
             map_creep_coverage, tumors_active, tumors_died = self.player.calc_creep(self.game.map)
