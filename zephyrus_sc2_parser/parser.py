@@ -4,7 +4,7 @@ import math
 import heapq
 import logging
 from zephyrus_sc2_parser.s2protocol_fixed import versions
-from zephyrus_sc2_parser.game import Game, GameObj, PlayerState
+from zephyrus_sc2_parser.game import Game, PlayerState
 from zephyrus_sc2_parser.dataclasses import Replay
 from zephyrus_sc2_parser.utils import (
     _generate_initial_summary_stats,
