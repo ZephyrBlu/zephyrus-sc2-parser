@@ -15,7 +15,7 @@ from mpyq import MPQArchive
 from zephyrus_sc2_parser.s2protocol_fixed.versions import build, list_all, latest
 from zephyrus_sc2_parser.s2protocol_fixed.diff import diff
 from zephyrus_sc2_parser.s2protocol_fixed.compat import get_stream
-import attributes as _attr
+from zephyrus_sc2_parser.s2protocol_fixed import attributes as _attr
 
 __all__ = (
     'EventFilter', 'JSONOutputFilter', 'NDJSONOutputFilter',
