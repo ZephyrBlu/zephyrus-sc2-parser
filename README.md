@@ -125,7 +125,6 @@ Example of `summary_stats`:
 
     {
         'mmr': { 1: 3958, 2: 3893 },
-        'mmr_diff': { 1: 65, 2: -65 },
         'avg_resource_collection_rate': {
             'minerals': { 1: 1150.9, 2: 1238.6 },
             'gas': { 1: 321.7, 2: 316.8 }
