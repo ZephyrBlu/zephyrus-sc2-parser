@@ -25,4 +25,7 @@ setuptools.setup(
         "Topic :: Games/Entertainment :: Real Time Strategy",
     ],
     python_requires='>=3.8',
+    entry_points={
+        'console_scripts': ['s2_cli=zephyrus_sc2_parser.s2protocol_fixed.s2_cli:main']
+    }
 )
