@@ -52,10 +52,10 @@ The `detailed` flag is also useful if you want to access raw data stored in `Pla
 
 ### Return Values
 
-The parser returns 4 values, a dictionary containing both player objects, a list of recorded game states, a dictionary of summary stats containing
+The parser returns 5 values, a dictionary containing both player objects, a list of recorded game states, an analysis of the engagements (currently always an empty list because of issues with sc2\_simulator), a dictionary of summary stats containing
 general information about both players and a dictionary of metadata about the game.
 
-`players, timeline, summary_stats, metadata = parse_replay(filepath, local=False, detailed=True)`
+`players, timeline, engagement_analysis, summary_stats, metadata = parse_replay(filepath, local=False, detailed=True)`
 
 Example of `players`:
 
