@@ -94,8 +94,8 @@ class PlayerState:
 
         current_idle_larva = 0
         for obj in self.player.objects.values():
-            # High Templars die when they morph, should not be counted
-            if obj.name == 'HighTemplar' and obj.morph_time:
+            # High Templars and Drones die when they morph, should not be counted
+            if (obj.name == 'HighTemplar' or obj.name == 'Drone') and obj.morph_time:
                 continue
 
             if obj.name == 'Larva' and obj.status == GameObj.LIVE:
