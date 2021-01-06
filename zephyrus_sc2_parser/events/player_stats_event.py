@@ -1,15 +1,16 @@
 import logging
+from typing import Dict
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 
 logger = logging.getLogger(__name__)
 
 
 class PlayerStatsEvent(BaseEvent):
-    def __init__(self, summary_stats, *args):
+    def __init__(self, summary_stats: Dict, *args):
         super().__init__(*args)
-        self.summary_stats = summary_stats
+        self.summary_stats: Dict = summary_stats
 
-    def parse_event(self):
+    def parse_event(self) -> Dict:
         event = self.event
         player = self.player
         gameloop = self.gameloop

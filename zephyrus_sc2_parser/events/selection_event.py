@@ -1,15 +1,17 @@
 import math
 import logging
+from typing import Union, Literal, List
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 
 logger = logging.getLogger(__name__)
+SelectionType = Union[Literal['new'], Literal['sub']]
 
 
 class SelectionEvent(BaseEvent):
     def __init__(self, *args):
         super().__init__(*args)
 
-    def _add_to_selection(self, ctrl_group_num, new_obj_ids):
+    def _add_to_selection(self, ctrl_group_num: int, new_obj_ids: List[int]):
         player = self.player
 
         logger.debug('Adding new objects to current selection or control group')
@@ -47,7 +49,7 @@ class SelectionEvent(BaseEvent):
         else:
             player.current_selection = selection
 
-    def _is_morph(self):
+    def _is_morph(self) -> bool:
         units = self.game.gamedata.units
 
         # checking for Archon being added
@@ -56,7 +58,7 @@ class SelectionEvent(BaseEvent):
                 return True
         return False
 
-    def _handle_zero_indices(self, ctrl_group_num, *, selection_type):
+    def _handle_zero_indices(self, ctrl_group_num: int, *, selection_type: SelectionType):
         """
         new: Clear the current selection and create a new one
         containing the newly selected units/buildings
@@ -108,7 +110,7 @@ class SelectionEvent(BaseEvent):
         else:
             player.current_selection = selection
 
-    def _handle_one_indices(self, ctrl_group_num, *, selection_type):
+    def _handle_one_indices(self, ctrl_group_num: int, *, selection_type: SelectionType):
         """
         new: Remove the unit/building in the position given
         by 'm_removeMask' from the current selection.
@@ -164,7 +166,7 @@ class SelectionEvent(BaseEvent):
             else:
                 player.current_selection = selection
 
-    def _create_bitmask(self, mask_x, mask_y, length):
+    def _create_bitmask(self, mask_x: int, mask_y: int, length: int):
         logger.debug('Creating bitmask')
         # remove 0b prefix from string
         bitmask = bin(mask_y)[2:]
@@ -193,7 +195,7 @@ class SelectionEvent(BaseEvent):
         logger.debug(f'Final bitmask: {final_bitmask}')
         return final_bitmask
 
-    def _handle_mask(self, ctrl_group_num, *, selection_type):
+    def _handle_mask(self, ctrl_group_num: int, *, selection_type: SelectionType):
         """
         new:
 
@@ -230,7 +232,7 @@ class SelectionEvent(BaseEvent):
         if selection_type == 'new':
             self._add_to_selection(ctrl_group_num, event['m_delta']['m_addUnitTags'])
 
-    def _handle_none(self, ctrl_group_num, *, selection_type):
+    def _handle_none(self, ctrl_group_num: int, *, selection_type: SelectionType):
         """
         new: Add the new units/buildings to the current selection.
         """
@@ -240,7 +242,7 @@ class SelectionEvent(BaseEvent):
             selection_game_ids = self.event['m_delta']['m_addUnitTags']
             self._add_to_selection(ctrl_group_num, selection_game_ids)
 
-    def _handle_new_selection(self, ctrl_group_num):
+    def _handle_new_selection(self, ctrl_group_num: int):
         """
         ZeroIndices: Occurs on a new selection of units/buildings
 
@@ -294,7 +296,7 @@ class SelectionEvent(BaseEvent):
         elif 'None' in event['m_delta']['m_removeMask']:
             self._handle_none(ctrl_group_num, selection_type='new')
 
-    def _handle_sub_selection(self, ctrl_group_num):
+    def _handle_sub_selection(self, ctrl_group_num: int):
         """
         ZeroIndices: Occurs on a sub selection when there is a
         maximum of 1 unit/building selected for every 8 in the

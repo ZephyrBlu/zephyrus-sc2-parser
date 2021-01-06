@@ -1,5 +1,6 @@
 import copy
 import logging
+from typing import Dict, Optional
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 from zephyrus_sc2_parser.game.game_obj import GameObj
 from zephyrus_sc2_parser.dataclasses import Position
@@ -8,12 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 class ObjectEvent(BaseEvent):
-    def __init__(self, protocol, summary_stats, *args):
+    def __init__(self, protocol: int, summary_stats: Dict, *args):
         super().__init__(*args)
-        self.protocol = protocol
-        self.summary_stats = summary_stats
+        self.protocol: int = protocol
+        self.summary_stats: Dict = summary_stats
 
-    def _get_or_create_game_object(self):
+    def _get_or_create_game_object(self) -> Optional[GameObj]:
         units = self.game.gamedata.units
         buildings = self.game.gamedata.buildings
 

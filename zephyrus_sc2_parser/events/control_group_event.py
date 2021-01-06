@@ -1,6 +1,7 @@
 import math
 import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
+from zephyrus_sc2_parser.game.game_obj import GameObj
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +10,7 @@ class ControlGroupEvent(BaseEvent):
     def __init__(self, *args):
         super().__init__(*args)
 
-    def _set_obj_group_info(self, ctrl_group_num):
+    def _set_obj_group_info(self, ctrl_group_num: int):
         logger.debug(f'Binding control group {ctrl_group_num} to objects')
         ctrl_group = self.player.control_groups[ctrl_group_num]
 
@@ -17,7 +18,7 @@ class ControlGroupEvent(BaseEvent):
             obj.control_groups[ctrl_group_num] = index
             logger.debug(f'Binding control group {ctrl_group_num} to {obj} at position {index}')
 
-    def _remove_obj_group_info(self, ctrl_group_num):
+    def _remove_obj_group_info(self, ctrl_group_num: int):
         logger.debug(f'Removing control group {ctrl_group_num} from objects')
         ctrl_group = self.player.control_groups[ctrl_group_num]
 
@@ -28,13 +29,13 @@ class ControlGroupEvent(BaseEvent):
                     logger.debug(f'Removed control group {ctrl_group_num} from {obj} at position {index}')
                     break
 
-    def _copy_from_selection(self, selection, target):
+    def _copy_from_selection(self, selection: GameObj, target: GameObj):
         logger.debug('Copying from selection to target')
         for obj in selection:
             if obj not in target:
                 target.append(obj)
 
-    def _add_to_group(self, ctrl_group_num):
+    def _add_to_group(self, ctrl_group_num: int):
         logger.debug(f'Adding current selection to control group {ctrl_group_num}')
         new_obj_list = self.player.current_selection
         control_group = self.player.control_groups[ctrl_group_num]
@@ -51,7 +52,7 @@ class ControlGroupEvent(BaseEvent):
                 control_group.append(new_obj)
         control_group.sort(key=lambda x: x.tag)
 
-    def _create_bitmask(self, mask_x, mask_y, length):
+    def _create_bitmask(self, mask_x: int, mask_y: int, length: int):
         logger.debug('Creating bitmask')
         # remove 0b prefix from string
         bitmask = bin(mask_y)[2:]
@@ -80,7 +81,7 @@ class ControlGroupEvent(BaseEvent):
         logger.debug(f'Final bitmask: {final_bitmask}')
         return final_bitmask
 
-    def _remove_from_group(self, ctrl_group_num):
+    def _remove_from_group(self, ctrl_group_num: int):
         """
         new:
 
