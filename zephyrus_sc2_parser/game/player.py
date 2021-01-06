@@ -1,6 +1,6 @@
 import math
 from dataclasses import dataclass
-from typing import Union, Literal, Optional, Dict, List, Set, Tuple
+from typing import Union, Literal, Optional, Dict, List, Set, Tuple, AnyStr
 from zephyrus_sc2_parser.dataclasses import (
     Gameloop,
     Resource,
@@ -48,19 +48,22 @@ class Player:
         profile_id: int,
         region_id: int,
         realm_id: int,
-        name: str,
-        race: Race,
+        name: AnyStr,
+        race: AnyStr,
     ):
         self.player_id: int = player_id
 
         if type(name) is bytes:
-            self.name: str = name.decode('utf-8').split('>')[-1]
+            formatted_name: str = name.decode('utf-8').split('>')[-1]
         else:
-            self.name: str = name.split('>')[-1]
-        if type(name) is bytes:
-            self.race: Race = race.decode('utf-8')
+            formatted_name: str = name.split('>')[-1]
+        self.name: str = formatted_name
+
+        if type(race) is bytes:
+            formatted_race: Race = race.decode('utf-8')
         else:
-            self.race: Race = race
+            formatted_race: Race = race
+        self.race: Race = formatted_race
 
         self.user_id: Optional[int] = None
         self.profile_id: int = profile_id

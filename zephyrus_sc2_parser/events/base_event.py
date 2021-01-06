@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional, Literal
+from typing import Dict, Optional, Union, Literal
 from zephyrus_sc2_parser.game.game import Game
 from zephyrus_sc2_parser.game.player import Player
 from zephyrus_sc2_parser.dataclasses import Gameloop
@@ -12,10 +12,10 @@ class BaseEvent:
         self.game: Game = game
         self.event: Dict = event
         self.type: str = event['_event']
-        self.player: Player = self._identify_player(game, event)
+        self.player: Union[Player, Literal[False], None] = self._identify_player(game, event)
         self.gameloop: Gameloop = event['_gameloop']
 
-    def _identify_player(self, game: Game, event: Dict) -> Optional[Literal[False]]:
+    def _identify_player(self, game: Game, event: Dict) -> Union[Player, Literal[False], None]:
         no_player = [
             'NNet.Replay.Tracker.SUnitDoneEvent',
             'NNet.Replay.Tracker.SUnitDiedEvent',

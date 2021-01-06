@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class ObjectEvent(BaseEvent):
-    def __init__(self, protocol: int, summary_stats: Dict, *args):
+    def __init__(self, protocol, summary_stats: Dict, *args):
         super().__init__(*args)
-        self.protocol: int = protocol
+        self.protocol = protocol
         self.summary_stats: Dict = summary_stats
 
     def _get_or_create_game_object(self) -> Optional[GameObj]:

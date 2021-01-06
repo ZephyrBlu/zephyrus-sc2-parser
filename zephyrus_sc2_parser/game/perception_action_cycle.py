@@ -14,7 +14,7 @@ class PerceptionActionCycle:
         self.final_camera_position: Optional[Position] = None
         self.final_gameloop: Optional[Gameloop] = None
         self.actions: List[int] = []
-        self.camera_moves: List[Tuple(Gameloop, Position)] = []
+        self.camera_moves: List[Tuple[Gameloop, Position]] = []
         self.MIN_DURATION: int = 4  # 4 game loops (~2sec) minimum
         self.MIN_CAMERA_MOVE: int = 6  # 6 camera units (x or y) minimum
 

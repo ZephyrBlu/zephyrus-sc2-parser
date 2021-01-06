@@ -40,7 +40,7 @@ class Ability:
 #         <property name>: <property value>
 #     }
 # }
-ObjectData = Dict[str, Dict[str, Union[int, List[str]]]]
+ObjectData = Dict[str, Dict]
 
 # AbilityData = {
 #     <ability id>: {
@@ -49,7 +49,7 @@ ObjectData = Dict[str, Dict[str, Union[int, List[str]]]]
 #         energy_cost: <energy cost>
 #     }
 # }
-AbilityData = Dict[int, Dict[str, Union[str, int]]]
+AbilityData = Dict[int, Dict]
 
 # UpgradeData = {
 #     <upgrade name>: {
@@ -57,7 +57,7 @@ AbilityData = Dict[int, Dict[str, Union[str, int]]]
 #         gas_cost: <gas cost>,
 #     }
 # }
-UpgradeData = Dict[str, Dict[str, int]]
+UpgradeData = Dict[str, Dict]
 
 
 @dataclass(frozen=True)

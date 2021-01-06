@@ -221,17 +221,17 @@ def parse_replay(filename: str, *, local=False, creep=True, _test=False) -> Repl
     logger.info('Created players')
 
     if player_info['m_title'] in non_english_maps:
-        game_map = non_english_maps[player_info['m_title']]
+        map_name = non_english_maps[player_info['m_title']]
     else:
-        game_map = player_info['m_title'].decode('utf-8')
+        map_name = player_info['m_title'].decode('utf-8')
 
     played_at = _convert_time(player_info['m_timeUTC'])
-    map_info = _get_map_info(player_info, game_map, creep)
+    game_map = _get_map_info(player_info, map_name, creep)
     logger.info('Fetched map data')
 
     current_game = Game(
         players,
-        map_info,
+        game_map,
         played_at,
         game_length,
         events,

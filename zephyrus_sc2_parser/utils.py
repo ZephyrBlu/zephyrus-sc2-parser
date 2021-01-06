@@ -7,6 +7,7 @@ import struct
 from pathlib import Path
 from io import BytesIO
 from importlib import import_module
+from typing import Dict
 from zephyrus_sc2_parser.events import (
     ObjectEvent,
     AbilityEvent,
@@ -220,7 +221,7 @@ def _create_players(player_info, events, test_flag):
     }
 
 
-def _get_map_info(player_info, map_name, creep_flag=True):
+def _get_map_info(player_info: Dict, map_name: str, creep_flag=True) -> Map:
     game_map = Map(map_name)
 
     if not creep_flag:

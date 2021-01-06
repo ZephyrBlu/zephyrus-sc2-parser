@@ -47,7 +47,7 @@ class GameObj:
         self.priority: int = priority
         self.mineral_cost: int = mineral_cost
         self.gas_cost: int = gas_cost
-        self.energy: Optional[int] = None
+        self.energy: Optional[float] = None
         self.supply: int = 0
         self.supply_provided: int = 0
         self.cooldown: Optional[int] = None
@@ -56,8 +56,8 @@ class GameObj:
         self.queue: None = None
 
         self.control_groups: Dict[int, int] = {}
-        self.abilities_used: List[Ability, GameObj, Gameloop] = []
-        self.energy_efficiency: Optional[int] = None
+        self.abilities_used: List[Tuple[Ability, GameObj, Gameloop]] = []
+        self.energy_efficiency: Optional[Tuple[float, float]] = None
         self.init_time: Optional[Gameloop] = None
         self.birth_time: Optional[Gameloop] = None
         self.death_time: Optional[Gameloop] = None
@@ -85,7 +85,10 @@ class GameObj:
     def __repr__(self):
         return f'({self.name}, {self.tag})'
 
-    def calc_distance(self, other_position: Position) -> float:
+    def calc_distance(self, other_position: Position) -> Optional[float]:
+        if not self.position:
+            return None
+
         # position contains x, y, z in integer form of floats
         # simple pythagoras theorem calculation
         x_diff = abs(self.position.x - other_position.x)
@@ -93,7 +96,7 @@ class GameObj:
         distance = math.sqrt(x_diff ** 2 + y_diff ** 2)
         return distance
 
-    def calc_energy(self, gameloop: Gameloop) -> float:
+    def calc_energy(self, gameloop: Gameloop) -> Optional[float]:
         # need to check for int since 0 is falsy
         if not self.energy or (not self.morph_time and type(self.birth_time) != int):
             return None
@@ -141,7 +144,7 @@ class GameObj:
                 try:
                     self.energy_efficiency = (round(1 - (time_past_min_energy / gameloop), 3), round(time_past_min_energy / 22.4, 1))
                 except ZeroDivisionError:
-                    self.energy_efficiency = (1, round(time_past_min_energy / 22.4, 1))
+                    self.energy_efficiency = (1.0, round(time_past_min_energy / 22.4, 1))
 
         if gameloop >= energy_maxout(current_gameloop, current_energy, max_energy):
             current_energy = max_energy
@@ -150,13 +153,13 @@ class GameObj:
 
         return round(current_energy, 1)
 
-    def calc_inject_efficiency(self, gameloop: Gameloop) -> Tuple[float, int]:
+    def calc_inject_efficiency(self, gameloop: Gameloop) -> Optional[Tuple[float, int]]:
         if not self.abilities_used or self.name not in ['Hatchery', 'Lair', 'Hive']:
             return None
 
         # only 1 inject = 100% efficiency
         if len(self.abilities_used) == 1:
-            return 1
+            return (1.0, 1)
 
         # ~29sec
         inject_delay = 650

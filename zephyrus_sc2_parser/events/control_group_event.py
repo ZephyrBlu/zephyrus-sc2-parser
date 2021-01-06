@@ -1,5 +1,7 @@
 import math
 import logging
+from dataclasses import dataclass
+from typing import List, Optional
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 from zephyrus_sc2_parser.game.game_obj import GameObj
 
@@ -29,7 +31,7 @@ class ControlGroupEvent(BaseEvent):
                     logger.debug(f'Removed control group {ctrl_group_num} from {obj} at position {index}')
                     break
 
-    def _copy_from_selection(self, selection: GameObj, target: GameObj):
+    def _copy_from_selection(self, selection: List[GameObj], target: List[GameObj]):
         logger.debug('Copying from selection to target')
         for obj in selection:
             if obj not in target:
