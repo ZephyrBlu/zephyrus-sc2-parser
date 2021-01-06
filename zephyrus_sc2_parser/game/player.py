@@ -54,15 +54,15 @@ class Player:
         self.player_id: int = player_id
 
         if type(name) is bytes:
-            formatted_name: str = name.decode('utf-8').split('>')[-1]
+            formatted_name = name.decode('utf-8').split('>')[-1]
         else:
-            formatted_name: str = name.split('>')[-1]
+            formatted_name = name.split('>')[-1]
         self.name: str = formatted_name
 
         if type(race) is bytes:
-            formatted_race: Race = race.decode('utf-8')
+            formatted_race = race.decode('utf-8')
         else:
-            formatted_race: Race = race
+            formatted_race = race
         self.race: Race = formatted_race
 
         self.user_id: Optional[int] = None

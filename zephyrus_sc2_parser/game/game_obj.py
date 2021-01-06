@@ -53,7 +53,7 @@ class GameObj:
         self.cooldown: Optional[int] = None
 
         # currently unused
-        self.queue: None = None
+        self.queue: Optional[List] = None
 
         self.control_groups: Dict[int, int] = {}
         self.abilities_used: List[Tuple[Ability, GameObj, Gameloop]] = []

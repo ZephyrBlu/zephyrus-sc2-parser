@@ -42,7 +42,7 @@ SummaryStat = Dict[str, Dict[int, int]]
 
 # NamedTuple over dataclass so that it can be spread on return
 class Replay(NamedTuple):
-    players: Player
+    players: Dict[int, Player]
     timeline: List[GameState]
     engagements: List
     summary: Union[SummaryStat, Dict[str, SummaryStat]]
