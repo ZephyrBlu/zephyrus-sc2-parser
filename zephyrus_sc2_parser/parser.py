@@ -3,9 +3,13 @@ import json
 import math
 import heapq
 import logging
+from dataclasses import dataclass
+from typing import NamedTuple, Dict, Any, Union, List, Optional
 from zephyrus_sc2_parser.s2protocol_fixed import versions
-from zephyrus_sc2_parser.game import Game, PlayerState
-from zephyrus_sc2_parser.dataclasses import Replay
+from zephyrus_sc2_parser.game.game import Game
+from zephyrus_sc2_parser.game.player import Player
+from zephyrus_sc2_parser.game.game_obj import GameObj
+from zephyrus_sc2_parser.game.player_state import PlayerState
 from zephyrus_sc2_parser.utils import (
     _generate_initial_summary_stats,
     _import_gamedata,
@@ -17,6 +21,40 @@ from zephyrus_sc2_parser.utils import (
 from zephyrus_sc2_parser.exceptions import ReplayDecodeError, GameLengthNotFoundError
 
 logger = logging.getLogger(__name__)
+
+# this type information is here instead of dataclasses.py
+# to prevent circular imports
+
+# GameState = {
+#     <player id>: {
+#         <gamestate key>: <gamestate value>
+#     }
+# }
+GameState = Dict[int, Dict[str, Any]]
+
+# SummaryStat = {
+#     <stat name>: {
+#         <player id>: <stat value>
+#     }
+# }
+SummaryStat = Dict[str, Dict[int, int]]
+
+
+# NamedTuple over dataclass so that it can be spread on return
+class Replay(NamedTuple):
+    players: Player
+    timeline: List[GameState]
+    engagements: List
+    summary: Union[SummaryStat, Dict[str, SummaryStat]]
+    metadata: Dict[str, Any]
+
+
+@dataclass
+class Selection:
+    objects: List[GameObj]
+    start: int
+    end: Optional[int]
+
 
 # intl map names
 # should probably figure out a way to automate this for each map pool
@@ -177,7 +215,7 @@ def _setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename, *, local=False, creep=True, _test=False):
+def parse_replay(filename: str, *, local=False, creep=True, _test=False) -> Replay:
     events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
     players = _create_players(player_info, events, _test)
     logger.info('Created players')
@@ -235,25 +273,29 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
 
                 # empty list of selections i.e. first selection
                 if not player.selections:
-                    player.selections.append({
-                        'selection': player.current_selection,
-                        'start': gameloop,
-                        'end': None,
-                    })
+                    player.selections.append(
+                        Selection(
+                            player.current_selection,
+                            gameloop,
+                            None,
+                        )
+                    )
 
                 # if the time and player's current selection has changed
                 # update it and add the new selection
                 # 2 gameloops ~ 0.09s
                 elif (
-                    gameloop - player.selections[-1]['start'] >= 2
-                    and player.current_selection != player.selections[-1]['selection']
+                    gameloop - player.selections[-1].start >= 2
+                    and player.current_selection != player.selections[-1].objects
                 ):
-                    player.selections[-1]['end'] = gameloop
-                    player.selections.append({
-                        'selection': player.current_selection,
-                        'start': gameloop,
-                        'end': None,
-                    })
+                    player.selections[-1].end = gameloop
+                    player.selections.append(
+                        Selection(
+                            player.current_selection,
+                            gameloop,
+                            None,
+                        )
+                    )
 
             if (
                 current_event.type in action_events
@@ -348,7 +390,7 @@ def parse_replay(filename, *, local=False, creep=True, _test=False):
 
     metadata_export = {
         'time_played_at': current_game.played_at,
-        'map': current_game.map['name'],
+        'map': current_game.map.name,
         'game_length': math.floor(current_game.game_length / 22.4),
         'winner': current_game.winner
     }

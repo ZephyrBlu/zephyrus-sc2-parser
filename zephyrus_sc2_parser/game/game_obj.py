@@ -1,7 +1,13 @@
 import math
+from typing import List, Optional, Dict, Tuple, Union, Literal
+from zephyrus_sc2_parser.dataclasses import Gameloop, Ability, Position
 
 
 class GameObj:
+    """
+    Contains detailed information about a game object (Unit or building),
+    plus a few related methods
+    """
     # obj statuses
     LIVE = 'LIVE'
     DIED = 'DIED'
@@ -13,32 +19,62 @@ class GameObj:
     WORKER = 'WORKER'
     SUPPLY = 'SUPPLY'
 
-    def __init__(self, name, obj_id, game_id, tag, recycle, priority, mineral_cost, gas_cost):
-        self.name = name
-        self.type = []
-        self.obj_id = obj_id
-        self.game_id = game_id
-        self.tag = tag
-        self.recycle = recycle
-        self.priority = priority
-        self.mineral_cost = mineral_cost
-        self.gas_cost = gas_cost
-        self.energy = None
-        self.supply = 0
-        self.supply_provided = 0
-        self.cooldown = None
-        self.queue = None
-        self.control_groups = {}
-        self.abilities_used = []
-        self.energy_efficiency = None
-        self.init_time = None
-        self.birth_time = None
-        self.death_time = None
-        self.morph_time = None
-        self.position = None
-        self.target = None
-        self.status = None
-        self.killed_by = None
+    def __init__(
+        self,
+        name: str,
+        obj_id: int,
+        game_id: int,
+        tag: int,
+        recycle: int,
+        priority: int,
+        mineral_cost: int,
+        gas_cost: int,
+    ):
+        self.name: str = name
+
+        GameObjType = Union[
+            Literal[self.UNIT],
+            Literal[self.BUILDING],
+            Literal[self.WORKER],
+            Literal[self.SUPPLY],
+        ]
+        self.type: List[GameObjType] = []
+
+        self.obj_id: int = obj_id
+        self.game_id: int = game_id
+        self.tag: int = tag
+        self.recycle: int = recycle
+        self.priority: int = priority
+        self.mineral_cost: int = mineral_cost
+        self.gas_cost: int = gas_cost
+        self.energy: Optional[int] = None
+        self.supply: int = 0
+        self.supply_provided: int = 0
+        self.cooldown: Optional[int] = None
+
+        # currently unused
+        self.queue: None = None
+
+        self.control_groups: Dict[int, int] = {}
+        self.abilities_used: List[Ability, GameObj, Gameloop] = []
+        self.energy_efficiency: Optional[int] = None
+        self.init_time: Optional[Gameloop] = None
+        self.birth_time: Optional[Gameloop] = None
+        self.death_time: Optional[Gameloop] = None
+        self.morph_time: Optional[Gameloop] = None
+        self.position: Optional[Position] = None
+
+        # currently unused (I think)
+        self.target: None = None
+
+        GameObjStatus = Union[
+            Literal[self.LIVE],
+            Literal[self.DIED],
+            Literal[self.IN_PROGRESS],
+        ]
+        self.status: GameObjStatus = None
+
+        self.killed_by: Optional[GameObj] = None
 
     def __eq__(self, other):
         return self.game_id == other.game_id
@@ -49,7 +85,7 @@ class GameObj:
     def __repr__(self):
         return f'({self.name}, {self.tag})'
 
-    def calc_distance(self, other_position):
+    def calc_distance(self, other_position: Position) -> float:
         # position contains x, y, z in integer form of floats
         # simple pythagoras theorem calculation
         x_diff = abs(self.position.x - other_position.x)
@@ -57,7 +93,7 @@ class GameObj:
         distance = math.sqrt(x_diff ** 2 + y_diff ** 2)
         return distance
 
-    def calc_energy(self, gameloop):
+    def calc_energy(self, gameloop: Gameloop) -> float:
         # need to check for int since 0 is falsy
         if not self.energy or (not self.morph_time and type(self.birth_time) != int):
             return None
@@ -114,7 +150,7 @@ class GameObj:
 
         return round(current_energy, 1)
 
-    def calc_inject_efficiency(self, gameloop):
+    def calc_inject_efficiency(self, gameloop: Gameloop) -> Tuple[float, int]:
         if not self.abilities_used or self.name not in ['Hatchery', 'Lair', 'Hive']:
             return None
 

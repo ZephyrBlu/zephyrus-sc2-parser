@@ -1,8 +1,23 @@
 import logging
+from dataclasses import dataclass
+from typing import Optional
 from zephyrus_sc2_parser.events.base_event import BaseEvent
-from zephyrus_sc2_parser.dataclasses import Ability, ActiveAbility, Position
+from zephyrus_sc2_parser.dataclasses import Ability, Position
+from zephyrus_sc2_parser.game.game_obj import GameObj
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class ActiveAbility:
+    """
+    Contains the ability, target object and target position
+    of a player's currently active ability
+    """
+    ability: Ability
+    obj: Optional[GameObj]
+    target_position: Optional[Position]
+    queued: bool
 
 
 class AbilityEvent(BaseEvent):

@@ -1,14 +1,22 @@
-from zephyrus_sc2_parser.game import GameObj
+from typing import Dict, Any
+from zephyrus_sc2_parser.dataclasses import Gameloop
+from zephyrus_sc2_parser.game.game import Game
+from zephyrus_sc2_parser.game.player import Player
+from zephyrus_sc2_parser.game.game_obj import GameObj
 
 
 class PlayerState:
-    def __init__(self, game, player, gameloop):
-        self.game = game
-        self.player = player
-        self.gameloop = gameloop
-        self.summary = self._create_object_summary()
+    """
+    Contains a summary of a player's gamestate at a particular gameloop,
+    plus references to the game and player
+    """
+    def __init__(self, game: Game, player: Player, gameloop: Gameloop):
+        self.game: Game = game
+        self.player: Player = player
+        self.gameloop: Gameloop = gameloop
+        self.summary: Dict[str, Any] = self._create_object_summary()
 
-    def _create_object_summary(self):
+    def _create_object_summary(self) -> Dict[str, Any]:
         if not self.player.collection_rate['minerals']:
             collection_rate = {
                 'minerals': 0,

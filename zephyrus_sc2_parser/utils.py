@@ -17,7 +17,7 @@ from zephyrus_sc2_parser.events import (
     PlayerStatsEvent,
 )
 from zephyrus_sc2_parser.dataclasses import GameData, Map
-from zephyrus_sc2_parser.game import Player
+from zephyrus_sc2_parser.game.player import Player
 from zephyrus_sc2_parser.gamedata.map_info import maps
 from zephyrus_sc2_parser.exceptions import MissingMmrError, PlayerCountError
 import pytz
@@ -220,15 +220,13 @@ def _create_players(player_info, events, test_flag):
     }
 
 
-def _get_map_info(player_info, game_map, creep_flag=True):
-    game_map_info = {
-        'name': game_map,
-    }
+def _get_map_info(player_info, map_name, creep_flag=True):
+    game_map = Map(map_name)
 
     if not creep_flag:
-        return game_map_info
+        return game_map
 
-    if game_map not in maps:
+    if map_name not in maps:
         map_bytes = player_info['m_cacheHandles'][-1]
         server = map_bytes[4:8].decode('utf8').strip('\x00 ').lower()
         file_hash = binascii.b2a_hex(map_bytes[8:]).decode('utf8')
@@ -240,11 +238,11 @@ def _get_map_info(player_info, game_map, creep_flag=True):
             if map_response.status_code == 200:
                 map_file = BytesIO(map_response.content)
                 break
-            logger.warning(f'Could not fetch {game_map} map file. Retrying')
+            logger.warning(f'Could not fetch {map_name} map file. Retrying')
 
         if not map_file:
-            logger.error(f'Failed to fetch {game_map} map file')
-            return game_map_info
+            logger.error(f'Failed to fetch {map_name} map file')
+            return game_map
 
         map_archive = mpyq.MPQArchive(map_file)
         map_data = BytesIO(map_archive.read_file('MapInfo'))
@@ -260,7 +258,7 @@ def _get_map_info(player_info, game_map, creep_flag=True):
         map_width = unpack_int(map_data.read(4))[0]
         map_height = unpack_int(map_data.read(4))[0]
         maps.update({
-            game_map: {
+            map_name: {
                 'width': map_width,
                 'height': map_height,
             },
@@ -273,13 +271,9 @@ def _get_map_info(player_info, game_map, creep_flag=True):
         except OSError:
             logger.warning('Could not write map details to file')
 
-    game_map_info.update({
-        'dimensions': Map(
-            maps[game_map]['width'],
-            maps[game_map]['height'],
-        ),
-    })
-    return game_map_info
+    game_map.width = maps[map_name]['width'],
+    game_map.height = maps[map_name]['height']
+    return game_map
 
 
 def _create_event(game, event, protocol, summary_stats):

@@ -1,7 +1,7 @@
 import copy
 import logging
 from zephyrus_sc2_parser.events.base_event import BaseEvent
-from zephyrus_sc2_parser.game import GameObj
+from zephyrus_sc2_parser.game.game_obj import GameObj
 from zephyrus_sc2_parser.dataclasses import Position
 
 logger = logging.getLogger(__name__)

@@ -1,62 +1,38 @@
 from dataclasses import dataclass
-from typing import Any, Union, List, Dict, Literal, Optional, NamedTuple
-from zephyrus_sc2_parser.game import Player, GameObj
+from typing import Union, Literal, List, Dict, Optional
+
+# used to explicitly show where the unit is gameloops
+Gameloop = int
+Resource = Union[Literal['minerals'], Literal['gas']]
 
 
-# GameState = {
-#     <player id>: {
-#         <gamestate key>: <gamestate value>
-#     }
-# }
-GameState = Dict[int, Dict[str, Any]]
-
-# SummaryStat = {
-#     <stat name>: {
-#         <player id>: <stat value>
-#     }
-# }
-SummaryStat = Dict[str, Dict[int, int]]
-
-
-# NamedTuple over dataclass so that it can be spread on return
-class Replay(NamedTuple):
-    players: Player
-    timeline: List[GameState]
-    engagements: List
-    summary: Union[SummaryStat, Dict[str, SummaryStat]]
-    metadata: Dict[str, Any]
-
-
-@dataclass(frozen=True)
+@dataclass
 class Map:
-    width: int
-    height: int
+    """Contains the name and dimensions of the game map"""
+    name: str
+    width: Optional[int] = None
+    height: Optional[int] = None
 
 
 @dataclass(frozen=True)
 class Position:
+    """Contains the x and y co-ordinates of a position"""
     x: float
     y: float
 
 
 @dataclass(frozen=True)
 class Upgrade:
+    """Contains the name and completion time of an upgrade"""
     name: str
     completed_at: str
 
 
 @dataclass(frozen=True)
 class Ability:
+    "Contains the name and energy cost of an ability"
     name: str
     energy_cost: Optional[int] = None
-
-
-@dataclass(frozen=True)
-class ActiveAbility:
-    ability: Ability
-    obj: Optional[GameObj]
-    target_position: Optional[Position]
-    queued: Literal
 
 
 # ObjectData = {
@@ -86,6 +62,7 @@ UpgradeData = Dict[str, Dict[str, int]]
 
 @dataclass(frozen=True)
 class GameData:
+    """Contains generated unit, building, ability and upgrade data"""
     units: Dict[str, ObjectData]
     buildings: Dict[str, ObjectData]
     abilities: AbilityData
