@@ -49,6 +49,8 @@ The only required argument is the path of the replay you want to parse
 
 You can optionally use the `local` flag to indicate you want to parse a replay without MMR, otherwise the parser will abort the replay. `local` is set to False by default.
 
+By default the generated timeline will be in 5sec intervals (22.4 gameloops = 1 second, 22.4 * 5 = 112). You can specify a custom interval in gameloops using the `tick` keyword argument.
+
 The `creep` flag can be used to disable tracking Creep spread, as it requires a network request to get map details. `creep` is set to True by default.
 
 ### Return Values
@@ -66,11 +68,12 @@ Currently engagements is empty, but it will contain engagement data in the futur
 ```
 # data can be accessed with dot notation
 # replay.players, replay.timeline, replay.engagements, replay.summary, replay.metadata
-replay = parse_replay(filepath, local=False, creep=True)
+replay = parse_replay(filepath, local=False, tick=112, creep=True)
 
 OR
 
-players, timeline, engagements, summary_stats, metadata = parse_replay(filepath, local=False, creep=True)
+# you can name these however you like
+players, timeline, engagements, summary, metadata = parse_replay(filepath, local=False, tick=112, creep=True)
 ```
 
 Example of `players`:
@@ -148,7 +151,7 @@ Example of `timeline`:
         },
     }]
     
-Example of `summary_stats`:
+Example of `summary`:
 
     # not actual data
     {
