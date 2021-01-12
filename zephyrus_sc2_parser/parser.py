@@ -215,7 +215,7 @@ def _setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename: str, *, local=False, creep=True, _test=False) -> Replay:
+def parse_replay(filename: str, *, local=False, tick=112, creep=True, _test=False) -> Replay:
     events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
     players = _create_players(player_info, events, _test)
     logger.info('Created players')
@@ -330,8 +330,9 @@ def parse_replay(filename: str, *, local=False, creep=True, _test=False) -> Repl
             current_game.timeline.append(current_timeline_state)
             logger.debug(f'Recorded new timeline state at {gameloop}')
 
-            # 112 = 5sec of game time
-            current_tick += 112
+            # tick = kwarg value for timeline tick size
+            # default tick = 112 (~5sec of game time)
+            current_tick += tick
 
         # this condition is last to allow game/timeline state to be recorded at the end of the game
         if gameloop == game_length:
