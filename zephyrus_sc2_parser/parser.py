@@ -390,7 +390,7 @@ def parse_replay(filename: str, *, local=False, tick=112, creep=True, _test=Fals
         summary_stats['workers_killed'][opp_id] = summary_stats['workers_lost'][player.player_id]
 
     metadata_export = {
-        'time_played_at': current_game.played_at,
+        'played_at': current_game.played_at,
         'map': current_game.map.name,
         'game_length': math.floor(current_game.game_length / 22.4),
         'winner': current_game.winner

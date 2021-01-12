@@ -194,7 +194,7 @@ Example of `metadata`:
         'map': 'Acropolis LE',
         
         # UTC timezone
-        'time_played_at': <datetime.datetime object>,
+        'played_at': <datetime.datetime object>,
         
         # player ID
         'winner': 1,
