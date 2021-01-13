@@ -65,6 +65,9 @@ The data returned is:
 - Dictionary of metadata about the game
 
 Currently engagements is empty, but it will contain engagement data in the future.
+
+### Examples
+
 ```
 # data can be accessed with dot notation
 # replay.players, replay.timeline, replay.engagements, replay.summary, replay.metadata
