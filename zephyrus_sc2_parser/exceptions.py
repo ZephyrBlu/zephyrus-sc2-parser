@@ -28,5 +28,6 @@ class PlayerCountError(Exception):
 
 class GameLengthNotFoundError(Exception):
     """
+    Occurs when a game ends without PlayerLeave events. I have no idea why this happens
     """
     pass
