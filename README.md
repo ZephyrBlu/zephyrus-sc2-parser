@@ -51,7 +51,7 @@ You can optionally use the `local` flag to indicate you want to parse a replay w
 
 By default the generated timeline will be in 5sec intervals (22.4 gameloops = 1 second, 22.4 * 5 = 112). You can specify a custom interval in gameloops using the `tick` keyword argument.
 
-The `creep` flag can be used to disable tracking Creep spread, as it requires a network request to get map details. `creep` is set to True by default.
+The `network` flag can be used to disable network requests, since maps that aren't cached in `gamedata/map_info.py` require one to get the map size (Used for Creep calculations). `network` is set to True by default.
 
 ### Return Values
 
