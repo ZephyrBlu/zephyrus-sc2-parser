@@ -71,12 +71,12 @@ Currently engagements is empty, but it will contain engagement data in the futur
 ```
 # data can be accessed with dot notation
 # replay.players, replay.timeline, replay.engagements, replay.summary, replay.metadata
-replay = parse_replay(filepath, local=False, tick=112, creep=True)
+replay = parse_replay(filepath, local=False, tick=112, network=True)
 
 OR
 
 # you can name these however you like
-players, timeline, engagements, summary, metadata = parse_replay(filepath, local=False, tick=112, creep=True)
+players, timeline, engagements, summary, metadata = parse_replay(filepath, local=False, tick=112, network=True)
 ```
 
 Example of `players`:
