@@ -1,12 +1,20 @@
-class BaseEvent:
-    def __init__(self, game, event):
-        self.game = game
-        self.event = event
-        self.type = event['_event']
-        self.player = self._identify_player(game, event)
-        self.gameloop = event['_gameloop']
+import logging
+from typing import Dict, Union, Literal
+from zephyrus_sc2_parser.game import Game, Player
+from zephyrus_sc2_parser.dataclasses import Gameloop
 
-    def _identify_player(self, game, event):
+logger = logging.getLogger(__name__)
+
+
+class BaseEvent:
+    def __init__(self, game: Game, event: Dict):
+        self.game: Game = game
+        self.event: Dict = event
+        self.type: str = event['_event']
+        self.player: Union[Player, Literal[False], None] = self._identify_player(game, event)
+        self.gameloop: Gameloop = event['_gameloop']
+
+    def _identify_player(self, game: Game, event: Dict) -> Union[Player, Literal[False], None]:
         no_player = [
             'NNet.Replay.Tracker.SUnitDoneEvent',
             'NNet.Replay.Tracker.SUnitDiedEvent',
@@ -16,6 +24,7 @@ class BaseEvent:
             return False
 
         if game is None:
+            logger.warning('Game in event is None')
             return None
 
         for p_id, player in game.players.items():

@@ -2,21 +2,59 @@ import mpyq
 import json
 import math
 import heapq
-from zephyrus_sc2_parser.s2protocol_fixed import versions
-from zephyrus_sc2_parser.game.game import Game
-from zephyrus_sc2_parser.game.player_state import PlayerState
-from zephyrus_sc2_parser.utils import (
-    import_gamedata, get_map_info, create_event, create_players, convert_time
-)
 import logging
+from dataclasses import dataclass
+from typing import NamedTuple, Dict, Any, Union, List, Optional
+from zephyrus_sc2_parser.s2protocol_fixed import versions
+from zephyrus_sc2_parser.game import Game, GameObj, Player, PlayerState
+from zephyrus_sc2_parser.utils import (
+    _generate_initial_summary_stats,
+    _import_gamedata,
+    _get_map_info,
+    _create_event,
+    _create_players,
+    _convert_time
+)
+from zephyrus_sc2_parser.exceptions import ReplayDecodeError, GameLengthNotFoundError
 
-is_engagement_simulator_installed = False
-try:
-    from sc2_simulator import simulate_engagement
-    is_engagement_simulator_installed = True
-except ImportError:
-    pass
+logger = logging.getLogger(__name__)
 
+# this type information is here instead of dataclasses.py
+# to prevent circular imports
+
+# GameState = {
+#     <player id>: {
+#         <gamestate key>: <gamestate value>
+#     }
+# }
+GameState = Dict[int, Dict[str, Any]]
+
+# SummaryStat = {
+#     <stat name>: {
+#         <player id>: <stat value>
+#     }
+# }
+SummaryStat = Dict[str, Dict[int, int]]
+
+
+# NamedTuple over dataclass so that it can be spread on return
+class Replay(NamedTuple):
+    players: Dict[int, Player]
+    timeline: List[GameState]
+    engagements: List
+    summary: Union[SummaryStat, Dict[str, SummaryStat]]
+    metadata: Dict[str, Any]
+
+
+@dataclass
+class Selection:
+    objects: List[GameObj]
+    start: int
+    end: Optional[int]
+
+
+# intl map names
+# should probably figure out a way to automate this for each map pool
 MAP_NAMES = {
     "Eternal Empire LE": (
         "永恆帝國 - 天梯版",
@@ -104,102 +142,55 @@ for map_name, non_eng_name_tuple in MAP_NAMES.items():
     for non_eng_map_name in non_eng_name_tuple:
         non_english_maps[non_eng_map_name.encode('utf-8')] = map_name
 
-def initial_summary_stats(game, metadata, detailed_info, local=False):
-    summary_stats = {
-        'mmr': {1: 0, 2: 0},
-        'avg_resource_collection_rate': {
-            'minerals': {1: 0, 2: 0},
-            'gas': {1: 0, 2: 0}
-        },
-        'avg_unspent_resources': {
-            'minerals': {1: 0, 2: 0},
-            'gas': {1: 0, 2: 0}
-        },
-        'apm': {1: 0, 2: 0},
-        'spm': {1: 0, 2: 0},
-        'resources_lost': {
-            'minerals': {1: 0, 2: 0},
-            'gas': {1: 0, 2: 0}
-        },
-        'resources_collected': {
-            'minerals': {1: 0, 2: 0},
-            'gas': {1: 0, 2: 0},
-        },
-        'workers_produced': {1: 0, 2: 0},
-        'workers_killed': {1: 0, 2: 0},
-        'workers_lost': {1: 0, 2: 0},
-        'supply_block': {1: 0, 2: 0},
-        'sq': {1: 0, 2: 0},
-        'avg_pac_per_min': {1: 0, 2: 0},
-        'avg_pac_action_latency': {1: 0, 2: 0},
-        'avg_pac_actions': {1: 0, 2: 0},
-        'avg_pac_gap': {1: 0, 2: 0},
-        'race': {1: {}, 2: {}},
-    }
 
-    mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
-    if 'm_scaledRating' not in mmr_data[0] or 'm_scaledRating' not in mmr_data[1]:
-        logging.debug('One or more players has no MMR')
-        if not local:
-            return None
-
-    for p in metadata['Players']:
-        if p['Result'] == 'Win':
-            game.winner = p['PlayerID']
-
-    for player in metadata['Players']:
-        player_id = player['PlayerID']
-
-        summary_stats['apm'][player_id] = player['APM']
-
-        if 'm_scaledRating' in mmr_data[player_id-1]:
-            summary_stats['mmr'][player_id] = mmr_data[player_id-1]['m_scaledRating']
-        else:
-            summary_stats['mmr'][player_id] = 0
-
-    return summary_stats
-
-
-def setup(filename):
+def _setup(filename):
     archive = mpyq.MPQArchive(filename)
 
     # getting correct game version and protocol
-    contents = archive.header['user_data_header']['content']
-
-    header = None
-
+    header_content = archive.header['user_data_header']['content']
     error = True
+
     for i in range(0, 5):
         try:
-            header = versions.latest().decode_replay_header(contents)
-
+            header = versions.latest().decode_replay_header(header_content)
             base_build = header['m_version']['m_baseBuild']
             protocol = versions.build(base_build)
 
             # accessing neccessary parts of file for data
             contents = archive.read_file('replay.tracker.events')
             details = archive.read_file('replay.details')
-            gameInfo = archive.read_file('replay.game.events')
+            game_info = archive.read_file('replay.game.events')
             init_data = archive.read_file('replay.initData')
-
             metadata = json.loads(archive.read_file('replay.gamemetadata.json'))
 
             # translating data into dict format info
-            game_events = protocol.decode_replay_game_events(gameInfo)
+            # look into using detailed_info['m_syncLobbyState']['m_userInitialData']
+            # instead of player_info for player names, clan tags, etc
+            # maybe metadata['IsNotAvailable'] is useful for something?
+            # metadata['duration'] could be replacement for game length?
+            game_events = protocol.decode_replay_game_events(game_info)
             player_info = protocol.decode_replay_details(details)
             tracker_events = protocol.decode_replay_tracker_events(contents)
             detailed_info = protocol.decode_replay_initdata(init_data)
             error = False
             break
-        except Exception as e:
-            logging.error(f'An error occurred while decoding: {e}')
-            pass
+
+        # ValueError = unreadable header
+        # ImportError = unsupported protocol
+        # KeyError = unreadable file info
+        except ValueError as e:
+            logger.warning(f'Unreadable file header: {e}')
+        except ImportError as e:
+            logger.warning(f'Unsupported protocol: {e}')
+        except KeyError as e:
+            logger.warning(f'Unreadable file info: {e}')
     if error:
-        logging.critical('Replay could not be decoded')
-        return None, None, None, None, None, None
+        logger.critical('Replay could not be decoded')
+        raise ReplayDecodeError('Replay could not be decoded')
+
+    logger.info('Parsed raw replay file')
 
     # all info is returned as generators
-    #
     # to paint the full picture of the game
     # both game and tracker events are needed
     # so they are combined then sorted in chronological order
@@ -207,68 +198,47 @@ def setup(filename):
     events = heapq.merge(game_events, tracker_events, key=lambda x: x['_gameloop'])
     events = sorted(events, key=lambda x: x['_gameloop'])
 
-    # for event in events:
-    #     if event['_event'] == 'NNet.Replay.Tracker.SUpgradeEvent':  # == 'NNet.Replay.Tracker.SUnitPositionsEvent':
-    #         print(event)
-    #         print('\n')
-
+    game_length = None
     for event in events:
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
+            logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
             game_length = event['_gameloop']
             break
+
+    # don't know why some replays don't have an end event, they just end abruptly
+    if not game_length:
+        raise GameLengthNotFoundError('Could not find the length of the game')
 
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename, *, local=False):
-    try:
-        events, player_info, detailed_info, metadata, game_length, protocol = setup(filename)
-        if events is None:
-            logging.critical('Aborting replay due to bad decode...')
-            return None, None, None, None, None
-
-        players = create_players(player_info, events)
-    except ValueError as error:
-        logging.critical('A ValueError occured:', error, 'unreadable header')
-        return None, None, None, None, None
-    except ImportError as error:
-        logging.critical('An ImportError occured:', error, 'unsupported protocol')
-        return None, None, None, None, None
-    except KeyError as error:
-        logging.critical('A KeyError error occured:', error, 'unreadable file info')
-        return None, None, None, None, None
-
-    if not players:
-        logging.debug('Aborting replay due to <2 players...')
-        return None, None, None, None, None
+def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=False) -> Replay:
+    events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
+    players = _create_players(player_info, events, _test)
+    logger.info('Created players')
 
     if player_info['m_title'] in non_english_maps:
-        game_map = non_english_maps[player_info['m_title']]
+        map_name = non_english_maps[player_info['m_title']]
     else:
-        game_map = player_info['m_title'].decode('utf-8')
+        map_name = player_info['m_title'].decode('utf-8')
 
-    played_at = convert_time(player_info['m_timeUTC'])
-    map_info = get_map_info(player_info, game_map)
-
-    if not map_info:
-        logging.debug('Aborting replay due to missing map data')
-        return None, None, None, None, None
+    played_at = _convert_time(player_info['m_timeUTC'])
+    game_map = _get_map_info(player_info, map_name, network)
+    logger.info('Fetched map data')
 
     current_game = Game(
         players,
-        map_info,
+        game_map,
         played_at,
         game_length,
         events,
         protocol,
-        import_gamedata(protocol),
+        _import_gamedata(protocol),
     )
+    summary_stats = _generate_initial_summary_stats(current_game, metadata, detailed_info, local)
+    logger.info('Completed pre-parsing setup')
 
-    summary_stats = initial_summary_stats(current_game, metadata, detailed_info, local)
-
-    if summary_stats is None:
-        logging.debug('Aborting replay due to missing MMR value(s)')
-        return None, None, None, None, None
+    # ----- core parsing logic -----
 
     action_events = [
         'NNet.Game.SControlGroupUpdateEvent',
@@ -277,120 +247,124 @@ def parse_replay(filename, *, local=False):
         'NNet.Game.SCommandManagerStateEvent',
     ]
 
+    logger.info('Iterating through game events')
+
     current_tick = 0
     for event in events:
         gameloop = event['_gameloop']
-        if gameloop <= game_length:
-            current_event = create_event(current_game, event, protocol, summary_stats)
-            if current_event:
-                result = current_event.parse_event()
 
-                if result:
-                    summary_stats = result
+        # create event object from JSON data
+        # if the event isn't supported, continue iterating
+        current_event = _create_event(current_game, event, protocol, summary_stats)
+        if current_event:
+            # parse_event extracts and processes event data to update Player/GameObj objects
+            # if summary_stats are modified they are returned from parse_event. This only occurs for ObjectEvents and PlayerStatsEvents
+            result = current_event.parse_event()
+            logger.debug(f'Finished parsing event')
 
-                if current_event.type in action_events and current_event.player and current_event.player.current_pac:
-                    current_event.player.current_pac.actions.append(gameloop)
+            if result:
+                summary_stats = result
 
-                # 112 = 5sec of game time
-                if gameloop >= current_tick or gameloop == game_length:
-                    player1_state = PlayerState(
-                        current_game,
-                        players[1],
-                        gameloop,
+            if current_event.player and current_event.player.current_selection:
+                player = current_event.player
+
+                # empty list of selections i.e. first selection
+                if not player.selections:
+                    player.selections.append(
+                        Selection(
+                            player.current_selection,
+                            gameloop,
+                            None,
+                        )
                     )
 
-                    player2_state = PlayerState(
-                        current_game,
-                        players[2],
-                        gameloop,
+                # if the time and player's current selection has changed
+                # update it and add the new selection
+                # 2 gameloops ~ 0.09s
+                elif (
+                    gameloop - player.selections[-1].start >= 2
+                    and player.current_selection != player.selections[-1].objects
+                ):
+                    player.selections[-1].end = gameloop
+                    player.selections.append(
+                        Selection(
+                            player.current_selection,
+                            gameloop,
+                            None,
+                        )
                     )
 
-                    current_game.state.append((player1_state, player2_state))
-                    current_game.timeline.append({
-                        1: player1_state.summary,
-                        2: player2_state.summary
-                    })
+            if (
+                current_event.type in action_events
+                and current_event.player
+                and current_event.player.current_pac
+            ):
+                current_event.player.current_pac.actions.append(gameloop)
 
-                    player_units = {1: [], 2: []}
-                    for p_id, p in players.items():
-                        for obj in p.objects.values():
-                            if obj.status == 'live':
-                                player_units[p_id].append(obj.name)
-
-                    current_game.engagements.append((
-                        player_units[1],
-                        player_units[2],
-                        players[1].upgrades,
-                        players[2].upgrades,
-                        gameloop,
-                    ))
-
-                    current_tick += 112
-
-    engagement_analysis = []
-    if is_engagement_simulator_installed:
-        engagement_outcomes = simulate_engagement(current_game.engagements)
-        for winner, unit_health, gameloop in engagement_outcomes:
-            total_health = {1: (0, 0), 2: (0, 0)}
-            for unit in unit_health:
-                total_health[unit[0]] = (
-                    total_health[unit[0]][0] + unit[2],
-                    total_health[unit[0]][1] + unit[3],
+        # every 5sec + at end of the game, record the game state
+        if gameloop >= current_tick or gameloop == game_length:
+            current_player_states = {}
+            for player in players.values():
+                player_state = PlayerState(
+                    current_game,
+                    player,
+                    gameloop,
                 )
+                current_player_states[player.player_id] = player_state
 
-            if total_health[1][1] > 0 and total_health[2][1] > 0:
-                engagement_analysis.append({
-                    'winner': winner,
-                    'health': total_health[winner],
-                    'remaining_health':  round((total_health[winner][0] / total_health[winner][1]), 3),
-                    'gameloop': gameloop,
-                })
+            # if only 2 players, we can use workers_lost of the opposite players to get workers_killed
+            if len(current_player_states) == 2:
+                current_player_states[1].summary['workers_killed'] = current_player_states[2].summary['workers_lost']
+                current_player_states[2].summary['workers_killed'] = current_player_states[1].summary['workers_lost']
 
+            current_timeline_state = {}
+            for state in current_player_states.values():
+                current_timeline_state[state.player.player_id] = state.summary
+
+            logger.debug(f'Created new game state at {gameloop}')
+
+            current_game.state.append(tuple(current_player_states))
+            current_game.timeline.append(current_timeline_state)
+            logger.debug(f'Recorded new timeline state at {gameloop}')
+
+            # tick = kwarg value for timeline tick size
+            # default tick = 112 (~5sec of game time)
+            current_tick += tick
+
+        # this condition is last to allow game/timeline state to be recorded at the end of the game
+        if gameloop == game_length:
+            logger.info('Reached end of the game')
+            logger.debug(f'Current gameloop: {gameloop}, game length: {game_length}')
+            break
+
+    # ----- parsing finished, generating return data -----
+
+    logger.info('Generating game stats')
     players_export = {}
-    for p_id, player in players.items():
+    for player in players.values():
         summary_stats = player.calc_pac(summary_stats, game_length)
         summary_stats['spm'][player.player_id] = player.calc_spm(current_game.game_length)
 
-        opp_id = 1 if p_id == 2 else 2
+        collection_rate_totals = list(map(
+            lambda x: x[0] + x[1],
+            zip(player.collection_rate['minerals'], player.collection_rate['gas']),
+        ))
+        if collection_rate_totals:
+            summary_stats['max_collection_rate'][player.player_id] = max(collection_rate_totals)
+
+        opp_id = 1 if player.player_id == 2 else 2
 
         if player.race == 'Zerg':
+            if 'creep' in current_game.timeline[-1][player.player_id]['race']:
+                summary_stats['race'][player.player_id]['creep'] = current_game.timeline[-1][player.player_id]['race']['creep']
+
             if 'inject_efficiency' in current_game.timeline[-1][player.player_id]['race']:
                 summary_stats['race'][player.player_id]['inject_efficiency'] = current_game.timeline[-1][player.player_id]['race']['inject_efficiency']
-            summary_stats['race'][player.player_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
-            summary_stats['race'][player.player_id]['creep'] = current_game.timeline[-1][player.player_id]['race']['creep']
 
-        elif player.race == 'Protoss':
-            opp_player = players[opp_id]
-
-            protoss_splash = {
-                'HighTemplar': (0, 0),
-                'Disruptor': (0, 0),
-                'Colossus': (0, 0),
-            }
-
-            units = current_game.gamedata['units']
-
-            for obj in opp_player.objects.values():
-                if 'unit' in obj.type and obj.killed_by and obj.killed_by.name in protoss_splash:
-                    protoss_splash[obj.killed_by.name] = (
-                        protoss_splash[obj.killed_by.name][0] + units[opp_player.race][obj.name]['mineral_cost'],
-                        protoss_splash[obj.killed_by.name][1] + units[opp_player.race][obj.name]['gas_cost'],
-                    )
-
-            splash_efficiency = {}
-            for splash_unit, resources_killed in protoss_splash.items():
-                # if not default
-                if resources_killed != (0, 0):
-                    unit_mineral_cost = units[player.race][splash_unit]['mineral_cost']
-                    unit_gas_cost = units[player.race][splash_unit]['gas_cost']
-
-                    splash_efficiency[splash_unit] = (
-                        round(resources_killed[0] / unit_mineral_cost, 2),
-                        round(resources_killed[1] / unit_gas_cost, 2),
-                    )
-
-            if splash_efficiency:
-                summary_stats['race'][player.player_id]['splash_efficiency'] = splash_efficiency
+            if len(player.idle_larva) == 0:
+                summary_stats['race'][player.player_id]['avg_idle_larva'] = 0
+            else:
+                summary_stats['race'][player.player_id]['avg_idle_larva'] = round(sum(player.idle_larva) / len(player.idle_larva), 1)
 
         if 'energy' in current_game.timeline[-1][player.player_id]['race']:
             energy_stats = current_game.timeline[-1][player.player_id]['race']['energy']
@@ -409,21 +383,22 @@ def parse_replay(filename, *, local=False):
                 'idle_time': energy_idle_time,
             }
 
-        if 'warpgate_efficiency' in current_game.timeline[-1][player.player_id]['race']:
-            warpgate_efficiency = current_game.timeline[-1][player.player_id]['race']['warpgate_efficiency']
-            summary_stats['race'][player.player_id]['warpgate'] = {
-                'efficiency': warpgate_efficiency[0],
-                'idle_time': warpgate_efficiency[1],
-            }
-
         players_export[player.player_id] = player
         summary_stats['workers_killed'][opp_id] = summary_stats['workers_lost'][player.player_id]
 
     metadata_export = {
-        'time_played_at': current_game.played_at,
-        'map': current_game.map['name'],
-        'game_length': math.floor(current_game.game_length/22.4),
+        'played_at': current_game.played_at,
+        'map': current_game.map.name,
+        'game_length': math.floor(current_game.game_length / 22.4),
         'winner': current_game.winner
     }
 
-    return players_export, current_game.timeline, engagement_analysis, summary_stats, metadata_export
+    logger.info('Parsing completed')
+
+    return Replay(
+        players_export,
+        current_game.timeline,
+        [],
+        summary_stats,
+        metadata_export,
+    )

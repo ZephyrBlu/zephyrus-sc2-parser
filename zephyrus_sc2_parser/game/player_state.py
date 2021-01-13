@@ -1,11 +1,20 @@
-class PlayerState:
-    def __init__(self, game, player, gameloop):
-        self.game = game
-        self.player = player
-        self.gameloop = gameloop
-        self.summary = self.create_object_summary()
+from typing import Dict, Any
+from zephyrus_sc2_parser.dataclasses import Gameloop
+from zephyrus_sc2_parser.game import Game, GameObj, Player
 
-    def create_object_summary(self):
+
+class PlayerState:
+    """
+    Contains a summary of a player's gamestate at a particular gameloop,
+    plus references to the game and player
+    """
+    def __init__(self, game: Game, player: Player, gameloop: Gameloop):
+        self.game: Game = game
+        self.player: Player = player
+        self.gameloop: Gameloop = gameloop
+        self.summary: Dict[str, Any] = self._create_object_summary()
+
+    def _create_object_summary(self) -> Dict[str, Any]:
         if not self.player.collection_rate['minerals']:
             collection_rate = {
                 'minerals': 0,
@@ -41,7 +50,8 @@ class PlayerState:
             'upgrade': [],
             'current_selection': {},
             'workers_active': 0,
-            'workers_killed': 0,
+            'workers_produced': 0,
+            'workers_lost': 0,
             'supply': self.player.supply,
             'supply_cap': self.player.supply_cap,
             'supply_block': round(self.player.supply_block / 22.4, 1),
@@ -60,7 +70,7 @@ class PlayerState:
             },
             'total_army_value': 0,
             'total_resources_lost': 0,
-            'total_resouces_collected': self.player.resources_collected['minerals'] + self.player.resources_collected['gas'],
+            'total_resources_collected': self.player.resources_collected['minerals'] + self.player.resources_collected['gas'],
             'race': {},
         }
 
@@ -74,28 +84,37 @@ class PlayerState:
             )
 
         for upg in self.player.upgrades:
-            object_summary['upgrade'].append(upg)
+            object_summary['upgrade'].append(upg.name)
 
         if self.player.race == 'Zerg':
-            map_creep_coverage, tumor_count = self.player.calc_creep(self.game.map)
-            object_summary['race']['creep'] = {
-                'coverage': map_creep_coverage,
-                'tumors': tumor_count,
-            }
+            map_creep_coverage, tumors_active, tumors_died = self.player.calc_creep(self.game.map)
+
+            # if the creep flag is disabled calc_creep will return None, None
+            # need to check for int as 0 is falsy
+            if map_creep_coverage and type(tumors_active) == int and type(tumors_died) == int:
+                object_summary['race']['creep'] = {
+                    'coverage': map_creep_coverage,
+                    'tumors_active': tumors_active,
+                    'tumors_died': tumors_active,
+                }
 
         current_idle_larva = 0
         for obj in self.player.objects.values():
-            if obj.name == 'Larva' and obj.status == 'live':
+            # High Templars and Drones die when they morph, should not be counted
+            if (obj.name == 'HighTemplar' or obj.name == 'Drone') and obj.morph_time:
+                continue
+
+            if obj.name == 'Larva' and obj.status == GameObj.LIVE:
                 current_idle_larva += 1
 
             worker = False
-            for obj_type in obj.type:
-                if obj_type == 'worker':
+            for current_type in obj.type:
+                if current_type == GameObj.WORKER:
                     worker = True
-                elif obj_type != 'supply':
-                    if obj.name not in object_summary[obj_type]:
-                        object_summary[obj_type][obj.name] = {
-                            'type': [obj_type],
+                elif current_type != GameObj.SUPPLY:
+                    if obj.name not in object_summary[current_type.lower()]:
+                        object_summary[current_type.lower()][obj.name] = {
+                            'type': [current_type],
                             'live': 0,
                             'died': 0,
                             'in_progress': 0,
@@ -104,12 +123,13 @@ class PlayerState:
                             'mineral_cost': obj.mineral_cost,
                             'gas_cost': obj.gas_cost,
                         }
-                    object_summary[obj_type][obj.name][obj.status] += 1
+                    # convert to lowercase for serialization
+                    object_summary[current_type.lower()][obj.name][obj.status.lower()] += 1
 
                     command_structures = ['Hatchery', 'Lair', 'Hive', 'Nexus', 'OrbitalCommand']
 
                     # Nexus, Orbital and Hatchery calculations
-                    if obj_type == 'building' and (obj.name in command_structures):
+                    if current_type == GameObj.BUILDING and (obj.name in command_structures):
                         obj_energy = obj.calc_energy(self.gameloop)
                         if obj_energy and obj.status == 'live':
                             if 'energy' not in object_summary['race']:
@@ -126,9 +146,9 @@ class PlayerState:
                             object_summary['race']['energy'][obj.name].append((obj_energy, *obj.energy_efficiency))
 
                             for ability, ability_target, ability_gameloop in obj.abilities_used:
-                                if ability['ability_name'] not in object_summary['race']['abilities_used']:
-                                    object_summary['race']['abilities_used'][ability['ability_name']] = 0
-                                object_summary['race']['abilities_used'][ability['ability_name']] += 1
+                                if ability.name not in object_summary['race']['abilities_used']:
+                                    object_summary['race']['abilities_used'][ability.name] = 0
+                                object_summary['race']['abilities_used'][ability.name] += 1
 
                                 if 'ability_targets' in object_summary['race'] and ability_target:
                                     if ability_target.name not in object_summary['race']['ability_targets']:
@@ -145,20 +165,21 @@ class PlayerState:
                 self.player.idle_larva.append(current_idle_larva)
 
             if worker:
-                if obj.status == 'live':
+                if obj.status == GameObj.LIVE:
                     object_summary['workers_active'] += 1
-                elif obj.status == 'died':
-                    object_summary['workers_killed'] += 1
+                elif obj.status == GameObj.DIED:
+                    object_summary['workers_lost'] += 1
+                object_summary['workers_produced'] += 1
 
-                if 'worker' not in object_summary['unit'][obj.name]['type']:
-                    object_summary['unit'][obj.name]['type'].append('worker')
+                if GameObj.WORKER not in object_summary['unit'][obj.name]['type']:
+                    object_summary['unit'][obj.name]['type'].append(GameObj.WORKER)
 
-            elif 'unit' in obj.type:
-                if obj.status == 'live':
+            elif GameObj.UNIT in obj.type:
+                if obj.status == GameObj.LIVE:
                     object_summary['army_value']['minerals'] += obj.mineral_cost
                     object_summary['army_value']['gas'] += obj.gas_cost
                     object_summary['total_army_value'] += obj.mineral_cost + obj.gas_cost
-                elif obj.status == 'died':
+                elif obj.status == GameObj.DIED:
                     object_summary['resources_lost']['minerals'] += obj.mineral_cost
                     object_summary['resources_lost']['gas'] += obj.gas_cost
                     object_summary['total_resources_lost'] += obj.mineral_cost + obj.gas_cost

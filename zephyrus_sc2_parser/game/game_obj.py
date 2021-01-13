@@ -1,54 +1,102 @@
 import math
+from typing import List, Optional, Dict, Tuple, Union, Literal
+from zephyrus_sc2_parser.dataclasses import Gameloop, Ability, Position
 
 
 class GameObj:
-    def __init__(self, name, obj_id, game_id, tag, priority, mineral_cost, gas_cost):
-        self.name = name
-        self.type = []
-        self.obj_id = obj_id
-        self.game_id = game_id
-        self.tag = tag
-        self.priority = priority
-        self.mineral_cost = mineral_cost
-        self.gas_cost = gas_cost
-        self.energy = None
-        self.supply = 0
-        self.supply_provided = 0
-        self.cooldown = None
-        self.queue = None
-        self.control_groups = {}
-        self.abilities_used = []
-        self.energy_efficiency = None
-        self.init_time = None
-        self.birth_time = None
-        self.death_time = None
-        self.morph_time = None
-        self.position = None
-        self.target = None
-        self.status = None
-        self.killed_by = None
+    """
+    Contains detailed information about a game object (Unit or building),
+    plus a few related methods
+    """
+    # obj statuses
+    LIVE = 'LIVE'
+    DIED = 'DIED'
+    IN_PROGRESS = 'IN_PROGRESS'
+
+    # obj types
+    UNIT = 'UNIT'
+    BUILDING = 'BUILDING'
+    WORKER = 'WORKER'
+    SUPPLY = 'SUPPLY'
+
+    def __init__(
+        self,
+        name: str,
+        obj_id: int,
+        game_id: int,
+        tag: int,
+        recycle: int,
+        priority: int,
+        mineral_cost: int,
+        gas_cost: int,
+    ):
+        self.name: str = name
+
+        GameObjType = Union[
+            Literal[self.UNIT],
+            Literal[self.BUILDING],
+            Literal[self.WORKER],
+            Literal[self.SUPPLY],
+        ]
+        self.type: List[GameObjType] = []
+
+        self.obj_id: int = obj_id
+        self.game_id: int = game_id
+        self.tag: int = tag
+        self.recycle: int = recycle
+        self.priority: int = priority
+        self.mineral_cost: int = mineral_cost
+        self.gas_cost: int = gas_cost
+        self.energy: Optional[float] = None
+        self.supply: int = 0
+        self.supply_provided: int = 0
+        self.cooldown: Optional[int] = None
+
+        # currently unused
+        self.queue: Optional[List] = None
+
+        self.control_groups: Dict[int, int] = {}
+        self.abilities_used: List[Tuple[Ability, GameObj, Gameloop]] = []
+        self.energy_efficiency: Optional[Tuple[float, float]] = None
+        self.init_time: Optional[Gameloop] = None
+        self.birth_time: Optional[Gameloop] = None
+        self.death_time: Optional[Gameloop] = None
+        self.morph_time: Optional[Gameloop] = None
+        self.position: Optional[Position] = None
+
+        # currently unused (I think)
+        self.target: None = None
+
+        GameObjStatus = Union[
+            Literal[self.LIVE],
+            Literal[self.DIED],
+            Literal[self.IN_PROGRESS],
+        ]
+        self.status: GameObjStatus = None
+
+        self.killed_by: Optional[GameObj] = None
 
     def __eq__(self, other):
         return self.game_id == other.game_id
 
+    def __hash__(self):
+        return hash(self.game_id)
+
     def __repr__(self):
         return f'({self.name}, {self.tag})'
 
-    def calc_distance(self, other_position):
+    def calc_distance(self, other_position: Position) -> Optional[float]:
+        if not self.position:
+            return None
+
         # position contains x, y, z in integer form of floats
-        other_position = {
-            'x': other_position['x'] / 4096,
-            'y': other_position['y'] / 4096,
-        }
-
         # simple pythagoras theorem calculation
-        x_diff = abs(self.position['x'] - other_position['x'])
-        y_diff = abs(self.position['y'] - other_position['y'])
-        distance = math.sqrt(x_diff**2 + y_diff**2)
-
+        x_diff = abs(self.position.x - other_position.x)
+        y_diff = abs(self.position.y - other_position.y)
+        distance = math.sqrt(x_diff ** 2 + y_diff ** 2)
         return distance
 
-    def calc_energy(self, gameloop):
+    def calc_energy(self, gameloop: Gameloop) -> Optional[float]:
         # need to check for int since 0 is falsy
         if not self.energy or (not self.morph_time and type(self.birth_time) != int):
             return None
@@ -67,7 +115,7 @@ class GameObj:
         time_past_min_energy = 0
 
         for ability, ability_target, ability_gameloop in self.abilities_used:
-            if 'energy_cost' not in ability:
+            if not ability.energy_cost:
                 continue
 
             # only want to measure efficiency of command structures
@@ -84,7 +132,7 @@ class GameObj:
             else:
                 current_energy += energy_regen_rate * (ability_gameloop - current_gameloop)
             current_gameloop = ability_gameloop
-            current_energy -= ability['energy_cost']
+            current_energy -= ability.energy_cost
 
         if 'building' in self.type:
             min_usable_energy_gameloop = energy_maxout(current_gameloop, current_energy, 50)
@@ -96,7 +144,7 @@ class GameObj:
                 try:
                     self.energy_efficiency = (round(1 - (time_past_min_energy / gameloop), 3), round(time_past_min_energy / 22.4, 1))
                 except ZeroDivisionError:
-                    self.energy_efficiency = (1, round(time_past_min_energy / 22.4, 1))
+                    self.energy_efficiency = (1.0, round(time_past_min_energy / 22.4, 1))
 
         if gameloop >= energy_maxout(current_gameloop, current_energy, max_energy):
             current_energy = max_energy
@@ -105,13 +153,13 @@ class GameObj:
 
         return round(current_energy, 1)
 
-    def calc_inject_efficiency(self, gameloop):
+    def calc_inject_efficiency(self, gameloop: Gameloop) -> Optional[Tuple[float, int]]:
         if not self.abilities_used or self.name not in ['Hatchery', 'Lair', 'Hive']:
             return None
 
         # only 1 inject = 100% efficiency
         if len(self.abilities_used) == 1:
-            return 1
+            return (1.0, 1)
 
         # ~29sec
         inject_delay = 650
