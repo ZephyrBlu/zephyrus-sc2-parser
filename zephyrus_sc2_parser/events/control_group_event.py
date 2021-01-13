@@ -1,9 +1,8 @@
 import math
 import logging
-from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 from zephyrus_sc2_parser.events.base_event import BaseEvent
-from zephyrus_sc2_parser.game.game_obj import GameObj
+from zephyrus_sc2_parser.game import GameObj
 
 logger = logging.getLogger(__name__)
 

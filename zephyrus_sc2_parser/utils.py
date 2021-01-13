@@ -18,7 +18,7 @@ from zephyrus_sc2_parser.events import (
     PlayerStatsEvent,
 )
 from zephyrus_sc2_parser.dataclasses import GameData, Map
-from zephyrus_sc2_parser.game.player import Player
+from zephyrus_sc2_parser.game import Player
 from zephyrus_sc2_parser.gamedata.map_info import maps
 from zephyrus_sc2_parser.exceptions import MissingMmrError, PlayerCountError
 import pytz

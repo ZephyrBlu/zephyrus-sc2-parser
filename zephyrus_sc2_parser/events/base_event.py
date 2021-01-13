@@ -1,7 +1,6 @@
 import logging
-from typing import Dict, Optional, Union, Literal
-from zephyrus_sc2_parser.game.game import Game
-from zephyrus_sc2_parser.game.player import Player
+from typing import Dict, Union, Literal
+from zephyrus_sc2_parser.game import Game, Player
 from zephyrus_sc2_parser.dataclasses import Gameloop
 
 logger = logging.getLogger(__name__)

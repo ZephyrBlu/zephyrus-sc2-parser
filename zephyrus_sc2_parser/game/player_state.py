@@ -1,8 +1,6 @@
 from typing import Dict, Any
 from zephyrus_sc2_parser.dataclasses import Gameloop
-from zephyrus_sc2_parser.game.game import Game
-from zephyrus_sc2_parser.game.player import Player
-from zephyrus_sc2_parser.game.game_obj import GameObj
+from zephyrus_sc2_parser.game import Game, GameObj, Player
 
 
 class PlayerState:
