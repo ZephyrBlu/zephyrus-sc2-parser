@@ -221,13 +221,10 @@ def _create_players(player_info, events, test_flag):
     }
 
 
-def _get_map_info(player_info: Dict, map_name: str, creep_flag=True) -> Map:
+def _get_map_info(player_info: Dict, map_name: str, network_flag: bool) -> Map:
     game_map = Map(map_name)
 
-    if not creep_flag:
-        return game_map
-
-    if map_name not in maps:
+    if map_name not in maps and network_flag:
         map_bytes = player_info['m_cacheHandles'][-1]
         server = map_bytes[4:8].decode('utf8').strip('\x00 ').lower()
         file_hash = binascii.b2a_hex(map_bytes[8:]).decode('utf8')
@@ -272,8 +269,12 @@ def _get_map_info(player_info: Dict, map_name: str, creep_flag=True) -> Map:
         except OSError:
             logger.warning('Could not write map details to file')
 
-    game_map.width = maps[map_name]['width'],
-    game_map.height = maps[map_name]['height']
+    # something may have gone wrong when trying to get map details
+    # or network_flag may be False
+    if map_name in maps:
+        game_map.width = maps[map_name]['width']
+        game_map.height = maps[map_name]['height']
+
     return game_map
 
 

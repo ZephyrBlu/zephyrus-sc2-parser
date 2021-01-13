@@ -215,7 +215,7 @@ def _setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename: str, *, local=False, tick=112, creep=True, _test=False) -> Replay:
+def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=False) -> Replay:
     events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
     players = _create_players(player_info, events, _test)
     logger.info('Created players')
@@ -226,7 +226,7 @@ def parse_replay(filename: str, *, local=False, tick=112, creep=True, _test=Fals
         map_name = player_info['m_title'].decode('utf-8')
 
     played_at = _convert_time(player_info['m_timeUTC'])
-    game_map = _get_map_info(player_info, map_name, creep)
+    game_map = _get_map_info(player_info, map_name, network)
     logger.info('Fetched map data')
 
     current_game = Game(
@@ -358,7 +358,7 @@ def parse_replay(filename: str, *, local=False, tick=112, creep=True, _test=Fals
         opp_id = 1 if player.player_id == 2 else 2
 
         if player.race == 'Zerg':
-            if creep:
+            if 'creep' in current_game.timeline[-1][player.player_id]['race']:
                 summary_stats['race'][player.player_id]['creep'] = current_game.timeline[-1][player.player_id]['race']['creep']
 
             if 'inject_efficiency' in current_game.timeline[-1][player.player_id]['race']:
