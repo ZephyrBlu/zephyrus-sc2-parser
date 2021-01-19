@@ -2,7 +2,9 @@ import mpyq
 import json
 import math
 import heapq
+import copy
 import logging
+from collections import deque
 from dataclasses import dataclass
 from typing import NamedTuple, Dict, Any, Union, List, Optional
 from zephyrus_sc2_parser.s2protocol_fixed import versions
@@ -200,6 +202,8 @@ def _setup(filename):
 
     game_length = None
     for event in events:
+        # print(event)
+        # print('\n')
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
             logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
             game_length = event['_gameloop']
@@ -336,6 +340,57 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
             logger.info('Reached end of the game')
             logger.debug(f'Current gameloop: {gameloop}, game length: {game_length}')
             break
+
+    # ----- first iteration of parsing finished, start secondary parsing -----
+
+    # aggregate all created units from game objs
+    queues = []
+    all_created_units = {1: [], 2: []}
+    for player in players.values():
+        for obj in player.objects.values():
+            if obj._created_units:
+                all_created_units[player.player_id].extend(obj._created_units)
+    all_created_units[1].sort(key=lambda x: x.train_time)
+    all_created_units[2].sort(key=lambda x: x.train_time)
+
+    gameloop = 0
+    created_unit_pos = 0
+    QUEUE_TICK = 23
+    for i in range(0, game_length + 1, QUEUE_TICK):
+        # gameloop are same for both players
+        gameloop = i
+
+        player_queues = {'gameloop': gameloop, 1: {}, 2: {}}
+        for p_id, player_units in all_created_units.items():
+            current_queues = queues[-1][p_id] if queues else {}
+
+            # removing finished units from queue for this timeslice
+            for building_queue in current_queues.values():
+                for i in range(len(building_queue) - 1, -1, -1):
+                    queued_unit = building_queue[i]
+                    if queued_unit.birth_time <= gameloop:
+                        building_queue.pop()
+
+            # adding newly queued units for this timeslice
+            # start from unit after last unit to be queued
+            for i in range(created_unit_pos, len(player_units)):
+                created_unit = player_units[i]
+
+                # the rest of the recorded units are yet to be trained if train_time greater
+                if created_unit.train_time > gameloop:
+                    break
+
+                if created_unit.building not in player_queues:
+                    current_queues[created_unit.building] = deque()
+                current_queues[created_unit.building].appendleft(created_unit.obj)
+
+                # pointer should be at the *next* unit
+                created_unit_pos = i + 1
+            player_queues[p_id] = current_queues
+        queues.append(copy.deepcopy(player_queues))
+
+    for q in queues:
+        print(q)
 
     # ----- parsing finished, generating return data -----
 

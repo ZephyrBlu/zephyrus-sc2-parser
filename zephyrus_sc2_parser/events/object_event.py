@@ -1,11 +1,19 @@
 import copy
 import logging
+from dataclasses import dataclass
 from typing import Dict, Optional
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 from zephyrus_sc2_parser.game import GameObj
-from zephyrus_sc2_parser.dataclasses import Position
+from zephyrus_sc2_parser.dataclasses import Position, Gameloop
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class CreatedUnit:
+    obj: GameObj
+    train_time: Gameloop
+    building: GameObj
 
 
 class ObjectEvent(BaseEvent):
@@ -174,6 +182,31 @@ class ObjectEvent(BaseEvent):
                     event['m_y'],
                 )
                 logger.debug(f'Updated object position to: {obj.position}')
+
+            # experimental
+            # try only for SCVs at first
+            # don't want to count spawned workers at start of game
+            if player.race == 'Terran' and obj.name == 'SCV' and obj.birth_time > 0:
+                distances = []
+
+                # collecting building positions
+                for building in player.objects.values():
+                    if GameObj.BUILDING in building.type:
+                        distance_to_obj = obj.calc_distance(building.position)
+                        distances.append({
+                            'distance': distance_to_obj,
+                            'obj': building,
+                        })
+
+                closest_building = min(distances, key=lambda x: x['distance'])
+                if not closest_building['obj']._created_units:
+                    closest_building['obj']._created_units = []
+                closest_building['obj']._created_units.append(CreatedUnit(
+                    obj,
+                    # SCV gameloops
+                    obj.birth_time - 272,
+                    closest_building['obj'],
+                ))
 
         elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
             obj.status = GameObj.DIED
