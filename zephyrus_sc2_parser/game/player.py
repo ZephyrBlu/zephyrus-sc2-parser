@@ -90,6 +90,8 @@ class Player:
         self.supply: int = 0
         self.supply_cap: int = 0
         self.supply_block: int = 0
+        self._supply_blocks: List = []
+        self.queues: List = []
         self.idle_larva: List[int] = []
         self._creep_tiles: Optional[Set[Position]] = None
         self.unspent_resources: Dict[Resource, List[int]] = {

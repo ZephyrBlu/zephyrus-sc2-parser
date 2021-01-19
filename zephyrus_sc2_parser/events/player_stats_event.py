@@ -29,8 +29,13 @@ class PlayerStatsEvent(BaseEvent):
         player.supply_cap = event['m_stats']['m_scoreValueFoodMade'] // 4096
 
         if gameloop != game.game_length:
-            if player.supply >= player.supply_cap:
+            # if maxed out, not supply blocked
+            if player.supply >= player.supply_cap and player.supply_cap != 200:
                 player.supply_block += 112
+                player._supply_blocks.append({
+                    'start': gameloop - 160,
+                    'end': gameloop,
+                })
 
         player.resources_collected['minerals'] = (
             event['m_stats']['m_scoreValueMineralsCurrent'] +

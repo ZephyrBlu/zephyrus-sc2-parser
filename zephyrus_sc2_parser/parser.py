@@ -216,7 +216,7 @@ def _setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=False) -> Replay:
+def parse_replay(filename: str, *, local=False, tick=112, queue_tick=23, network=True, _test=False) -> Replay:
     events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
     players = _create_players(player_info, events, _test)
     logger.info('Created players')
@@ -354,15 +354,24 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
     all_created_units[2].sort(key=lambda x: x.train_time)
 
     gameloop = 0
-    created_unit_pos = 0
-    QUEUE_TICK = 23
-    for i in range(0, game_length + 1, QUEUE_TICK):
+    created_unit_pos = {1: 0, 2: 0}
+    for i in range(0, game_length + 1, queue_tick):
         # gameloop are same for both players
         gameloop = i
 
-        player_queues = {'gameloop': gameloop, 1: {}, 2: {}}
+        player_queues = {
+            'gameloop': gameloop,
+            1: {
+                'supply_blocked': False,
+                'queues': {},
+            },
+            2: {
+                'supply_blocked': False,
+                'queues': {},
+            },
+        }
         for p_id, player_units in all_created_units.items():
-            current_queues = queues[-1][p_id] if queues else {}
+            current_queues = queues[-1][p_id]['queues'] if queues else {}
 
             # removing finished units from queue for this timeslice
             for building_queue in current_queues.values():
@@ -373,24 +382,60 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
 
             # adding newly queued units for this timeslice
             # start from unit after last unit to be queued
-            for i in range(created_unit_pos, len(player_units)):
+            for i in range(created_unit_pos[p_id], len(player_units)):
                 created_unit = player_units[i]
 
                 # the rest of the recorded units are yet to be trained if train_time greater
                 if created_unit.train_time > gameloop:
+                    # this is next unit to be queued
+                    created_unit_pos[p_id] = i
                     break
 
                 if created_unit.building not in player_queues:
                     current_queues[created_unit.building] = deque()
                 current_queues[created_unit.building].appendleft(created_unit.obj)
-
-                # pointer should be at the *next* unit
-                created_unit_pos = i + 1
-            player_queues[p_id] = current_queues
+            player_queues[p_id]['queues'] = current_queues
         queues.append(copy.deepcopy(player_queues))
 
-    for q in queues:
-        print(q)
+    for player in players.values():
+        current_supply_block = 0
+        for queue_state in queues:
+            is_queued = False
+            gameloop = queue_state['gameloop']
+            player_queues = queue_state[player.player_id]['queues']
+            for queue in player_queues.values():
+                if queue:
+                    is_queued = True
+
+            # if all queues aren't active, we may be supply blocked
+            if not is_queued:
+                for i in range(current_supply_block, len(player._supply_blocks)):
+                    supply_block = player._supply_blocks[i]
+
+                    # there is no way for this supply block to have occurred yet, so skip to next queue state
+                    if gameloop < supply_block['start']:
+                        break
+
+                    # if this timeslice is at least partly inside supply block, mark it as supply blocked
+                    if (
+                        supply_block['start'] < (gameloop - queue_tick)
+                        or supply_block['end'] > gameloop
+                    ):
+                        queue_state[player.player_id]['supply_blocked'] = True
+
+                        # supply block may span over multiple ticks, so start again at same block
+                        current_supply_block = i
+                        break
+
+    for player in players.values():
+        player_queues = []
+        for queue_state in queues:
+            current_queue = {
+                'gameloop': queue_state['gameloop'],
+                'queues': queue_state[player.player_id]['queues'],
+            }
+            player_queues.append(current_queue)
+        player.queues = player_queues
 
     # ----- parsing finished, generating return data -----
 
