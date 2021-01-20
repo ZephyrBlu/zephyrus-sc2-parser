@@ -4,6 +4,9 @@ from zephyrus_sc2_parser.events.base_event import BaseEvent
 
 logger = logging.getLogger(__name__)
 
+# flake8: noqa
+# picks up binary operator before line break, but in this case it makes more sense
+
 
 class PlayerStatsEvent(BaseEvent):
     def __init__(self, summary_stats: Dict, *args):

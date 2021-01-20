@@ -1,0 +1,6 @@
+[flake8]
+ignore =
+ # binary operator after linebreak
+ # this is standard code style
+ W503,
+max-line-length = 120

@@ -331,8 +331,8 @@ class Player:
             avg_actions_per_pac = 0
 
         pac_gaps = []
-        for i in range(0, len(self.pac_list)-1):
-            pac_diff = self.pac_list[i+1].initial_gameloop - self.pac_list[i].final_gameloop
+        for i in range(0, len(self.pac_list) - 1):
+            pac_diff = self.pac_list[i + 1].initial_gameloop - self.pac_list[i].final_gameloop
             pac_gaps.append(pac_diff)
         if pac_gaps:
             avg_pac_gap = sum(pac_gaps) / len(pac_gaps) / 22.4

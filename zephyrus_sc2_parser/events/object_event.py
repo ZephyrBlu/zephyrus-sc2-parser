@@ -183,12 +183,15 @@ class ObjectEvent(BaseEvent):
                 )
                 logger.debug(f'Updated object position to: {obj.position}')
 
-            # experimental
-            # try only for SCVs at first
-            # don't want to count spawned workers at start of game
-            if player.race == 'Terran' and obj.name == 'SCV' and obj.birth_time > 0:
+            # don't want to count spawned workers at start of game or Zerg Drones
+            if player.race != 'Zerg' and GameObj.WORKER in obj.type and obj.birth_time > 0:
                 distances = []
-                command_structures = ['CommandCenter', 'OrbitalCommand', 'PlanetaryFortress']
+                command_structures = [
+                    'Nexus',
+                    'CommandCenter',
+                    'OrbitalCommand',
+                    'PlanetaryFortress',
+                ]
 
                 # collecting building positions
                 for building in player.objects.values():

@@ -260,7 +260,8 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
         current_event = _create_event(current_game, event, protocol, summary_stats)
         if current_event:
             # parse_event extracts and processes event data to update Player/GameObj objects
-            # if summary_stats are modified they are returned from parse_event. This only occurs for ObjectEvents and PlayerStatsEvents
+            # if summary_stats are modified they are returned from parse_event
+            # this only occurs for ObjectEvents and PlayerStatsEvents
             result = current_event.parse_event()
             logger.debug(f'Finished parsing event')
 
