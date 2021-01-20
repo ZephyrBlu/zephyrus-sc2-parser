@@ -202,11 +202,25 @@ class ObjectEvent(BaseEvent):
                 closest_building = min(distances, key=lambda x: x['distance'])
                 if not closest_building['obj']._created_units:
                     closest_building['obj']._created_units = []
+
+                # due to chronoboost, a unit may be birthed earlier than expected
+                # if initial probe is chronoboosted, train_time will be negative
+                estimated_train_time = obj.birth_time - 271
+                obj_train_time = estimated_train_time if estimated_train_time >= 0 else 0
+
+                # we compare the estimated train_time with the previous objects birth_time
+                # if train_time is before birth_time, we simply set train_time = birth_time
+                if (
+                    closest_building['obj']._created_units
+                    and obj_train_time < closest_building['obj']._created_units[-1].obj.birth_time
+                ):
+                    obj_train_time = closest_building['obj']._created_units[-1].obj.birth_time
+
                 closest_building['obj']._created_units.append(
                     CreatedUnit(
                         obj,
-                        # SCV training gameloops (272)
-                        obj.birth_time - 272,
+                        # SCV training gameloops (271)
+                        obj_train_time,
                         closest_building['obj'],
                     )
                 )
