@@ -202,8 +202,6 @@ def _setup(filename):
 
     game_length = None
     for event in events:
-        # print(event)
-        # print('\n')
         if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
             logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
             game_length = event['_gameloop']
@@ -216,7 +214,7 @@ def _setup(filename):
     return events, player_info, detailed_info, metadata, game_length, protocol
 
 
-def parse_replay(filename: str, *, local=False, tick=112, queue_tick=23, network=True, _test=False) -> Replay:
+def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=False) -> Replay:
     events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
     players = _create_players(player_info, events, _test)
     logger.info('Created players')
@@ -355,10 +353,8 @@ def parse_replay(filename: str, *, local=False, tick=112, queue_tick=23, network
 
     gameloop = 0
     created_unit_pos = {1: 0, 2: 0}
-    for i in range(0, game_length + 1, queue_tick):
-        # gameloop are same for both players
+    for i in range(0, game_length + 1):
         gameloop = i
-
         player_queues = {
             'gameloop': gameloop,
             1: {
@@ -371,31 +367,42 @@ def parse_replay(filename: str, *, local=False, tick=112, queue_tick=23, network
             },
         }
         for p_id, player_units in all_created_units.items():
-            current_queues = queues[-1][p_id]['queues'] if queues else {}
+            copied_queues = {}
+            # need to do this for perf so that queue itself is a new object
+            # but references to objects inside queue are preserved
+            if queues:
+                for building, queue in queues[-1][p_id]['queues'].items():
+                    copied_queues[building] = copy.copy(queue)
+            current_queues = copied_queues
 
-            # removing finished units from queue for this timeslice
+            # removing finished units from queue for this gameloop
             for building_queue in current_queues.values():
-                for i in range(len(building_queue) - 1, -1, -1):
-                    queued_unit = building_queue[i]
+                for j in range(len(building_queue) - 1, -1, -1):
+                    queued_unit = building_queue[j]
                     if queued_unit.birth_time <= gameloop:
                         building_queue.pop()
 
-            # adding newly queued units for this timeslice
+            # adding newly queued units for this gameloop
             # start from unit after last unit to be queued
-            for i in range(created_unit_pos[p_id], len(player_units)):
-                created_unit = player_units[i]
+            for j in range(created_unit_pos[p_id], len(player_units)):
+                created_unit = player_units[j]
 
                 # the rest of the recorded units are yet to be trained if train_time greater
                 if created_unit.train_time > gameloop:
                     # this is next unit to be queued
-                    created_unit_pos[p_id] = i
+                    created_unit_pos[p_id] = j
                     break
 
                 if created_unit.building not in player_queues:
                     current_queues[created_unit.building] = deque()
                 current_queues[created_unit.building].appendleft(created_unit.obj)
             player_queues[p_id]['queues'] = current_queues
-        queues.append(copy.deepcopy(player_queues))
+        if (
+            not queues
+            or queues[-1][1] != player_queues[1]
+            or queues[-1][2] != player_queues[2]
+        ):
+            queues.append(player_queues)
 
     for player in players.values():
         current_supply_block = 0
@@ -416,14 +423,11 @@ def parse_replay(filename: str, *, local=False, tick=112, queue_tick=23, network
                     if gameloop < supply_block['start']:
                         break
 
-                    # if this timeslice is at least partly inside supply block, mark it as supply blocked
-                    if (
-                        supply_block['start'] < (gameloop - queue_tick)
-                        or supply_block['end'] > gameloop
-                    ):
+                    # if this gameloop is inside supply block
+                    if supply_block['start'] <= gameloop <= supply_block['end']:
                         queue_state[player.player_id]['supply_blocked'] = True
 
-                        # supply block may span over multiple ticks, so start again at same block
+                        # supply block may span over gameloops, so start again at same block
                         current_supply_block = i
                         break
 

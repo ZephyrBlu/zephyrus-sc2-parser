@@ -188,10 +188,11 @@ class ObjectEvent(BaseEvent):
             # don't want to count spawned workers at start of game
             if player.race == 'Terran' and obj.name == 'SCV' and obj.birth_time > 0:
                 distances = []
+                command_structures = ['CommandCenter', 'OrbitalCommand', 'PlanetaryFortress']
 
                 # collecting building positions
                 for building in player.objects.values():
-                    if GameObj.BUILDING in building.type:
+                    if building.name in command_structures:
                         distance_to_obj = obj.calc_distance(building.position)
                         distances.append({
                             'distance': distance_to_obj,
@@ -201,12 +202,14 @@ class ObjectEvent(BaseEvent):
                 closest_building = min(distances, key=lambda x: x['distance'])
                 if not closest_building['obj']._created_units:
                     closest_building['obj']._created_units = []
-                closest_building['obj']._created_units.append(CreatedUnit(
-                    obj,
-                    # SCV gameloops
-                    obj.birth_time - 272,
-                    closest_building['obj'],
-                ))
+                closest_building['obj']._created_units.append(
+                    CreatedUnit(
+                        obj,
+                        # SCV training gameloops (272)
+                        obj.birth_time - 272,
+                        closest_building['obj'],
+                    )
+                )
 
         elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
             obj.status = GameObj.DIED
