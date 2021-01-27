@@ -208,6 +208,7 @@ class ObjectEvent(BaseEvent):
 
                 # due to chronoboost, a unit may be birthed earlier than expected
                 # if initial probe is chronoboosted, train_time will be negative
+                # 271 = worker training time in gameloops
                 estimated_train_time = obj.birth_time - 271
                 obj_train_time = estimated_train_time if estimated_train_time >= 0 else 0
 
