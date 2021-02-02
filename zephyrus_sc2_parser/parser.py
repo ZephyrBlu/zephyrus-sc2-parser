@@ -200,9 +200,22 @@ def _setup(filename):
     events = heapq.merge(game_events, tracker_events, key=lambda x: x['_gameloop'])
     events = sorted(events, key=lambda x: x['_gameloop'])
 
+    losing_player_id = None
+    for p in metadata['Players']:
+        if p['Result'] == 'Loss':
+            losing_player_id = p['PlayerID']
+
     game_length = None
     for event in events:
-        if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
+        if (
+            event['_event'] == 'NNet.Game.SGameUserLeaveEvent'
+            and (
+                # losing player will always be the first player to leave the replay
+                event['_userid']['m_userId'] == losing_player_id
+                # in a draw I'm guessing neither player wins or loses, not sure how it works though
+                or losing_player_id is None
+            )
+        ):
             logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
             game_length = event['_gameloop']
             break

@@ -187,15 +187,15 @@ def _create_players(player_info, events, test_flag):
         player_obj.user_id = events[setup_index]['m_userId']
 
         player_obj = max(players, key=lambda x: x.player_id)
-        player_obj.player_id = events[setup_index+1]['m_playerId']
-        player_obj.user_id = events[setup_index+1]['m_userId']
+        player_obj.player_id = events[setup_index + 1]['m_playerId']
+        player_obj.user_id = events[setup_index + 1]['m_userId']
 
     # if both user_id's under 2 then the largest is set as 2 and the smallest is set as 1
     # specifically in that order to prevent assignment conflicts
     elif max(players) < 2:
         player_obj = max(players, key=lambda x: x.player_id)
-        player_obj.player_id = events[setup_index+1]['m_playerId']
-        player_obj.user_id = events[setup_index+1]['m_userId']
+        player_obj.player_id = events[setup_index + 1]['m_playerId']
+        player_obj.user_id = events[setup_index + 1]['m_userId']
 
         player_obj = min(players, key=lambda x: x.player_id)
         player_obj.player_id = events[setup_index]['m_playerId']
@@ -210,8 +210,8 @@ def _create_players(player_info, events, test_flag):
         player_obj.user_id = events[setup_index]['m_userId']
 
         player_obj = max(players, key=lambda x: x.player_id)
-        player_obj.player_id = events[setup_index+1]['m_playerId']
-        player_obj.user_id = events[setup_index+1]['m_userId']
+        player_obj.player_id = events[setup_index + 1]['m_playerId']
+        player_obj.user_id = events[setup_index + 1]['m_userId']
 
     players.sort(key=lambda x: x.player_id)
 
