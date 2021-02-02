@@ -6,6 +6,10 @@ replays/
 ex.py
 test.py
 failed.py
+*.html
+stats
+*.js
+*.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
