@@ -271,7 +271,7 @@ class ObjectEvent(BaseEvent):
             obj = player.objects[obj_game_id]
             old_name = copy.copy(obj.name)
 
-            obj.name = new_obj_name
+            obj.update_name(new_obj_name, gameloop)
             obj.obj_id = new_obj_info['obj_id']
             obj.game_id = obj_game_id
             obj.tag = obj_tag

@@ -1,6 +1,13 @@
 import math
+from dataclasses import dataclass
 from typing import List, Optional, Dict, Tuple, Union, Literal, Deque
 from zephyrus_sc2_parser.dataclasses import Gameloop, Ability, Position
+
+
+@dataclass(frozen=True)
+class UnitName:
+    name: str
+    gameloop: Gameloop
 
 
 class GameObj:
@@ -31,6 +38,7 @@ class GameObj:
         gas_cost: int,
     ):
         self.name: str = name
+        self._name_history: List[UnitName] = [UnitName(self.name, 0)]
 
         GameObjType = Union[
             Literal[self.UNIT],
@@ -85,6 +93,22 @@ class GameObj:
 
     def __repr__(self):
         return f'({self.name}, {self.tag})'
+
+    def update_name(self, new_name: str, gameloop: Gameloop):
+        self.name = new_name
+        self._name_history.append(UnitName(new_name, gameloop))
+
+    def name_at_gameloop(self, gameloop: Gameloop) -> str:
+        current_name = None
+        for obj_name in self._name_history:
+            if gameloop >= obj_name.gameloop:
+                current_name = obj_name.name
+            # if current gameloop is less than the obj name gameloop
+            # we haven't reached that gameloop yet, so can exit
+            else:
+                break
+
+        return current_name
 
     def calc_distance(self, other_position: Position) -> Optional[float]:
         if not self.position:
