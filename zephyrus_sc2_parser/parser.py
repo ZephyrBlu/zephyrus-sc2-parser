@@ -4,7 +4,7 @@ import math
 import heapq
 import copy
 import logging
-from collections import deque
+from collections import OrderedDict, deque
 from dataclasses import dataclass
 from typing import NamedTuple, Dict, Any, Union, List, Optional
 from zephyrus_sc2_parser.s2protocol_fixed import versions
@@ -381,7 +381,9 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
             },
         }
         for p_id, player_units in all_created_units.items():
-            copied_queues = {}
+            # using OrderedDict to preserve order of obj creation
+            # want command structures in order of when each base was created
+            copied_queues = OrderedDict()
             # need to do this for perf so that queue itself is a new object
             # but references to objects inside queue are preserved
             if queues:
@@ -450,6 +452,7 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
         for queue_state in queues:
             current_queue = {
                 'gameloop': queue_state['gameloop'],
+                'supply_blocked': queue_state[player.player_id]['supply_blocked'],
                 'queues': queue_state[player.player_id]['queues'],
             }
             player_queues.append(current_queue)

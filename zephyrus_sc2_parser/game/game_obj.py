@@ -61,9 +61,10 @@ class GameObj:
         self.cooldown: Optional[int] = None
 
         # currently unused
-        self._created_units: Optional[List[GameObj]] = None
         self.queue: Optional[Deque[GameObj]] = None
 
+        # for Zerg, _created_units holds Larva for injects
+        self._created_units: Optional[List[GameObj]] = None
         self.control_groups: Dict[int, int] = {}
         self.abilities_used: List[Tuple[Ability, GameObj, Gameloop]] = []
         self.energy_efficiency: Optional[Tuple[float, float]] = None
