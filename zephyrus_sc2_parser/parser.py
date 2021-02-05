@@ -468,7 +468,8 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
                     is_queued = True
 
             # if all queues aren't active, we may be supply blocked
-            if not is_queued:
+            # Zerg supply block aren't related to larva though
+            if not is_queued or player.race == 'Zerg':
                 for i in range(current_supply_block, len(player._supply_blocks)):
                     supply_block = player._supply_blocks[i]
 
