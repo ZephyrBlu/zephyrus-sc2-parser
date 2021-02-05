@@ -358,17 +358,45 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
     # aggregate all created units from game objs
     queues = []
     all_created_units = {1: [], 2: []}
-    for player in players.values():
+    for p_id, player in players.values():
         for obj in player.objects.values():
             if obj._created_units:
-                all_created_units[player.player_id].extend(obj._created_units)
+                all_created_units[p_id].extend(obj._created_units)
     all_created_units[1].sort(key=lambda x: x.train_time)
     all_created_units[2].sort(key=lambda x: x.train_time)
 
-    gameloop = 0
+    for p_id, player in players.items():
+        if player.race == 'Zerg':
+            filtered_created_units = copy.deepcopy(all_created_units[p_id])
+            current_larva = deque()
+            for created_unit in all_created_units[p_id]:
+                if not current_larva:
+                    current_larva.appendleft(created_unit)
+                    continue
+
+                # if next unit is from the same building and has a train time specifically
+                # 4 gameloops after the previous unit, it means these larva are from injects
+                if (
+                    created_unit.building == current_larva[-1].building
+                    and created_unit.train_time == current_larva[-1].train_time + 4
+                ):
+                    current_larva.appendleft(created_unit)
+                    continue
+
+                # 3 larva = 1 inject
+                # remove inject larva from created units
+                if len(current_larva) == 3:
+                    for obj in current_larva:
+                        filtered_created_units.remove(obj)
+
+                    # reset for next set of inject larva
+                    current_larva = deque()
+
+            # update created units to non-inject larva only
+            all_created_units[p_id] = filtered_created_units
+
     created_unit_pos = {1: 0, 2: 0}
-    for i in range(0, game_length + 1):
-        gameloop = i
+    for gameloop in range(0, game_length + 1):
         player_queues = {
             'gameloop': gameloop,
             1: {
@@ -393,20 +421,20 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
 
             # removing finished units from queue for this gameloop
             for building_queue in current_queues.values():
-                for j in range(len(building_queue) - 1, -1, -1):
-                    queued_unit = building_queue[j]
+                for i in range(len(building_queue) - 1, -1, -1):
+                    queued_unit = building_queue[i]
                     if queued_unit.birth_time <= gameloop:
                         building_queue.pop()
 
             # adding newly queued units for this gameloop
             # start from unit after last unit to be queued
-            for j in range(created_unit_pos[p_id], len(player_units)):
-                created_unit = player_units[j]
+            for i in range(created_unit_pos[p_id], len(player_units)):
+                created_unit = player_units[i]
 
                 # the rest of the recorded units are yet to be trained if train_time greater
                 if created_unit.train_time > gameloop:
                     # this is next unit to be queued
-                    created_unit_pos[p_id] = j
+                    created_unit_pos[p_id] = i
                     break
 
                 if created_unit.building not in player_queues:

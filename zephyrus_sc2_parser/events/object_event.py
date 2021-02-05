@@ -183,14 +183,17 @@ class ObjectEvent(BaseEvent):
                 )
                 logger.debug(f'Updated object position to: {obj.position}')
 
-            # don't want to count spawned workers at start of game or Zerg Drones
-            if player.race != 'Zerg' and GameObj.WORKER in obj.type and obj.birth_time > 0:
+            # don't want to count spawned workers/larva at start of game
+            if (obj.name == 'Larva' or GameObj.WORKER in obj.type) and obj.birth_time > 0:
                 distances = []
                 command_structures = [
                     'Nexus',
                     'CommandCenter',
                     'OrbitalCommand',
                     'PlanetaryFortress',
+                    'Hatchery',
+                    'Lair',
+                    'Hive',
                 ]
 
                 # collecting building positions
@@ -209,7 +212,9 @@ class ObjectEvent(BaseEvent):
                 # due to chronoboost, a unit may be birthed earlier than expected
                 # if initial probe is chronoboosted, train_time will be negative
                 # 271 = worker training time in gameloops
-                estimated_train_time = obj.birth_time - 271
+                # 240 = larva spawn time
+                train_duration = 240 if obj.name == 'Larva' else 271
+                estimated_train_time = obj.birth_time - train_duration
                 obj_train_time = estimated_train_time if estimated_train_time >= 0 else 0
 
                 # we compare the estimated train_time with the previous objects birth_time
@@ -223,7 +228,6 @@ class ObjectEvent(BaseEvent):
                 closest_building['obj']._created_units.append(
                     CreatedUnit(
                         obj,
-                        # SCV training gameloops (271)
                         obj_train_time,
                         closest_building['obj'],
                     )
