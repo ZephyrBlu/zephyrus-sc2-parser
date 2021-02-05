@@ -358,7 +358,7 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
     # aggregate all created units from game objs
     queues = []
     all_created_units = {1: [], 2: []}
-    for p_id, player in players.values():
+    for p_id, player in players.items():
         for obj in player.objects.values():
             if obj._created_units:
                 all_created_units[p_id].extend(obj._created_units)
@@ -430,6 +430,15 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
             # start from unit after last unit to be queued
             for i in range(created_unit_pos[p_id], len(player_units)):
                 created_unit = player_units[i]
+
+                # this means we're at the last unit and it's already been queued
+                if (
+                    gameloop > created_unit.train_time
+                    and i == len(player_units) - 1
+                ):
+                    # set unit position pointer to len(player_units) to prevent further iteration
+                    created_unit_pos[p_id] = i + 1
+                    break
 
                 # the rest of the recorded units are yet to be trained if train_time greater
                 if created_unit.train_time > gameloop:

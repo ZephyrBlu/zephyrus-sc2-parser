@@ -184,7 +184,10 @@ class ObjectEvent(BaseEvent):
                 logger.debug(f'Updated object position to: {obj.position}')
 
             # don't want to count spawned workers/larva at start of game
-            if (obj.name == 'Larva' or GameObj.WORKER in obj.type) and obj.birth_time > 0:
+            if (
+                (obj.name == 'Larva' or (GameObj.WORKER in obj.type and obj.name != 'Drone'))
+                and obj.birth_time > 0
+            ):
                 distances = []
                 command_structures = [
                     'Nexus',
