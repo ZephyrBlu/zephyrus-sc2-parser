@@ -396,16 +396,27 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
             all_created_units[p_id] = filtered_created_units
 
     created_unit_pos = {1: 0, 2: 0}
+    total_downtime = {1: 0, 2: 0}
+    current_downtime = {1: 0, 2: 0}
+    idle_production_gameloop = {}
     for gameloop in range(0, game_length + 1):
         player_queues = {
             'gameloop': gameloop,
             1: {
                 'supply_blocked': False,
                 'queues': {},
+                'downtime': {
+                    'current': 0,
+                    'total': 0,
+                },
             },
             2: {
                 'supply_blocked': False,
                 'queues': {},
+                'downtime': {
+                    'current': 0,
+                    'total': 0,
+                },
             },
         }
         for p_id, player_units in all_created_units.items():
@@ -450,11 +461,41 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
                     current_queues[created_unit.building] = deque()
                 current_queues[created_unit.building].appendleft(created_unit.obj)
             player_queues[p_id]['queues'] = current_queues
+
         if (
             not queues
-            or queues[-1][1] != player_queues[1]
-            or queues[-1][2] != player_queues[2]
+            or queues[-1][1]['queues'] != player_queues[1]['queues']
+            or queues[-1][2]['queues'] != player_queues[2]['queues']
         ):
+            for p_id in range(1, 3):
+                # current downtime must be recalculated every gameloop
+                current_downtime[p_id] = 0
+                updated_total_downtime = total_downtime[p_id]
+                # only want to update idle time when something has changed
+                for building, queue in player_queues[p_id]['queues'].items():
+                    # set initial state of idle gameloops
+                    if building not in idle_production_gameloop:
+                        idle_production_gameloop[building] = None
+
+                    if idle_production_gameloop[building]:
+                        current_downtime[p_id] += player_queues['gameloop'] - idle_production_gameloop[building]
+
+                    # reset building idle gameloop if we have something queued
+                    # can also now add this building's idle time to total_downtime
+                    if queue and idle_production_gameloop[building]:
+                        updated_total_downtime += player_queues['gameloop'] - idle_production_gameloop[building]
+                        idle_production_gameloop[building] = None
+
+                    # if we have an empty queue (i.e. idle production)
+                    # and this is a new instance of idle time
+                    if not queue and not idle_production_gameloop[building]:
+                        idle_production_gameloop[building] = player_queues['gameloop']
+
+                # update idle time counters
+                player_queues[p_id]['downtime']['total'] = total_downtime[p_id] + current_downtime[p_id]
+                player_queues[p_id]['downtime']['current'] = current_downtime[p_id]
+                total_downtime[p_id] = updated_total_downtime
+
             queues.append(player_queues)
 
     for player in players.values():
@@ -492,6 +533,7 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
                 'gameloop': queue_state['gameloop'],
                 'supply_blocked': queue_state[player.player_id]['supply_blocked'],
                 'queues': queue_state[player.player_id]['queues'],
+                'downtime': queue_state[player.player_id]['downtime'],
             }
             player_queues.append(current_queue)
         player.queues = player_queues
