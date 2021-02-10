@@ -193,8 +193,7 @@ def _setup(filename):
     logger.info('Parsed raw replay file')
 
     # all info is returned as generators
-    # to paint the full picture of the game
-    # both game and tracker events are needed
+    # to paint the full picture of the game, both game and tracker events are needed
     # so they are combined then sorted in chronological order
 
     events = heapq.merge(game_events, tracker_events, key=lambda x: x['_gameloop'])
@@ -221,6 +220,7 @@ def _setup(filename):
             break
 
     # don't know why some replays don't have an end event, they just end abruptly
+    # this is likely to be solved with the updated conditions on finding the end gameloop
     if not game_length:
         raise GameLengthNotFoundError('Could not find the length of the game')
 
@@ -367,6 +367,7 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
 
     for p_id, player in players.items():
         if player.race == 'Zerg':
+            # deepcopy to prevent mutating original objects by reference
             filtered_created_units = copy.deepcopy(all_created_units[p_id])
             current_larva = deque()
             for created_unit in all_created_units[p_id]:
@@ -462,6 +463,7 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
                 current_queues[created_unit.building].appendleft(created_unit.obj)
             player_queues[p_id]['queues'] = current_queues
 
+        # if either of the queues have changed, update them
         if (
             not queues
             or queues[-1][1]['queues'] != player_queues[1]['queues']
@@ -471,7 +473,7 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
                 # current downtime must be recalculated every gameloop
                 current_downtime[p_id] = 0
                 updated_total_downtime = total_downtime[p_id]
-                # only want to update idle time when something has changed
+
                 for building, queue in player_queues[p_id]['queues'].items():
                     # set initial state of idle gameloops
                     if building not in idle_production_gameloop:
@@ -480,8 +482,8 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
                     if idle_production_gameloop[building]:
                         current_downtime[p_id] += player_queues['gameloop'] - idle_production_gameloop[building]
 
-                    # reset building idle gameloop if we have something queued
-                    # can also now add this building's idle time to total_downtime
+                    # reset building idle gameloop if we have something queued now
+                    # can also now add this building's idle time to total_downtime, since this idle period has ended
                     if queue and idle_production_gameloop[building]:
                         updated_total_downtime += player_queues['gameloop'] - idle_production_gameloop[building]
                         idle_production_gameloop[building] = None
@@ -495,7 +497,6 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
                 player_queues[p_id]['downtime']['total'] = total_downtime[p_id] + current_downtime[p_id]
                 player_queues[p_id]['downtime']['current'] = current_downtime[p_id]
                 total_downtime[p_id] = updated_total_downtime
-
             queues.append(player_queues)
 
     for player in players.values():

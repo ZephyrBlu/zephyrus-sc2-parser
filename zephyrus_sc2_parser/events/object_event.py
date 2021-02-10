@@ -173,6 +173,7 @@ class ObjectEvent(BaseEvent):
             logger.debug(f'Updated object birth_time to: {obj.birth_time}')
             logger.debug(f'Updated object status to: {obj.status}')
 
+            # TODO: don't think this is supposed to be here
             if GameObj.WORKER in obj.type:
                 summary_stats['workers_produced'][player.player_id] += 1
 
