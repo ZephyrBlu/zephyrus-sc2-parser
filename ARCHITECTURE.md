@@ -14,10 +14,11 @@ There is also some secondary parsing after all game events have been processed, 
 
 ## Initial Setup
 
-- What needs to happen before we start processing events?
-    - Need to parse file
-    - Need to access appropriate data
-    - Need to setup core data structures
+Before we can starting processing game events, we need to parse the replay file itself and set up a few data structures and populate them with basic information.
+
+Most of this occurs in the `_setup` function in `zephyrus_sc2_parser/parser.py`.
+
+The most important thing that occurs during the initial setup is populating `Player` objects with their ids. Some events have user ids, and some have player ids. User ids are matched up with player ids in the `_create_players` function in `zephyrus_sc2_parser/utils.py`.
 
 ## Parsing Loop
 
@@ -41,6 +42,7 @@ Notes:
 
 Notes:
 
+- All events only relate to one (1) player
 - All events inherit from `BaseEvent`
 - All events implement the `parse_event` method. This is the only public method events implement
 - All events are strictly self-contained. They should **NOT** be mutated from outside the event object itself
@@ -71,13 +73,13 @@ If the lookup succeeds, the `GameObj` is mutated based on the data in the event.
 
 ### `SelectionEvent`
 
-A `SelectionEvent` is only related to the `NNet.Game.SSelectionDeltaEvent` game event. However, this event is quite complex.
+A `SelectionEvent` is related to the `NNet.Game.SSelectionDeltaEvent` game event. However, the domain knowledge and logic required to handle this event is quite complex.
 
 This event manages all mutations related to player selections. Units being box selected, units being shift deselected, units dying while being selected, units spawning from selected Eggs, etc. (This applies to buildings as well of course).
 
 ### `ControlGroupEvent`
 
-A `SelectionEvent` is only related to the `NNet.Game.SSelectionDeltaEvent` game event. However, this event is quite complex.
+A `ControlGroupEvent` is related to the `NNet.Game.SControlGroupUpdateEvent` game event. However, the domain knowledge and logic required to handle this event is quite complex.
 
 This event is related to the `SelectionEvent` event, but there is no overlap in functionality. 
 
@@ -85,27 +87,35 @@ This event is related to the `SelectionEvent` event, but there is no overlap in 
 
 An `AbilityEvent` spans two game events:
 
-- `NNet.Game.SSelectionDeltaEvent`
-- `NNet.Game.SSelectionDeltaEvent`.
+- `NNet.Game.SCmdEvent`
+- `NNet.Game.SCommandManagerStateEvent`
 
 This event relates to abilities used by `GameObj`s.
 
-When a xxxx game event occurs, it is effectively cached for that player. If the same event is repeated multiple times, an yyyy event fires instead of a xxxx event.
+When a `NNet.Game.SCmdEvent` game event occurs, it is effectively cached for that player. If the same event is repeated multiple times, a `NNet.Game.SCommandManagerStateEvent` event fires instead of a `NNet.Game.SCmdEvent` event.
 
-yyyy events have limited information, so we track information about which ability is currently active for each player.
+`NNet.Game.SCommandManagerStateEvent` events have limited information, so we track information about which ability is currently active for each player.
 
 ### `PlayerStatsEvent`
 
-A `PlayerStatsEvent` is only related to the `NNet.Game.SSelectionDeltaEvent` game event. However, this event is quite complex.
+A `PlayerStatsEvent` is related to the `NNet.Replay.Tracker.SPlayerStatsEvent` game event.
+
+This event occurs every 160 gameloops (\~7 seconds) and contains a lot of information which otherwise can't easily be obtained such as current values for Supply, Unspent Resources, Resources in Queue, etc.
 
 ### `UpgradeEvent`
 
-A `UpgradeEvent` is only related to the `NNet.Game.SSelectionDeltaEvent` game event. However, this event is quite complex.
+An `UpgradeEvent` is related to the `NNet.Replay.Tracker.SUpgradeEvent` game event.
+
+This event occurs when an upgrade completes. Some upgrade names are not immediately intuitive as they are old names.
 
 ### `CameraEvent`
 
-A `CameraEvent` is only related to the `NNet.Game.SSelectionDeltaEvent` game event. However, this event is quite complex.
+A `CameraEvent` is related to the `NNet.Game.SCameraUpdateEvent` game event.
+
+This event occurs every time the camera position, pitch, roll or yaw changes.
 
 ### `PlayerLeaveEvent`
 
-A `PlayerLeaveEvent` is only related to the `NNet.Game.SPlayerLeaveEvent` game event. However, this event is quite complex.
+A `PlayerLeaveEvent` is related to the `NNet.Game.SPlayerLeaveEvent` game event.
+
+This event occurs when a player or observer leaves the game.
