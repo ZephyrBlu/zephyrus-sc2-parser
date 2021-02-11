@@ -6,11 +6,19 @@ This document describes the general structure of the parser and how different ar
 
 The goal of the parser is to generate useful game data and perform high level analysis. It's supposed to make it easy for users to extract useful data from replays.
 
-It achieves this by processing game events and building up the state of the game from event data. Game state is recorded in a few core data structures (Game, GameObj, Player), which are all mutable.
+It achieves this by processing game events and building up the state of the game from event data. Game state is recorded in a few core data structures (`Game`, `GameObj`, `Player`), which are all mutable.
 
 Some data is lost throughout the parsing process due to mutability, however snapshots of the current game state are recorded at regular intervals (This is the timeline). Other data is recorded in the core data structures (I.e. player selections).
 
 There is also some secondary parsing after all game events have been processed, which involves re-processing data for high level analysis.
+
+## Data Structures
+
+There are 2 extremely commmon data structures used in the parser: `GameObj` and `Player`. They are both found in the `zephyrus_sc2_parser/game` folder.
+
+`GameObj` objects contain the current state of units and buildings as well as underlying information such as mineral cost, type (Worker, building, unit or supply), etc.
+
+`Player` objects contain the current state of things under a player's control (Control Groups, Units/Buildings, etc) as well as a lot of historical data (Resource Collection rates, Selections, etc). 
 
 ## Initial Setup
 
@@ -44,7 +52,7 @@ Notes:
 - All events inherit from `BaseEvent`
 - All events implement the `parse_event` method. This is the only public method events implement
 - All events are strictly self-contained. They should **NOT** be mutated from outside the event object itself
-- In general, events are the only place where mutation of core data structures (GameObj, Player) should occur. The exceptions to this are mutations during initial setup and in the parsing loop
+- In general, events are the only place where mutation of core data structures (`GameObj`, `Player`) should occur. The exceptions to this are mutations during initial setup and in the parsing loop
 - You should think of events as the main method of communication between data structures like so:
 
 `GameObj/Player <--> event <--> GameObj/Player`
