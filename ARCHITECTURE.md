@@ -63,9 +63,9 @@ An `ObjectEvent` spans 5 different game events:
 - `NNet.Replay.Tracker.SUnitDiedEvent`
 - `NNet.Replay.Tracker.SUnitTypeChangeEvent`
 
-These are all directly related to mutations of in-game objects (i.e. `GameObj`s).
+These are all directly related to mutations of in-game objects (i.e. `GameObj` objects).
 
-Since this event is related to `GameObj`s, it attempts to find the `GameObj` and `Player` related to the event. If either of these lookups fail, the event is aborted.
+Since this event is related to `GameObj` objects, it attempts to find the `GameObj` and `Player` related to the event. If either of these lookups fail, the event is aborted.
 
 If the lookup succeeds, the `GameObj` is mutated based on the data in the event.
 
@@ -88,7 +88,7 @@ An `AbilityEvent` spans two game events:
 - `NNet.Game.SCmdEvent`
 - `NNet.Game.SCommandManagerStateEvent`
 
-This event relates to abilities used by `GameObj`s.
+This event relates to abilities used by `GameObj` objects.
 
 When a `NNet.Game.SCmdEvent` game event occurs, it is effectively cached for that player. If the same event is repeated multiple times, a `NNet.Game.SCommandManagerStateEvent` event fires instead of a `NNet.Game.SCmdEvent` event.
 
