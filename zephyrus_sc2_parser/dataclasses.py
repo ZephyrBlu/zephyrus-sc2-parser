@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union, Literal, List, Dict, Optional
+from typing import Union, Literal, Dict, Optional
 
 # used to explicitly show where the unit is gameloops
 Gameloop = int

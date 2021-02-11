@@ -90,6 +90,8 @@ class Player:
         self.supply: int = 0
         self.supply_cap: int = 0
         self.supply_block: int = 0
+        self._supply_blocks: List = []
+        self.queues: List = []
         self.idle_larva: List[int] = []
         self._creep_tiles: Optional[Set[Position]] = None
         self.unspent_resources: Dict[Resource, List[int]] = {
@@ -329,8 +331,8 @@ class Player:
             avg_actions_per_pac = 0
 
         pac_gaps = []
-        for i in range(0, len(self.pac_list)-1):
-            pac_diff = self.pac_list[i+1].initial_gameloop - self.pac_list[i].final_gameloop
+        for i in range(0, len(self.pac_list) - 1):
+            pac_diff = self.pac_list[i + 1].initial_gameloop - self.pac_list[i].final_gameloop
             pac_gaps.append(pac_diff)
         if pac_gaps:
             avg_pac_gap = sum(pac_gaps) / len(pac_gaps) / 22.4

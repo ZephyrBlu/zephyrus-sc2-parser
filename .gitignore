@@ -6,8 +6,8 @@ replays/
 ex.py
 test.py
 failed.py
-*.html
 stats
+*.html
 *.js
 *.json
 

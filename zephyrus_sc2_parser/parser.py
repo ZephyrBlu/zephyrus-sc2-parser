@@ -2,7 +2,9 @@ import mpyq
 import json
 import math
 import heapq
+import copy
 import logging
+from collections import OrderedDict, deque
 from dataclasses import dataclass
 from typing import NamedTuple, Dict, Any, Union, List, Optional
 from zephyrus_sc2_parser.s2protocol_fixed import versions
@@ -143,7 +145,7 @@ for map_name, non_eng_name_tuple in MAP_NAMES.items():
         non_english_maps[non_eng_map_name.encode('utf-8')] = map_name
 
 
-def _setup(filename):
+def _setup(filename, _test):
     archive = mpyq.MPQArchive(filename)
 
     # getting correct game version and protocol
@@ -191,12 +193,16 @@ def _setup(filename):
     logger.info('Parsed raw replay file')
 
     # all info is returned as generators
-    # to paint the full picture of the game
-    # both game and tracker events are needed
+    # to paint the full picture of the game, both game and tracker events are needed
     # so they are combined then sorted in chronological order
 
     events = heapq.merge(game_events, tracker_events, key=lambda x: x['_gameloop'])
     events = sorted(events, key=lambda x: x['_gameloop'])
+
+    # need to create players before finding the game length
+    # since it relies on having the player ids
+    players = _create_players(player_info, events, _test)
+    logger.info('Created players')
 
     losing_player_id = None
     for p in metadata['Players']:
@@ -209,7 +215,7 @@ def _setup(filename):
             event['_event'] == 'NNet.Game.SGameUserLeaveEvent'
             and (
                 # losing player will always be the first player to leave the replay
-                event['_userid']['m_userId'] == losing_player_id
+                event['_userid']['m_userId'] == players[losing_player_id].user_id
                 # in a draw I'm guessing neither player wins or loses, not sure how it works though
                 or losing_player_id is None
             )
@@ -219,16 +225,15 @@ def _setup(filename):
             break
 
     # don't know why some replays don't have an end event, they just end abruptly
+    # this is likely to be solved with the updated conditions on finding the end gameloop
     if not game_length:
         raise GameLengthNotFoundError('Could not find the length of the game')
 
-    return events, player_info, detailed_info, metadata, game_length, protocol
+    return events, players, player_info, detailed_info, metadata, game_length, protocol
 
 
 def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=False) -> Replay:
-    events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
-    players = _create_players(player_info, events, _test)
-    logger.info('Created players')
+    events, players, player_info, detailed_info, metadata, game_length, protocol = _setup(filename, _test)
 
     if player_info['m_title'] in non_english_maps:
         map_name = non_english_maps[player_info['m_title']]
@@ -271,7 +276,8 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
         current_event = _create_event(current_game, event, protocol, summary_stats)
         if current_event:
             # parse_event extracts and processes event data to update Player/GameObj objects
-            # if summary_stats are modified they are returned from parse_event. This only occurs for ObjectEvents and PlayerStatsEvents
+            # if summary_stats are modified they are returned from parse_event
+            # this only occurs for ObjectEvents and PlayerStatsEvents
             result = current_event.parse_event()
             logger.debug(f'Finished parsing event')
 
@@ -349,6 +355,192 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
             logger.info('Reached end of the game')
             logger.debug(f'Current gameloop: {gameloop}, game length: {game_length}')
             break
+
+    # ----- first iteration of parsing finished, start secondary parsing -----
+
+    # aggregate all created units from game objs
+    queues = []
+    all_created_units = {1: [], 2: []}
+    for p_id, player in players.items():
+        for obj in player.objects.values():
+            if obj._created_units:
+                all_created_units[p_id].extend(obj._created_units)
+    all_created_units[1].sort(key=lambda x: x.train_time)
+    all_created_units[2].sort(key=lambda x: x.train_time)
+
+    for p_id, player in players.items():
+        if player.race == 'Zerg':
+            # deepcopy to prevent mutating original objects by reference
+            filtered_created_units = copy.deepcopy(all_created_units[p_id])
+            current_larva = deque()
+            for created_unit in all_created_units[p_id]:
+                if not current_larva:
+                    current_larva.appendleft(created_unit)
+                    continue
+
+                # if next unit is from the same building and has a train time specifically
+                # 4 gameloops after the previous unit, it means these larva are from injects
+                if (
+                    created_unit.building == current_larva[-1].building
+                    and created_unit.train_time == current_larva[-1].train_time + 4
+                ):
+                    current_larva.appendleft(created_unit)
+                    continue
+
+                # 3 larva = 1 inject
+                # remove inject larva from created units
+                if len(current_larva) == 3:
+                    for obj in current_larva:
+                        filtered_created_units.remove(obj)
+
+                    # reset for next set of inject larva
+                    current_larva = deque()
+
+            # update created units to non-inject larva only
+            all_created_units[p_id] = filtered_created_units
+
+    created_unit_pos = {1: 0, 2: 0}
+    total_downtime = {1: 0, 2: 0}
+    current_downtime = {1: 0, 2: 0}
+    idle_production_gameloop = {}
+    for gameloop in range(0, game_length + 1):
+        player_queues = {
+            'gameloop': gameloop,
+            1: {
+                'supply_blocked': False,
+                'queues': {},
+                'downtime': {
+                    'current': 0,
+                    'total': 0,
+                },
+            },
+            2: {
+                'supply_blocked': False,
+                'queues': {},
+                'downtime': {
+                    'current': 0,
+                    'total': 0,
+                },
+            },
+        }
+        for p_id, player_units in all_created_units.items():
+            # using OrderedDict to preserve order of obj creation
+            # want command structures in order of when each base was created
+            copied_queues = OrderedDict()
+            # need to do this for perf so that queue itself is a new object
+            # but references to objects inside queue are preserved
+            if queues:
+                for building, queue in queues[-1][p_id]['queues'].items():
+                    copied_queues[building] = copy.copy(queue)
+            current_queues = copied_queues
+
+            # removing finished units from queue for this gameloop
+            for building_queue in current_queues.values():
+                for i in range(len(building_queue) - 1, -1, -1):
+                    queued_unit = building_queue[i]
+                    if queued_unit.birth_time <= gameloop:
+                        building_queue.pop()
+
+            # adding newly queued units for this gameloop
+            # start from unit after last unit to be queued
+            for i in range(created_unit_pos[p_id], len(player_units)):
+                created_unit = player_units[i]
+
+                # this means we're at the last unit and it's already been queued
+                if (
+                    gameloop > created_unit.train_time
+                    and i == len(player_units) - 1
+                ):
+                    # set unit position pointer to len(player_units) to prevent further iteration
+                    created_unit_pos[p_id] = i + 1
+                    break
+
+                # the rest of the recorded units are yet to be trained if train_time greater
+                if created_unit.train_time > gameloop:
+                    # this is next unit to be queued
+                    created_unit_pos[p_id] = i
+                    break
+
+                if created_unit.building not in player_queues:
+                    current_queues[created_unit.building] = deque()
+                current_queues[created_unit.building].appendleft(created_unit.obj)
+            player_queues[p_id]['queues'] = current_queues
+
+        # if either of the queues have changed, update them
+        if (
+            not queues
+            or queues[-1][1]['queues'] != player_queues[1]['queues']
+            or queues[-1][2]['queues'] != player_queues[2]['queues']
+        ):
+            for p_id in range(1, 3):
+                # current downtime must be recalculated every gameloop
+                current_downtime[p_id] = 0
+                updated_total_downtime = total_downtime[p_id]
+
+                for building, queue in player_queues[p_id]['queues'].items():
+                    # set initial state of idle gameloops
+                    if building not in idle_production_gameloop:
+                        idle_production_gameloop[building] = None
+
+                    if idle_production_gameloop[building]:
+                        current_downtime[p_id] += player_queues['gameloop'] - idle_production_gameloop[building]
+
+                    # reset building idle gameloop if we have something queued now
+                    # can also now add this building's idle time to total_downtime, since this idle period has ended
+                    if queue and idle_production_gameloop[building]:
+                        updated_total_downtime += player_queues['gameloop'] - idle_production_gameloop[building]
+                        idle_production_gameloop[building] = None
+
+                    # if we have an empty queue (i.e. idle production)
+                    # and this is a new instance of idle time
+                    if not queue and not idle_production_gameloop[building]:
+                        idle_production_gameloop[building] = player_queues['gameloop']
+
+                # update idle time counters
+                player_queues[p_id]['downtime']['total'] = total_downtime[p_id] + current_downtime[p_id]
+                player_queues[p_id]['downtime']['current'] = current_downtime[p_id]
+                total_downtime[p_id] = updated_total_downtime
+            queues.append(player_queues)
+
+    for player in players.values():
+        current_supply_block = 0
+        for queue_state in queues:
+            is_queued = False
+            gameloop = queue_state['gameloop']
+            player_queues = queue_state[player.player_id]['queues']
+            for queue in player_queues.values():
+                if queue:
+                    is_queued = True
+
+            # if all queues aren't active, we may be supply blocked
+            # Zerg supply block aren't related to larva though
+            if not is_queued or player.race == 'Zerg':
+                for i in range(current_supply_block, len(player._supply_blocks)):
+                    supply_block = player._supply_blocks[i]
+
+                    # there is no way for this supply block to have occurred yet, so skip to next queue state
+                    if gameloop < supply_block['start']:
+                        break
+
+                    # if this gameloop is inside supply block
+                    if supply_block['start'] <= gameloop <= supply_block['end']:
+                        queue_state[player.player_id]['supply_blocked'] = True
+
+                        # supply block may span over gameloops, so start again at same block
+                        current_supply_block = i
+                        break
+
+    for player in players.values():
+        player_queues = []
+        for queue_state in queues:
+            current_queue = {
+                'gameloop': queue_state['gameloop'],
+                'supply_blocked': queue_state[player.player_id]['supply_blocked'],
+                'queues': queue_state[player.player_id]['queues'],
+                'downtime': queue_state[player.player_id]['downtime'],
+            }
+            player_queues.append(current_queue)
+        player.queues = player_queues
 
     # ----- parsing finished, generating return data -----
 

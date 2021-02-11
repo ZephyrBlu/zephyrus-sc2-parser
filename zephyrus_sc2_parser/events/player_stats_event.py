@@ -4,6 +4,9 @@ from zephyrus_sc2_parser.events.base_event import BaseEvent
 
 logger = logging.getLogger(__name__)
 
+# flake8: noqa
+# picks up binary operator before line break, but in this case it makes more sense
+
 
 class PlayerStatsEvent(BaseEvent):
     def __init__(self, summary_stats: Dict, *args):
@@ -29,8 +32,13 @@ class PlayerStatsEvent(BaseEvent):
         player.supply_cap = event['m_stats']['m_scoreValueFoodMade'] // 4096
 
         if gameloop != game.game_length:
-            if player.supply >= player.supply_cap:
+            # if maxed out, not supply blocked
+            if player.supply >= player.supply_cap and player.supply_cap != 200:
                 player.supply_block += 112
+                player._supply_blocks.append({
+                    'start': gameloop - 160,
+                    'end': gameloop,
+                })
 
         player.resources_collected['minerals'] = (
             event['m_stats']['m_scoreValueMineralsCurrent'] +

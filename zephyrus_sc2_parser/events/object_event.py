@@ -1,11 +1,19 @@
 import copy
 import logging
+from dataclasses import dataclass
 from typing import Dict, Optional
 from zephyrus_sc2_parser.events.base_event import BaseEvent
 from zephyrus_sc2_parser.game import GameObj
-from zephyrus_sc2_parser.dataclasses import Position
+from zephyrus_sc2_parser.dataclasses import Position, Gameloop
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class CreatedUnit:
+    obj: GameObj
+    train_time: Gameloop
+    building: GameObj
 
 
 class ObjectEvent(BaseEvent):
@@ -175,6 +183,59 @@ class ObjectEvent(BaseEvent):
                 )
                 logger.debug(f'Updated object position to: {obj.position}')
 
+            # don't want to count spawned workers/larva at start of game
+            if (
+                (obj.name == 'Larva' or (GameObj.WORKER in obj.type and obj.name != 'Drone'))
+                and obj.birth_time > 0
+            ):
+                distances = []
+                command_structures = [
+                    'Nexus',
+                    'CommandCenter',
+                    'OrbitalCommand',
+                    'PlanetaryFortress',
+                    'Hatchery',
+                    'Lair',
+                    'Hive',
+                ]
+
+                # collecting building positions
+                for building in player.objects.values():
+                    if building.name in command_structures:
+                        distance_to_obj = obj.calc_distance(building.position)
+                        distances.append({
+                            'distance': distance_to_obj,
+                            'obj': building,
+                        })
+
+                closest_building = min(distances, key=lambda x: x['distance'])
+                if not closest_building['obj']._created_units:
+                    closest_building['obj']._created_units = []
+
+                # due to chronoboost, a unit may be birthed earlier than expected
+                # if initial probe is chronoboosted, train_time will be negative
+                # 271 = worker training time in gameloops
+                # 240 = larva spawn time
+                train_duration = 240 if obj.name == 'Larva' else 271
+                estimated_train_time = obj.birth_time - train_duration
+                obj_train_time = estimated_train_time if estimated_train_time >= 0 else 0
+
+                # we compare the estimated train_time with the previous objects birth_time
+                # if train_time is before birth_time, we simply set train_time = birth_time
+                if (
+                    closest_building['obj']._created_units
+                    and obj_train_time < closest_building['obj']._created_units[-1].obj.birth_time
+                ):
+                    obj_train_time = closest_building['obj']._created_units[-1].obj.birth_time
+
+                closest_building['obj']._created_units.append(
+                    CreatedUnit(
+                        obj,
+                        obj_train_time,
+                        closest_building['obj'],
+                    )
+                )
+
         elif self.type == 'NNet.Replay.Tracker.SUnitDiedEvent':
             obj.status = GameObj.DIED
             obj.death_time = gameloop
@@ -217,7 +278,7 @@ class ObjectEvent(BaseEvent):
             obj = player.objects[obj_game_id]
             old_name = copy.copy(obj.name)
 
-            obj.name = new_obj_name
+            obj.update_name(new_obj_name, gameloop)
             obj.obj_id = new_obj_info['obj_id']
             obj.game_id = obj_game_id
             obj.tag = obj_tag
