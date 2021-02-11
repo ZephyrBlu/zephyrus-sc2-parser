@@ -145,7 +145,7 @@ for map_name, non_eng_name_tuple in MAP_NAMES.items():
         non_english_maps[non_eng_map_name.encode('utf-8')] = map_name
 
 
-def _setup(filename):
+def _setup(filename, _test):
     archive = mpyq.MPQArchive(filename)
 
     # getting correct game version and protocol
@@ -199,6 +199,11 @@ def _setup(filename):
     events = heapq.merge(game_events, tracker_events, key=lambda x: x['_gameloop'])
     events = sorted(events, key=lambda x: x['_gameloop'])
 
+    # need to create players before finding the game length
+    # since it relies on having the player ids
+    players = _create_players(player_info, events, _test)
+    logger.info('Created players')
+
     losing_player_id = None
     for p in metadata['Players']:
         if p['Result'] == 'Loss':
@@ -210,7 +215,7 @@ def _setup(filename):
             event['_event'] == 'NNet.Game.SGameUserLeaveEvent'
             and (
                 # losing player will always be the first player to leave the replay
-                event['_userid']['m_userId'] == losing_player_id
+                event['_userid']['m_userId'] == players[losing_player_id].user_id
                 # in a draw I'm guessing neither player wins or loses, not sure how it works though
                 or losing_player_id is None
             )
@@ -224,13 +229,11 @@ def _setup(filename):
     if not game_length:
         raise GameLengthNotFoundError('Could not find the length of the game')
 
-    return events, player_info, detailed_info, metadata, game_length, protocol
+    return events, players, player_info, detailed_info, metadata, game_length, protocol
 
 
 def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=False) -> Replay:
-    events, player_info, detailed_info, metadata, game_length, protocol = _setup(filename)
-    players = _create_players(player_info, events, _test)
-    logger.info('Created players')
+    events, players, player_info, detailed_info, metadata, game_length, protocol = _setup(filename, _test)
 
     if player_info['m_title'] in non_english_maps:
         map_name = non_english_maps[player_info['m_title']]
