@@ -26,11 +26,9 @@ To re-create the game state, we iterate through all the game events and mutate t
 
 Here's a basic description of what happens when an event is processed:
 
-```
 1. Create event object
 2. Extract relevant data from the event
 3. Mutate game state with updated data
-```
 
 Notes:
 
