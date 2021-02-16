@@ -20,7 +20,7 @@ from zephyrus_sc2_parser.events import (
 from zephyrus_sc2_parser.dataclasses import GameData, Map
 from zephyrus_sc2_parser.game import Player
 from zephyrus_sc2_parser.gamedata.map_info import maps
-from zephyrus_sc2_parser.exceptions import MissingMmrError, PlayerCountError
+from zephyrus_sc2_parser.exceptions import PlayerCountError
 import pytz
 import logging
 
@@ -68,7 +68,7 @@ def _import_gamedata(protocol):
     )
 
 
-def _generate_initial_summary_stats(game, metadata, detailed_info, local=False):
+def _generate_initial_summary_stats(game, metadata, mmr_data):
     summary_stats = {
         'mmr': {1: 0, 2: 0},
         'avg_resource_collection_rate': {
@@ -101,12 +101,6 @@ def _generate_initial_summary_stats(game, metadata, detailed_info, local=False):
         'avg_pac_gap': {1: 0, 2: 0},
         'race': {1: {}, 2: {}},
     }
-
-    mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
-    if 'm_scaledRating' not in mmr_data[0] or 'm_scaledRating' not in mmr_data[1]:
-        logger.warning('One or more players has no MMR')
-        if not local:
-            raise MissingMmrError('One or more players has no MMR. If you want to parse replays without MMR, add "local=True" as a keyword argument')
 
     # setting winner of the game
     for p in metadata['Players']:

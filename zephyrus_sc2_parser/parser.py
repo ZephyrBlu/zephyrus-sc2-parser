@@ -17,7 +17,7 @@ from zephyrus_sc2_parser.utils import (
     _create_players,
     _convert_time
 )
-from zephyrus_sc2_parser.exceptions import ReplayDecodeError, GameLengthNotFoundError
+from zephyrus_sc2_parser.exceptions import MissingMmrError, ReplayDecodeError, GameLengthNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +145,7 @@ for map_name, non_eng_name_tuple in MAP_NAMES.items():
         non_english_maps[non_eng_map_name.encode('utf-8')] = map_name
 
 
-def _setup(filename, _test):
+def _setup(filename, local, _test):
     archive = mpyq.MPQArchive(filename)
 
     # getting correct game version and protocol
@@ -192,6 +192,15 @@ def _setup(filename, _test):
 
     logger.info('Parsed raw replay file')
 
+    # if no MMR then exit early
+    mmr_data = detailed_info['m_syncLobbyState']['m_userInitialData']
+    for p_id in range(1, 3):
+        player = mmr_data[p_id - 1]
+        if 'm_scaledRating' not in player or not player['m_scaledRating']:
+            logger.warning(f'Player {p_id} ({player["m_name"].decode("utf-8")}) has no MMR')
+            if not local:
+                raise MissingMmrError('One or more players has no MMR. If you want to parse replays without MMR, add "local=True" as a keyword argument')
+
     # all info is returned as generators
     # to paint the full picture of the game, both game and tracker events are needed
     # so they are combined then sorted in chronological order
@@ -210,30 +219,33 @@ def _setup(filename, _test):
             losing_player_id = p['PlayerID']
 
     game_length = None
+    last_user_leave = None
     for event in events:
-        if (
-            event['_event'] == 'NNet.Game.SGameUserLeaveEvent'
-            and (
+        if event['_event'] == 'NNet.Game.SGameUserLeaveEvent':
+            # need to collect this info in the case that the game ends via all buildings being destroyed
+            # in this case, a UserLeaveEvent does not occur for the losing player
+            last_user_leave = event['_gameloop']
+            if (
                 # losing player will always be the first player to leave the replay
                 event['_userid']['m_userId'] == players[losing_player_id].user_id
                 # in a draw I'm guessing neither player wins or loses, not sure how it works though
                 or losing_player_id is None
-            )
-        ):
-            logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
-            game_length = event['_gameloop']
-            break
+            ):
+                logger.debug(f'Found UserLeaveEvent. Game length = {event["_gameloop"]}')
+                game_length = event['_gameloop']
+                break
 
-    # don't know why some replays don't have an end event, they just end abruptly
-    # this is likely to be solved with the updated conditions on finding the end gameloop
-    if not game_length:
+    if not game_length and not last_user_leave:
         raise GameLengthNotFoundError('Could not find the length of the game')
+    else:
+        # we fallback to the last leave event in the case that we can't find when the losing player leaves
+        game_length = last_user_leave
 
     return events, players, player_info, detailed_info, metadata, game_length, protocol
 
 
 def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=False) -> Replay:
-    events, players, player_info, detailed_info, metadata, game_length, protocol = _setup(filename, _test)
+    events, players, player_info, detailed_info, metadata, game_length, protocol = _setup(filename, local, _test)
 
     if player_info['m_title'] in non_english_maps:
         map_name = non_english_maps[player_info['m_title']]
@@ -253,7 +265,11 @@ def parse_replay(filename: str, *, local=False, tick=112, network=True, _test=Fa
         protocol,
         _import_gamedata(protocol),
     )
-    summary_stats = _generate_initial_summary_stats(current_game, metadata, detailed_info, local)
+    summary_stats = _generate_initial_summary_stats(
+        current_game,
+        metadata,
+        detailed_info['m_syncLobbyState']['m_userInitialData'],
+    )
     logger.info('Completed pre-parsing setup')
 
     # ----- core parsing logic -----
