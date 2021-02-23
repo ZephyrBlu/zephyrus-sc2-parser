@@ -88,7 +88,9 @@ class AbilityEvent(BaseEvent):
                 if current_obj_energy and current_obj_energy >= 50:
                     ability_buildings.append(obj)
 
-        if player.active_ability.target_position:
+        # need to check ability_buildings because events can show up repeatedly
+        # although only 1 is executed. To tell exactly which one, need to do secondary parsing
+        if ability_buildings and player.active_ability.target_position:
             ability_obj = min(
                 ability_buildings,
                 key=lambda x: x.calc_distance(player.active_ability.target_position),
