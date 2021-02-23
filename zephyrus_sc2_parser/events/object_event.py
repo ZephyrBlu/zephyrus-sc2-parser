@@ -278,6 +278,18 @@ class ObjectEvent(BaseEvent):
             obj = player.objects[obj_game_id]
             old_name = copy.copy(obj.name)
 
+            # flying buildings such as Terran Command Center need to have
+            # their position updated when they land
+            # new position is the target of the landing ability
+            if (
+                old_name[-6:] == 'Flying'
+                and GameObj.BUILDING in obj.type
+                and obj.abilities_used
+                and obj.abilities_used[-1][0].name[-4:] == 'Land'
+            ):
+                landing_position = obj.abilities_used[-1][0].target_position
+                obj.position = landing_position
+
             obj.update_name(new_obj_name, gameloop)
             obj.obj_id = new_obj_info['obj_id']
             obj.game_id = obj_game_id

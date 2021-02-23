@@ -28,11 +28,12 @@ class Upgrade:
     completed_at: str
 
 
-@dataclass(frozen=True)
+@dataclass  # (frozen=True)
 class Ability:
     "Contains the name and energy cost of an ability"
     name: str
     energy_cost: Optional[int] = None
+    target_position: Optional[Position] = None
 
 
 # ObjectData = {

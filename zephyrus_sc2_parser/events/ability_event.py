@@ -53,7 +53,27 @@ class AbilityEvent(BaseEvent):
         logger.debug('Target object is not in player objects')
         return None
 
-    def _record_command_ability(self, ability_name):
+    def _handle_inject_ability(self, ability_obj):
+        player = self.player
+        gameloop = self.gameloop
+
+        logger.debug('Inject ability detected')
+
+        # ~1sec
+        if not ability_obj.abilities_used:
+            ability_obj.abilities_used.append((
+                player.active_ability.ability,
+                player.active_ability.obj,
+                gameloop,
+            ))
+        elif (gameloop - ability_obj.abilities_used[-1][-1]) > 22 or player.active_ability.target_position:
+            ability_obj.abilities_used.append((
+                player.active_ability.ability,
+                player.active_ability.obj,
+                gameloop,
+            ))
+
+    def _handle_command_ability(self, ability_name):
         player = self.player
         gameloop = self.gameloop
 
@@ -68,7 +88,7 @@ class AbilityEvent(BaseEvent):
                 if current_obj_energy and current_obj_energy >= 50:
                     ability_buildings.append(obj)
 
-        if ability_buildings and player.active_ability.target_position:
+        if player.active_ability.target_position:
             ability_obj = min(
                 ability_buildings,
                 key=lambda x: x.calc_distance(player.active_ability.target_position),
@@ -78,6 +98,34 @@ class AbilityEvent(BaseEvent):
                 player.active_ability.obj,
                 gameloop,
             ))
+
+    def _handle_landing_ability(self, ability_name):
+        player = self.player
+        gameloop = self.gameloop
+
+        logger.debug('Landing ability detected')
+        ability_buildings = []
+        # 'Land' is 4 letters, -4 slice removes it and leaves object name
+        obj_name = ability_name[:-4]
+
+        for obj in player.objects.values():
+            if f'{obj_name}Flying' == obj.name:
+                ability_buildings.append(obj)
+
+        # if only 1 building of type, it's easy otherwise
+        # we need to calculate a match based on last known positions
+        # we assume that the building which was closer to the landing position
+        # is the correct building
+        ability_obj = min(
+            ability_buildings,
+            key=lambda x: x.calc_distance(player.active_ability.target_position),
+        )
+        player.active_ability.ability.target_position = player.active_ability.target_position
+        ability_obj.abilities_used.append((
+            player.active_ability.ability,
+            player.active_ability.obj,
+            gameloop,
+        ))
 
     def parse_event(self):
         event = self.event
@@ -135,20 +183,12 @@ class AbilityEvent(BaseEvent):
             ability_name = player.active_ability.ability.name
             ability_obj = player.active_ability.obj
             if ability_name == 'SpawnLarva' and ability_obj:
-                # ~1sec
-                if not ability_obj.abilities_used:
-                    ability_obj.abilities_used.append((
-                        player.active_ability.ability,
-                        player.active_ability.obj,
-                        gameloop,
-                    ))
-                elif (gameloop - ability_obj.abilities_used[-1][-1]) > 22 or player.active_ability.target_position:
-                    ability_obj.abilities_used.append((
-                        player.active_ability.ability,
-                        player.active_ability.obj,
-                        gameloop,
-                    ))
+                self._handle_inject_ability(ability_obj)
 
             # the building the target is closest to is where the ability is used from
             elif ability_name in COMMAND_ABILITIES.keys():
-                self._record_command_ability(ability_name)
+                self._handle_command_ability(ability_name)
+
+            # need to record information about flying/landing buildings for Terran
+            elif 'Land' in ability_name:
+                self._handle_landing_ability(ability_name)
