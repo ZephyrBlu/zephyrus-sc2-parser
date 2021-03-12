@@ -68,6 +68,7 @@ class PlayerStatsEvent(BaseEvent):
 
         unspent_resources = player.unspent_resources
         collection_rate = player.collection_rate
+        army_value = player.army_value
 
         if gameloop != 1:
             unspent_resources['minerals'].append(
@@ -83,6 +84,14 @@ class PlayerStatsEvent(BaseEvent):
             collection_rate['gas'].append(
                 event['m_stats']['m_scoreValueVespeneCollectionRate']
             )
+
+            army_value['minerals'].append(
+                event['m_stats']['m_scoreValueMineralsUsedCurrentArmy']
+            )
+            army_value['gas'].append(
+                event['m_stats']['m_scoreValueVespeneUsedCurrentArmy']
+            )
+
 
         # update summary stats every gameloop since final update at end gameloop is inconsistent
         summary_stats['supply_block'][player.player_id] = round(self.player.supply_block / 22.4, 1)

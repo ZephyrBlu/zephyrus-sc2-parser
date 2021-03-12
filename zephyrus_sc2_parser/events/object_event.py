@@ -304,6 +304,8 @@ class ObjectEvent(BaseEvent):
 
             # organised in alphabetically sorted order
             morph_units = [
+                ['Hatchery', 'Lair'],
+                ['Hive', 'Lair'],
                 ['BanelingCocoon', 'Zergling'],
                 ['Baneling', 'BanelingCocoon'],
                 ['OverlordCocoon', 'Overseer'],
