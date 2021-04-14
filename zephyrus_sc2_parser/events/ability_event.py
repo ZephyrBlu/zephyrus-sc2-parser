@@ -7,6 +7,15 @@ from zephyrus_sc2_parser.game import GameObj
 
 logger = logging.getLogger(__name__)
 
+COMMAND_ABILITIES = {
+    'ChronoBoostEnergyCost': 'Nexus',
+    'NexusMassRecall': 'Nexus',
+    'BatteryOvercharge': 'Nexus',
+    'CalldownMULE': 'OrbitalCommand',
+    'SupplyDrop': 'OrbitalCommand',
+    'ScannerSweep': 'OrbitalCommand',
+}
+
 
 @dataclass(frozen=True)
 class ActiveAbility:
@@ -44,6 +53,82 @@ class AbilityEvent(BaseEvent):
         logger.debug('Target object is not in player objects')
         return None
 
+    def _handle_inject_ability(self, ability_obj):
+        player = self.player
+        gameloop = self.gameloop
+
+        logger.debug('Inject ability detected')
+
+        # ~1sec
+        if not ability_obj.abilities_used:
+            ability_obj.abilities_used.append((
+                player.active_ability.ability,
+                player.active_ability.obj,
+                gameloop,
+            ))
+        elif (gameloop - ability_obj.abilities_used[-1][-1]) > 22 or player.active_ability.target_position:
+            ability_obj.abilities_used.append((
+                player.active_ability.ability,
+                player.active_ability.obj,
+                gameloop,
+            ))
+
+    def _handle_command_ability(self, ability_name):
+        player = self.player
+        gameloop = self.gameloop
+
+        logger.debug('Command ability detected')
+        ability_buildings = []
+
+        for obj in player.objects.values():
+            if obj.name == COMMAND_ABILITIES[ability_name]:
+                current_obj_energy = obj.calc_energy(gameloop)
+                # abilities cost 50 energy to use
+                # if <50 energy the building is not available to cast
+                if current_obj_energy and current_obj_energy >= 50:
+                    ability_buildings.append(obj)
+
+        # need to check ability_buildings because events can show up repeatedly
+        # although only 1 is executed. To tell exactly which one, need to do secondary parsing
+        if ability_buildings and player.active_ability.target_position:
+            ability_obj = min(
+                ability_buildings,
+                key=lambda x: x.calc_distance(player.active_ability.target_position),
+            )
+            ability_obj.abilities_used.append((
+                player.active_ability.ability,
+                player.active_ability.obj,
+                gameloop,
+            ))
+
+    def _handle_landing_ability(self, ability_name):
+        player = self.player
+        gameloop = self.gameloop
+
+        logger.debug('Landing ability detected')
+        ability_buildings = []
+        # 'Land' is 4 letters, -4 slice removes it and leaves object name
+        obj_name = ability_name[:-4]
+
+        for obj in player.objects.values():
+            if f'{obj_name}Flying' == obj.name:
+                ability_buildings.append(obj)
+
+        # if only 1 building of type, it's easy otherwise
+        # we need to calculate a match based on last known positions
+        # we assume that the building which was closer to the landing position
+        # is the correct building
+        ability_obj = min(
+            ability_buildings,
+            key=lambda x: x.calc_distance(player.active_ability.target_position),
+        )
+        player.active_ability.ability.target_position = player.active_ability.target_position
+        ability_obj.abilities_used.append((
+            player.active_ability.ability,
+            player.active_ability.obj,
+            gameloop,
+        ))
+
     def parse_event(self):
         event = self.event
         player = self.player
@@ -58,15 +143,6 @@ class AbilityEvent(BaseEvent):
 
         logger.debug(f'Player: {player.name} ({player.player_id})')
         logger.debug(f'Active ability: {player.active_ability}')
-
-        command_abilities = {
-            'ChronoBoostEnergyCost': 'Nexus',
-            'NexusMassRecall': 'Nexus',
-            'BatteryOvercharge': 'Nexus',
-            'CalldownMULE': 'OrbitalCommand',
-            'SupplyDrop': 'OrbitalCommand',
-            'ScannerSweep': 'OrbitalCommand',
-        }
 
         if self.type == 'NNet.Game.SCmdEvent':
             if event['m_abil'] and event['m_abil']['m_abilLink'] and event['m_abil']['m_abilLink'] in abilities and type(event['m_abil']['m_abilCmdIndex']) is int:
@@ -105,68 +181,16 @@ class AbilityEvent(BaseEvent):
             player.active_ability = ability
             logger.debug(f'New active ability: {player.active_ability}')
 
-            if player.active_ability:
-                ability_name = player.active_ability.ability.name
-                if ability_name == 'SpawnLarva' and obj:
-                    # ~1sec
-                    if not obj.abilities_used:
-                        obj.abilities_used.append((
-                            player.active_ability.ability,
-                            player.active_ability.obj,
-                            gameloop,
-                        ))
-                    elif (gameloop - obj.abilities_used[-1][-1]) > 22 or player.active_ability.target_position:
-                        obj.abilities_used.append((
-                            player.active_ability.ability,
-                            player.active_ability.obj,
-                            gameloop,
-                        ))
+        if player.active_ability:
+            ability_name = player.active_ability.ability.name
+            ability_obj = player.active_ability.obj
+            if ability_name == 'SpawnLarva' and ability_obj:
+                self._handle_inject_ability(ability_obj)
 
-                # the building the target is closest to is where the ability is used from
-                elif ability_name in command_abilities.keys():
-                    logger.debug('Command ability detected')
-                    ability_buildings = []
+            # the building the target is closest to is where the ability is used from
+            elif ability_name in COMMAND_ABILITIES.keys():
+                self._handle_command_ability(ability_name)
 
-                    for obj in player.objects.values():
-                        if obj.name == command_abilities[ability_name]:
-                            current_obj_energy = obj.calc_energy(gameloop)
-                            # abilities cost 50 energy to use
-                            # if <50 energy the building is not available to cast
-                            if current_obj_energy and current_obj_energy >= 50:
-                                ability_buildings.append(obj)
-
-                    if ability_buildings and player.active_ability.target_position:
-                        ability_obj = min(
-                            ability_buildings,
-                            key=lambda x: x.calc_distance(player.active_ability.target_position),
-                        )
-                        ability_obj.abilities_used.append((
-                            player.active_ability.ability,
-                            player.active_ability.obj,
-                            gameloop,
-                        ))
-        else:
-            if player.active_ability:
-                ability_name = player.active_ability.ability.name
-                if ability_name in command_abilities.keys():
-                    logger.debug('Command ability detected')
-                    ability_buildings = []
-
-                    for obj in player.objects.values():
-                        if obj.name == command_abilities[ability_name]:
-                            current_obj_energy = obj.calc_energy(gameloop)
-                            # abilities cost 50 energy to use
-                            # if <50 energy the building is not available to cast
-                            if current_obj_energy and current_obj_energy >= 50:
-                                ability_buildings.append(obj)
-
-                    if ability_buildings and player.active_ability.target_position:
-                        ability_obj = min(
-                            ability_buildings,
-                            key=lambda x: x.calc_distance(player.active_ability.target_position),
-                        )
-                        ability_obj.abilities_used.append((
-                            player.active_ability.ability,
-                            player.active_ability.obj,
-                            gameloop,
-                        ))
+            # need to record information about flying/landing buildings for Terran
+            elif 'Land' in ability_name:
+                self._handle_landing_ability(ability_name)

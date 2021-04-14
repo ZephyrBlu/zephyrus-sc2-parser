@@ -94,6 +94,10 @@ class Player:
         self.queues: List = []
         self.idle_larva: List[int] = []
         self._creep_tiles: Optional[Set[Position]] = None
+        self.army_value: Dict[Resource, List[int]] = {
+            'minerals': [],
+            'gas': [],
+        }
         self.unspent_resources: Dict[Resource, List[int]] = {
             'minerals': [],
             'gas': [],
