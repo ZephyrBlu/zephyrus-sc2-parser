@@ -32,6 +32,8 @@ class UpgradeEvent(BaseEvent):
 
         if upgrade_name:
             logger.debug(f'Adding upgrade: {upgrade_name} to player')
-            player.upgrades.append(Upgrade(upgrade_name, gameloop))
+            upgrade_research_time = upgrades[player.race][upgrade_name]['research_time']
+            upgrade_start_time = gameloop - upgrade_research_time
+            player.upgrades.append(Upgrade(upgrade_name, upgrade_start_time, gameloop))
         else:
             logger.warning(f'Unknown upgrade: {event["m_upgradeTypeName"].decode("utf-8")}')
