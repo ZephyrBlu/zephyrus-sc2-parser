@@ -156,7 +156,11 @@ def _setup(filename, local, _test):
         try:
             header = versions.latest().decode_replay_header(header_content)
             base_build = header['m_version']['m_baseBuild']
-            protocol = versions.build(base_build)
+            try:
+                protocol = versions.build(base_build)
+            except ImportError:
+                # if the build can't be found, we fallback to the latest version
+                protocol = versions.latest()
 
             # accessing neccessary parts of file for data
             contents = archive.read_file('replay.tracker.events')
