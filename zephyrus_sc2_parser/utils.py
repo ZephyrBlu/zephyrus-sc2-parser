@@ -226,7 +226,7 @@ def _get_map_info(player_info: Dict, map_name: str, network_flag: bool) -> Map:
 
         map_file = None
         for i in range(0, 5):
-            map_response = requests.get(f'http://{server}.depot.battle.net:1119/{file_hash}.{file_type}')
+            map_response = requests.get(f'https://{server}-s2-depot.classic.blizzard.com/{file_hash}.{file_type}')
             if map_response.status_code == 200:
                 map_file = BytesIO(map_response.content)
                 break
