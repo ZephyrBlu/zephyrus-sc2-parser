@@ -1,0 +1,45 @@
+[project]
+name = "zephyrus-sc2-parser"
+dynamic = ["version"]
+description = "Parser for SC2 replay files"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Luke Holroyd", email = "hello@zephyrus.gg"},
+]
+maintainers = [
+    {name = "Luke Holroyd", email = "hello@zephyrus.gg"}
+]
+dependencies = [
+    'requests',
+    'mpyq',
+    'pytz'
+]
+classifiers=[
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Games/Entertainment :: Real Time Strategy"
+]
+requires-python = '>=3.8'
+
+[project.urls]
+homepage = "https://pypi.org/project/zephyrus-sc2-parser/"
+repository = "https://github.com/ZephyrBlu/zephyrus-sc2-parser"
+documentation = "https://github.com/ZephyrBlu/zephyrus-sc2-parser"
+
+[project.scripts]
+s2_cli = "zephyrus_sc2_parser.s2protocol_fixed.s2_cli:main"
+
+[build-system]
+requires = [
+    "setuptools>=45",
+    "setuptools_scm[toml]>=6.2"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["zephyrus_sc2_parser"]
+
+[tool.setuptools_scm]
+normalize=true
