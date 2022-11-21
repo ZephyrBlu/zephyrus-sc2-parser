@@ -3,7 +3,7 @@ name = "zephyrus-sc2-parser"
 dynamic = ["version"]
 description = "Parser for SC2 replay files"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT License"
 authors = [
     {name = "Luke Holroyd", email = "hello@zephyrus.gg"},
 ]
