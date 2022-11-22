@@ -25,7 +25,8 @@ class Position:
 class Upgrade:
     """Contains the name and completion time of an upgrade"""
     name: str
-    completed_at: str
+    started_at: int
+    completed_at: int
 
 
 @dataclass  # (frozen=True)
