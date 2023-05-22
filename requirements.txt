@@ -1,4 +1,4 @@
 pytz==2019.2
-requests==2.22.0
+requests==2.31.0
 mpyq==0.2.5
 mypy==0.790
